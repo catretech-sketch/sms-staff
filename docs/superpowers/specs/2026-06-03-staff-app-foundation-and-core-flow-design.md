@@ -40,6 +40,7 @@ one-line config change.
 | Data architecture | **Mirror the teacher app** — repository ports + Mock/HTTP adapters + factory (env flag) + TanStack Query hooks + SecureStore auth. |
 | i18n | **Full 4 languages now** (en/hi/mr/ta) via react-i18next; the handoff dictionary is ported directly. |
 | Branding | **Logo + school name in the authenticated header**, threaded from the session's tenant (school). |
+| Role-driven fields | **Fields/content adapt per role**, not just driver. Each of the 7 roles defines its own duty-post label and specialized "today" card. The handoff only fleshed out the driver; this generalizes the pattern to every role. |
 | Fonts | **Sora** (display) + **Manrope** (body), per the handoff. |
 | Backend | **Out of scope** — this is the client + the contract the API must satisfy. |
 
@@ -107,7 +108,8 @@ src/
     resources/en.json hi.json mr.json ta.json   # ported from app/i18n.jsx
   theme/
     colors.ts              # light + dark token tables
-    roles.ts               # ROLES: 7 roles, each accent/accentSoft/icon/label key
+    roles.ts               # ROLES: 7 roles, each accent/accentSoft/icon/label key,
+                           # dutyPostLabel, and specialized-card descriptor (role-driven fields)
     typography.ts          # Sora + Manrope scale
     makeTheme.ts           # makeTheme(dark) -> resolved theme
     ThemeProvider.tsx      # theme context + dark toggle + useTheme()
@@ -171,6 +173,39 @@ primary buttons 54 tall, check-in button 184 circle. Shadows per handoff; CTAs a
 accent-tinted glow. **Light mode is default.** Use safe-area insets (not the fixed 38/22px
 prototype bars).
 
+## Role-driven content (role config)
+
+The handoff reskins the app to the role's accent but only gives the **driver** role-specific
+fields. This spec generalizes that: a single `theme/roles.ts` config is the source of truth
+for everything that changes per role, so adding/adjusting a role is one edit and every screen
+reads from it.
+
+```ts
+// theme/roles.ts
+type RoleConfig = {
+  key: Role;
+  labelKey: string;          // i18n key for the role name
+  icon: IconName;            // bus | pot | shield | leaf | broom | bell | doc
+  accent: string;            // e.g. driver #E08A3C
+  accentSoft: string;        // tint background
+  dutyPostLabelKey: string;  // "Bus / Route", "Kitchen / Mess", "Gate / Post", ...
+  roleCardKind: RoleCard['kind'];   // which specialized card layout to render on Home
+};
+export const ROLES: Record<Role, RoleConfig> = { driver: {...}, cook: {...}, ... };
+```
+
+- **Accent reskin:** FAB, primary buttons, hero gradients, active nav, selected role tile,
+  role-accent icons — all read `ROLES[roleKey].accent`.
+- **Duty post + labels:** the Home hero "DUTY POST" column and Attendance duty-post pin use
+  `dutyPostLabelKey` (localized), so a cook sees "Kitchen / Mess", a guard "Gate / Post", etc.
+- **Specialized Home card:** `<RoleSpecializedCard role={roleKey} data={dashboard.roleCard} />`
+  switches on `roleCard.kind` to render the per-role layout (table above). Each layout is a
+  small focused component (`components/ui/roleCards/`), so the file set stays readable.
+- **Mock seed** provides a realistic `roleCard` for the logged-in role; switching role at
+  login changes the whole experience (accent + duty post + specialized card).
+- The driver also has a deep-dive overlay (later spec); other roles can gain their own
+  overlays the same way without touching Home.
+
 ## Screens in this spec
 
 ### Splash
@@ -207,8 +242,13 @@ after ~2.2s; tap-to-skip.
      Not checked in → gold "Tap to check in"; checked in → "Checked in at {time}" + elapsed.
   2. **Stat trio** — hours-this-week ring (34/44), on-time streak (fire, "21 days"), leave
      left (gift, "12 left").
-  3. **Route card** *(driver role only)* — bus + route, "License expires in 24d" (danger) +
-     "Fitness OK" (success) pills; taps to Driver (stub this spec).
+  3. **Role specialized card** *(content varies by `roleKey`)* — driven by the role config,
+     so every role gets relevant fields, not just driver: driver → bus/route + license &
+     fitness pills (taps to Driver, stub this spec); cook → today's meal count + menu +
+     stock; guard → gate/post + rounds + visitor log; gardener → assigned zones + watering;
+     sweeper → blocks + supplies; peon → errands/deliveries + bell duty; clerk → pending
+     files/records. The card pulls from the dashboard's `roleCard` block and renders a
+     per-role layout selected by `roleKey`. (Deep-dive overlays per role come in later specs.)
   4. **Pending tasks peek** — section header + "View all", two task cards (read-only peek).
   5. **Alert card** — gold, "Staff meeting at 4:00 PM".
 - Data via `useDashboard()`; Skeleton/Error/Empty/data states.
@@ -254,8 +294,18 @@ Staff    = { id; name; firstName; roleKey: Role; empId; joined; rating;
              dutyPost; shift; timing; phone }
 Session  = { accessToken; refreshToken; user: Staff; tenant: Tenant }
 Dashboard= { hoursThisWeek; hoursTarget; streakDays; leaveLeft;
-             route?: { busNo; routeName; licenseExpiresInDays; fitnessOk };
+             roleCard: RoleCard;                 // role-driven specialized card data
              pendingTasksPeek: TaskPeek[]; alert?: string }
+
+// Role-driven specialized card — a discriminated union keyed by role.
+RoleCard =
+  | { kind: 'driver';   busNo; routeName; licenseExpiresInDays; fitnessOk }
+  | { kind: 'cook';     mealCount; menu: string[]; lowStock: string[] }
+  | { kind: 'guard';    gate; roundsDone; roundsTotal; visitorsToday }
+  | { kind: 'gardener'; zones: string[]; wateringDue: number }
+  | { kind: 'sweeper';  blocks: string[]; suppliesLow: string[] }
+  | { kind: 'peon';     errands: number; bellDuty: boolean }
+  | { kind: 'clerk';    pendingFiles; requestsOpen }
 Attendance = { checkedIn: bool; checkInAt?: string; lastLog: AttendanceLog[];
                dutyPost; geofenceRadiusM }
 ```

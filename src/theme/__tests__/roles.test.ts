@@ -7,7 +7,7 @@ describe('ROLES', () => {
     ]);
   });
   it('each role has accent, icon, dutyPost label key, and a card kind', () => {
-    (ROLE_KEYS as Role[]).forEach((k) => {
+    (ROLE_KEYS as readonly Role[]).forEach((k) => {
       const r = ROLES[k];
       expect(r.key).toBe(k);
       expect(r.accent).toMatch(/^#/);

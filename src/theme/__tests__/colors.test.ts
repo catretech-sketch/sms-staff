@@ -20,4 +20,9 @@ describe('makeTheme', () => {
     expect(t.shadow.shadowOpacity).toBeGreaterThan(0);
     expect(typeof t.shadow.elevation).toBe('number');
   });
+  it('light and dark themes expose identical keys', () => {
+    expect(Object.keys(makeTheme(false)).sort()).toEqual(
+      Object.keys(makeTheme(true)).sort(),
+    );
+  });
 });

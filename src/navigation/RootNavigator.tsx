@@ -1,25 +1,37 @@
-import React, { useCallback, useState } from 'react';
+import React from 'react';
+import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { LoginScreen } from '@/screens/LoginScreen';
 import { MainTabNavigator } from './MainTabNavigator';
+import { useAuth } from '@/features/auth/AuthProvider';
+import { useTheme } from '@/theme';
 import type { RootStackParamList } from './types';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export const RootNavigator = () => {
-  // Temporary local gate for Plan 1. Replaced by useAuth() in Plan 2.
-  const [signedIn, setSignedIn] = useState(false);
-  const renderLogin = useCallback(
-    () => <LoginScreen onSignIn={() => setSignedIn(true)} />,
-    [],
-  );
+  const { status } = useAuth();
+  const { colors } = useTheme();
+
+  if (status === 'loading') {
+    return (
+      <View style={[styles.loading, { backgroundColor: colors.bg }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
+
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      {signedIn ? (
+      {status === 'authenticated' ? (
         <Stack.Screen name="Main" component={MainTabNavigator} />
       ) : (
-        <Stack.Screen name="Login">{renderLogin}</Stack.Screen>
+        <Stack.Screen name="Login" component={LoginScreen} />
       )}
     </Stack.Navigator>
   );
 };
+
+const styles = StyleSheet.create({
+  loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+});

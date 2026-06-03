@@ -59,7 +59,9 @@ export function toStaff(d: StaffDTO): Staff {
 }
 
 export function toTenant(d: TenantDTO): Tenant {
-  return { id: d.id, name: d.name, logoUrl: d.logo_url };
+  const t: Tenant = { id: d.id, name: d.name };
+  if (d.logo_url !== undefined) t.logoUrl = d.logo_url;
+  return t;
 }
 
 export function toSession(d: SessionDTO): Session {
@@ -84,11 +86,12 @@ export function toDashboard(d: DashboardDTO): Dashboard {
 }
 
 export function toAttendance(d: AttendanceDTO): Attendance {
-  return {
+  const a: Attendance = {
     checkedIn: d.checked_in,
-    checkInAt: d.check_in_at,
     lastLog: d.last_log,
     dutyPost: d.duty_post,
     geofenceRadiusM: d.geofence_radius_m,
   };
+  if (d.check_in_at !== undefined) a.checkInAt = d.check_in_at;
+  return a;
 }

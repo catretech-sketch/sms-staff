@@ -19,5 +19,5 @@ react-i18next (en/hi/mr/ta) · Sora + Manrope fonts. Swappable mock→HTTP data 
 - Design reference (source of truth for tokens, icons, i18n dictionary): `docs/design-handoff/`
 
 ## Status
-Plan 1 (scaffold & infrastructure) complete. Next: Plan 2 (data layer & auth),
-Plan 3 (icons, UI primitives, Splash & Login), Plan 4 (Home & Attendance).
+Plans 1–2 complete (scaffold + swappable mock→HTTP data layer + auth). Next: Plan 3
+(icons, UI primitives, Splash & Login), Plan 4 (Home & Attendance).

@@ -19,9 +19,15 @@ const LANG_KEY = 'sms_staff_lang';
 
 export const i18n = i18next;
 
-export async function initI18n(): Promise<void> {
-  if (i18next.isInitialized) return;
-  const saved = await asyncStore.get<LanguageCode>(LANG_KEY);
+function isSupported(code: string | null): code is LanguageCode {
+  return code != null && SUPPORTED_LANGUAGES.some((l) => l.code === code);
+}
+
+let initPromise: Promise<void> | null = null;
+
+async function doInit(): Promise<void> {
+  const saved = await asyncStore.get<string>(LANG_KEY);
+  const lng: LanguageCode = isSupported(saved) ? saved : 'en';
   await i18next.use(initReactI18next).init({
     resources: {
       en: { translation: en },
@@ -29,7 +35,7 @@ export async function initI18n(): Promise<void> {
       mr: { translation: mr },
       ta: { translation: ta },
     },
-    lng: saved ?? 'en',
+    lng,
     fallbackLng: 'en',
     interpolation: { escapeValue: false },
     returnNull: false,
@@ -37,7 +43,14 @@ export async function initI18n(): Promise<void> {
   });
 }
 
+export function initI18n(): Promise<void> {
+  if (i18next.isInitialized) return Promise.resolve();
+  if (!initPromise) initPromise = doInit();
+  return initPromise;
+}
+
 export async function setLanguage(code: LanguageCode): Promise<void> {
-  await i18next.changeLanguage(code);
+  // Persist first so a failed write never leaves UI and storage out of sync.
   await asyncStore.set(LANG_KEY, code);
+  await i18next.changeLanguage(code);
 }

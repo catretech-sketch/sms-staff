@@ -16,7 +16,7 @@ jest.mock('@react-native-async-storage/async-storage', () => {
   };
 });
 
-import { i18n, initI18n, SUPPORTED_LANGUAGES } from '@/i18n';
+import { i18n, initI18n, setLanguage, SUPPORTED_LANGUAGES } from '@/i18n';
 
 describe('i18n', () => {
   beforeAll(async () => {
@@ -40,5 +40,12 @@ describe('i18n', () => {
     expect(i18n.t('role.driver')).toBe('बस चालक');
     expect(i18n.t('nonexistent.key')).toBe('nonexistent.key');
     await i18n.changeLanguage('en');
+  });
+
+  it('setLanguage persists the choice to storage', async () => {
+    const AsyncStorage = require('@react-native-async-storage/async-storage').default;
+    await setLanguage('hi');
+    expect(await AsyncStorage.getItem('sms_staff_lang')).toBe(JSON.stringify('hi'));
+    await setLanguage('en'); // restore for other tests
   });
 });

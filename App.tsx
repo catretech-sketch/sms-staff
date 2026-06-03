@@ -23,7 +23,7 @@ import { AppProviders } from '@/providers/AppProviders';
 import { initI18n } from '@/i18n';
 
 export default function App() {
-  const [fontsLoaded] = useSora({
+  const [fontsLoaded, fontError] = useSora({
     Sora_400Regular,
     Sora_500Medium,
     Sora_600SemiBold,
@@ -37,10 +37,15 @@ export default function App() {
   const [i18nReady, setI18nReady] = useState(false);
 
   useEffect(() => {
-    initI18n().then(() => setI18nReady(true));
+    // Even if init rejects, unblock the UI — i18n falls back to English.
+    initI18n()
+      .then(() => setI18nReady(true))
+      .catch(() => setI18nReady(true));
   }, []);
 
-  if (!fontsLoaded || !i18nReady) {
+  // A font-load failure should degrade to system fonts, not hang forever.
+  const ready = (fontsLoaded || !!fontError) && i18nReady;
+  if (!ready) {
     return (
       <View style={styles.loading}>
         <ActivityIndicator size="large" color="#0E5C4A" />

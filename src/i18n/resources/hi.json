@@ -1,0 +1,19 @@
+{
+  "app.name": "स्कूलमेट स्टाफ",
+  "login.greeting": "वापसी पर स्वागत है 👋",
+  "home.goodMorning": "सुप्रभात, {{name}}",
+  "role.driver": "बस चालक",
+  "role.cook": "रसोइया",
+  "role.guard": "चौकीदार",
+  "role.gardener": "माली",
+  "role.sweeper": "सफाईकर्मी",
+  "role.peon": "चपरासी",
+  "role.clerk": "लिपिक",
+  "dutyPost.driver": "बस / मार्ग",
+  "dutyPost.cook": "रसोई / मेस",
+  "dutyPost.guard": "गेट / चौकी",
+  "dutyPost.gardener": "मैदान / क्षेत्र",
+  "dutyPost.sweeper": "ब्लॉक / क्षेत्र",
+  "dutyPost.peon": "कार्यालय / डेस्क",
+  "dutyPost.clerk": "कार्यालय / डेस्क"
+}

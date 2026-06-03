@@ -1,0 +1,19 @@
+{
+  "app.name": "SchoolMate Staff",
+  "login.greeting": "Welcome back 👋",
+  "home.goodMorning": "Good morning, {{name}}",
+  "role.driver": "Bus Driver",
+  "role.cook": "Cook",
+  "role.guard": "Watchman",
+  "role.gardener": "Gardener",
+  "role.sweeper": "Sweeper",
+  "role.peon": "Peon",
+  "role.clerk": "Clerk",
+  "dutyPost.driver": "Bus / Route",
+  "dutyPost.cook": "Kitchen / Mess",
+  "dutyPost.guard": "Gate / Post",
+  "dutyPost.gardener": "Grounds / Zone",
+  "dutyPost.sweeper": "Block / Area",
+  "dutyPost.peon": "Office / Desk",
+  "dutyPost.clerk": "Office / Desk"
+}

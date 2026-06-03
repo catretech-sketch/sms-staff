@@ -1,0 +1,19 @@
+{
+  "app.name": "ஸ்கூல்மேட் ஸ்டாஃப்",
+  "login.greeting": "மீண்டும் வரவேற்கிறோம் 👋",
+  "home.goodMorning": "காலை வணக்கம், {{name}}",
+  "role.driver": "பேருந்து ஓட்டுநர்",
+  "role.cook": "சமையல்காரர்",
+  "role.guard": "காவலர்",
+  "role.gardener": "தோட்டக்காரர்",
+  "role.sweeper": "துப்புரவாளர்",
+  "role.peon": "அலுவலக உதவியாளர்",
+  "role.clerk": "எழுத்தர்",
+  "dutyPost.driver": "பேருந்து / வழி",
+  "dutyPost.cook": "சமையலறை / உணவகம்",
+  "dutyPost.guard": "வாயில் / நிலை",
+  "dutyPost.gardener": "மைதானம் / பகுதி",
+  "dutyPost.sweeper": "தொகுதி / பகுதி",
+  "dutyPost.peon": "அலுவலகம் / மேசை",
+  "dutyPost.clerk": "அலுவலகம் / மேசை"
+}

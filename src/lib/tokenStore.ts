@@ -10,8 +10,15 @@ export interface Tokens {
 
 export const tokenStore = {
   async save(tokens: Tokens): Promise<void> {
-    await SecureStore.setItemAsync(ACCESS, tokens.accessToken);
-    await SecureStore.setItemAsync(REFRESH, tokens.refreshToken);
+    try {
+      await SecureStore.setItemAsync(ACCESS, tokens.accessToken);
+      await SecureStore.setItemAsync(REFRESH, tokens.refreshToken);
+    } catch (err) {
+      // Avoid leaving a half-written token pair behind.
+      await SecureStore.deleteItemAsync(ACCESS);
+      await SecureStore.deleteItemAsync(REFRESH);
+      throw err;
+    }
   },
   async read(): Promise<Tokens | null> {
     const accessToken = await SecureStore.getItemAsync(ACCESS);

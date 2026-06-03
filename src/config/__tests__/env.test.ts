@@ -4,8 +4,7 @@ describe('env', () => {
   it('defaults DATA_SOURCE to mock', () => {
     expect(env.DATA_SOURCE).toBe('mock');
   });
-  it('exposes an API base URL string', () => {
-    expect(typeof env.API_BASE_URL).toBe('string');
-    expect(env.API_BASE_URL.length).toBeGreaterThan(0);
+  it('exposes the documented API base URL fallback', () => {
+    expect(env.API_BASE_URL).toBe('https://api.schoolmate.local');
   });
 });

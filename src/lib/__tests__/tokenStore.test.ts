@@ -12,7 +12,16 @@ jest.mock('expo-secure-store', () => {
       delete mem[k];
       return Promise.resolve();
     }),
+    __reset: () => {
+      mem = {};
+    },
   };
+});
+
+beforeEach(() => {
+  const SecureStore = require('expo-secure-store');
+  // Clear in-memory store between tests so they are isolated.
+  SecureStore.__reset();
 });
 
 describe('tokenStore', () => {
@@ -23,6 +32,14 @@ describe('tokenStore', () => {
   it('clear() wipes tokens', async () => {
     await tokenStore.save({ accessToken: 'a', refreshToken: 'r' });
     await tokenStore.clear();
+    expect(await tokenStore.read()).toBeNull();
+  });
+  it('rolls back when the second write fails', async () => {
+    const SecureStore = require('expo-secure-store');
+    (SecureStore.setItemAsync as jest.Mock)
+      .mockImplementationOnce((_k: string, _v: string) => Promise.resolve()) // access ok
+      .mockImplementationOnce(() => Promise.reject(new Error('keychain locked'))); // refresh fails
+    await expect(tokenStore.save({ accessToken: 'a', refreshToken: 'r' })).rejects.toThrow('keychain locked');
     expect(await tokenStore.read()).toBeNull();
   });
 });

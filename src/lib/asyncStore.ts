@@ -7,6 +7,7 @@ export const asyncStore = {
     try {
       return JSON.parse(raw) as T;
     } catch {
+      // Corrupt/non-JSON value: treat as absent so callers fall back to defaults.
       return null;
     }
   },

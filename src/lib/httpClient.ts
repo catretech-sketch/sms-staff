@@ -31,7 +31,8 @@ export function createHttpClient(opts: HttpClientOptions): HttpClient {
 
   async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
     const { accessToken, tenantId } = opts.getAuth();
-    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    const headers: Record<string, string> = {};
+    if (body !== undefined) headers['Content-Type'] = 'application/json';
     if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
     if (tenantId) headers['X-Tenant-Id'] = tenantId;
 

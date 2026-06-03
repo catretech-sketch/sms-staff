@@ -1,4 +1,5 @@
 import { asyncStore } from '@/lib/asyncStore';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 jest.mock('@react-native-async-storage/async-storage', () => {
   let mem: Record<string, string> = {};
@@ -14,8 +15,16 @@ jest.mock('@react-native-async-storage/async-storage', () => {
         delete mem[k];
         return Promise.resolve();
       }),
+      clear: jest.fn(() => {
+        mem = {};
+        return Promise.resolve();
+      }),
     },
   };
+});
+
+beforeEach(async () => {
+  await AsyncStorage.clear?.();
 });
 
 describe('asyncStore', () => {
@@ -30,5 +39,9 @@ describe('asyncStore', () => {
     await asyncStore.set('k2', 5);
     await asyncStore.remove('k2');
     expect(await asyncStore.get('k2')).toBeNull();
+  });
+  it('returns null for a corrupt (non-JSON) stored value', async () => {
+    await AsyncStorage.setItem('bad', 'not-json{');
+    expect(await asyncStore.get('bad')).toBeNull();
   });
 });

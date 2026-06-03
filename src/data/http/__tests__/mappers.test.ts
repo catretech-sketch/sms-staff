@@ -1,0 +1,58 @@
+import { toSession, toStaff, toTenant, toDashboard, toAttendance } from '@/data/http/mappers';
+
+describe('http mappers', () => {
+  it('toStaff maps snake_case to domain', () => {
+    const staff = toStaff({
+      id: 's1', name: 'Ramesh Kumar', first_name: 'Ramesh', role_key: 'driver',
+      emp_id: 'EMP-1', joined: '2019-06-12', rating: 4.6, duty_post: 'Bus / Route',
+      shift: 'Morning Shift', timing: '7:30–3:30', phone: '98765 43210',
+    });
+    expect(staff.firstName).toBe('Ramesh');
+    expect(staff.roleKey).toBe('driver');
+    expect(staff.empId).toBe('EMP-1');
+    expect(staff.dutyPost).toBe('Bus / Route');
+  });
+
+  it('toTenant maps logo_url to logoUrl', () => {
+    expect(toTenant({ id: 't1', name: 'School', logo_url: 'http://x/y.png' }))
+      .toEqual({ id: 't1', name: 'School', logoUrl: 'http://x/y.png' });
+  });
+
+  it('toSession maps tokens and nested user/tenant', () => {
+    const s = toSession({
+      access_token: 'a', refresh_token: 'r',
+      user: { id: 's1', name: 'R K', first_name: 'R', role_key: 'cook', emp_id: 'E', joined: '2020-01-01', rating: 4, duty_post: 'Kitchen / Mess', shift: 'Morning Shift', timing: '7:30–3:30', phone: '1' },
+      tenant: { id: 't1', name: 'School' },
+    });
+    expect(s.accessToken).toBe('a');
+    expect(s.refreshToken).toBe('r');
+    expect(s.user.roleKey).toBe('cook');
+    expect(s.tenant.id).toBe('t1');
+  });
+
+  it('toDashboard maps stats and passes nested structures through', () => {
+    const d = toDashboard({
+      hours_this_week: 34, hours_target: 44, streak_days: 21, leave_left: 12,
+      role_card: { kind: 'driver', busNo: 'X', routeName: 'R7', licenseExpiresInDays: 24, fitnessOk: true },
+      pending_tasks_peek: [{ id: 't1', title: 'A', priority: 'urgent', done: false }],
+      alert: 'Meeting',
+    });
+    expect(d.hoursThisWeek).toBe(34);
+    expect(d.leaveLeft).toBe(12);
+    expect(d.roleCard.kind).toBe('driver');
+    expect(d.pendingTasksPeek[0].id).toBe('t1');
+    expect(d.alert).toBe('Meeting');
+  });
+
+  it('toAttendance maps snake_case fields', () => {
+    const a = toAttendance({
+      checked_in: true, check_in_at: '2026-06-03T08:00:00Z',
+      last_log: [{ at: '2026-06-03T08:00:00Z', kind: 'in', inZone: true }],
+      duty_post: 'Bus / Route', geofence_radius_m: 120,
+    });
+    expect(a.checkedIn).toBe(true);
+    expect(a.checkInAt).toBe('2026-06-03T08:00:00Z');
+    expect(a.dutyPost).toBe('Bus / Route');
+    expect(a.geofenceRadiusM).toBe(120);
+  });
+});

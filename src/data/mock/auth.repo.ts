@@ -1,14 +1,11 @@
 import type { AuthRepository } from '@/data/repositories/types';
+import type { Session } from '@/data/domain';
 import type { Store } from './store';
 import { simulateLatency } from '@/lib/latency';
 import { AppError } from '@/lib/errors';
 import { dutyPostByRole } from './seed';
 
-const cloneSession = (s: Store['session']) => ({
-  ...s,
-  user: { ...s.user },
-  tenant: { ...s.tenant },
-});
+const cloneSession = (s: Store['session']): Session => JSON.parse(JSON.stringify(s)) as Session;
 
 export function mockAuth(store: Store): AuthRepository {
   return {

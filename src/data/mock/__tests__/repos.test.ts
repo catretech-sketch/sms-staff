@@ -43,6 +43,20 @@ describe('mock repositories', () => {
     expect(dash.pendingTasksPeek.length).toBeGreaterThan(0);
   });
 
+  it('dashboard result does not alias store-internal arrays', async () => {
+    const store = await createStore();
+    await mockAuth(store).login('98765 43210', 'cook');
+    const dash1 = await mockDashboard(store).get();
+    if (dash1.roleCard.kind === 'cook') {
+      dash1.roleCard.menu.push('Chapati');
+    }
+    const dash2 = await mockDashboard(store).get();
+    // The mutation to dash1 must not leak into a fresh read.
+    if (dash2.roleCard.kind === 'cook') {
+      expect(dash2.roleCard.menu).not.toContain('Chapati');
+    }
+  });
+
   it('checkIn flips state, records a log, and persists', async () => {
     const store = await createStore();
     const repo = mockAttendance(store);

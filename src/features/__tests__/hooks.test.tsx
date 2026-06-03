@@ -22,9 +22,11 @@ jest.mock('@react-native-async-storage/async-storage', () => {
 });
 const AsyncStorage = require('@react-native-async-storage/async-storage').default;
 
+let qc: QueryClient;
+
 async function wrap(ui: React.ReactElement) {
   const repos = createMockRepositories(await createStore());
-  const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
     <QueryClientProvider client={qc}>
       <RepositoryProvider repositories={repos}>{ui}</RepositoryProvider>
@@ -52,6 +54,9 @@ function AttendanceProbe() {
 
 describe('feature hooks', () => {
   beforeEach(async () => { await AsyncStorage.clear(); });
+  afterEach(() => {
+    qc.clear();
+  });
 
   it('useDashboard loads the role-driven dashboard', async () => {
     await wrap(<DashboardProbe />);

@@ -34,6 +34,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       try {
         const user = await repos.auth.me();
+        // tokens (SecureStore) take precedence over the AsyncStorage snapshot, so a
+        // mid-session token refresh is honoured even if the stored session is stale.
         const rehydrated: Session = { ...stored, ...tokens, user };
         authSnapshot.set({ accessToken: rehydrated.accessToken, tenantId: rehydrated.tenant.id });
         setSession(rehydrated);

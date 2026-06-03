@@ -4,8 +4,8 @@ import { NavigationContainer } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StatusBar } from 'expo-status-bar';
+import { useFonts } from 'expo-font';
 import {
-  useFonts as useSora,
   Sora_400Regular,
   Sora_500Medium,
   Sora_600SemiBold,
@@ -23,7 +23,8 @@ import { AppProviders } from '@/providers/AppProviders';
 import { initI18n } from '@/i18n';
 
 export default function App() {
-  const [fontsLoaded, fontError] = useSora({
+  // Load Sora (display) + Manrope (body) together via expo-font's useFonts.
+  const [fontsLoaded, fontError] = useFonts({
     Sora_400Regular,
     Sora_500Medium,
     Sora_600SemiBold,

@@ -1,24 +1,26 @@
-import React from 'react';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { LoginScreen } from '@/screens/LoginScreen';
 import { MainTabNavigator } from './MainTabNavigator';
 import { useAuth } from '@/features/auth/AuthProvider';
-import { useTheme } from '@/theme';
+import { SplashScreen } from '@/screens/SplashScreen';
 import type { RootStackParamList } from './types';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export const RootNavigator = () => {
   const { status } = useAuth();
-  const { colors } = useTheme();
+  const [splashDone, setSplashDone] = useState(false);
 
+  // While auth is resolving, show the Splash with a no-op onDone so it
+  // keeps animating without advancing until auth status is known.
   if (status === 'loading') {
-    return (
-      <View style={[styles.loading, { backgroundColor: colors.bg }]}>
-        <ActivityIndicator size="large" color={colors.primary} />
-      </View>
-    );
+    return <SplashScreen onDone={() => {}} />;
+  }
+
+  // Show Splash once per cold start before Login.
+  if (status !== 'authenticated' && !splashDone) {
+    return <SplashScreen onDone={() => setSplashDone(true)} />;
   }
 
   return (
@@ -32,6 +34,3 @@ export const RootNavigator = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-});

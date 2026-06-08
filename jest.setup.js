@@ -26,6 +26,11 @@ if (!i18next.isInitialized) {
   });
 }
 
+// Mock react-native-safe-area-context so SafeAreaProvider + useSafeAreaInsets work in tests.
+jest.mock('react-native-safe-area-context', () =>
+  require('react-native-safe-area-context/jest/mock').default,
+);
+
 // Mock AsyncStorage globally so ThemeProvider (used in renderWithTheme) works in all tests.
 jest.mock('@react-native-async-storage/async-storage', () => {
   let mem = {};

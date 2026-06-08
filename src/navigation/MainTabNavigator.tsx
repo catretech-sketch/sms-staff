@@ -1,24 +1,32 @@
 import React from 'react';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { useNavigation } from '@react-navigation/native';
 import { HomeScreen } from '@/screens/HomeScreen';
 import { RosterScreen } from '@/screens/RosterScreen';
 import { TasksScreen } from '@/screens/TasksScreen';
 import { ProfileScreen } from '@/screens/ProfileScreen';
-import { useTheme } from '@/theme';
-import type { MainTabParamList } from './types';
+import { AttendanceScreen } from '@/screens/AttendanceScreen';
+import { TabBar } from '@/components/ui';
+import type { MainStackParamList, MainTabParamList } from './types';
 
+const Stack = createNativeStackNavigator<MainStackParamList>();
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
-export const MainTabNavigator = () => {
-  const { colors, role } = useTheme();
+// Inner bottom-tab navigator using the custom floating TabBar.
+// The FAB navigates to 'Attendance' which is a sibling route in the parent
+// native-stack — React Navigation v7 bubbles the navigate call up automatically.
+const TabsNavigator = () => {
+  const navigation = useNavigation();
   return (
     <Tab.Navigator
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: role.accent,
-        tabBarInactiveTintColor: colors.inkFaint,
-        tabBarStyle: { backgroundColor: colors.surface, borderTopColor: colors.line },
-      }}
+      screenOptions={{ headerShown: false }}
+      tabBar={(props) => (
+        <TabBar
+          {...props}
+          onPressFab={() => navigation.navigate('Attendance' as never)}
+        />
+      )}
     >
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Roster" component={RosterScreen} />
@@ -27,3 +35,15 @@ export const MainTabNavigator = () => {
     </Tab.Navigator>
   );
 };
+
+// Exported navigator: a native-stack wrapping the tabs + the Attendance overlay.
+export const MainTabNavigator = () => (
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Screen name="Tabs" component={TabsNavigator} />
+    <Stack.Screen
+      name="Attendance"
+      component={AttendanceScreen}
+      options={{ presentation: 'card', animation: 'slide_from_right' }}
+    />
+  </Stack.Navigator>
+);

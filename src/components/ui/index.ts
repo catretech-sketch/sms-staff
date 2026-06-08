@@ -41,3 +41,5 @@ export { CheckInButton } from './CheckInButton';
 export type { CheckInButtonProps, CheckInState } from './CheckInButton';
 export { Confetti } from './Confetti';
 export type { ConfettiHandle, ConfettiProps } from './Confetti';
+export { TabBar } from './TabBar';
+export type { TabBarProps } from './TabBar';

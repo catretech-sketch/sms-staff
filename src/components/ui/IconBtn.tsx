@@ -1,6 +1,6 @@
 // src/components/ui/IconBtn.tsx
 import React from 'react';
-import { Pressable, StyleSheet } from 'react-native';
+import { Pressable, View, StyleSheet } from 'react-native';
 import { useTheme } from '@/theme';
 import { Icon, type IconName } from '@/components/icons';
 
@@ -43,7 +43,9 @@ export const IconBtn: React.FC<IconBtnProps> = ({
         },
       ]}
     >
-      <Icon name={icon} size={size} color={iconColor} strokeWidth={2} />
+      <View accessible={false} importantForAccessibility="no-hide-descendants">
+        <Icon name={icon} size={size} color={iconColor} strokeWidth={2} />
+      </View>
     </Pressable>
   );
 };

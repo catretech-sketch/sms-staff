@@ -1,6 +1,5 @@
 import React from 'react';
-import { fireEvent, waitFor, act } from '@testing-library/react-native';
-import { render } from '@testing-library/react-native';
+import { fireEvent, waitFor, render } from '@testing-library/react-native';
 import { AppProviders } from '@/providers/AppProviders';
 import { AttendanceScreen } from '@/screens/AttendanceScreen';
 

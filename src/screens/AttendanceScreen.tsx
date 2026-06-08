@@ -50,6 +50,10 @@ export const AttendanceScreen: React.FC<AttendanceScreenProps> = ({ navigation }
 
   const [busy, setBusy] = useState(false);
 
+  // Unmount guard — prevents setState after navigation away
+  const mountedRef = useRef(true);
+  useEffect(() => () => { mountedRef.current = false; }, []);
+
   // Request location on mount
   useEffect(() => {
     let cancelled = false;
@@ -104,11 +108,13 @@ export const AttendanceScreen: React.FC<AttendanceScreenProps> = ({ navigation }
     if (checkInState === 'ready') {
       setBusy(true);
       await new Promise<void>(resolve => setTimeout(resolve, 650));
+      if (!mountedRef.current) return;
       try {
         await checkIn.mutateAsync({ at: new Date().toISOString(), inZone: true });
+        if (!mountedRef.current) return;
         confettiRef.current?.fire();
       } finally {
-        setBusy(false);
+        if (mountedRef.current) setBusy(false);
       }
     } else if (checkInState === 'checkedIn') {
       checkOut.mutate({ at: new Date().toISOString() });
@@ -116,11 +122,12 @@ export const AttendanceScreen: React.FC<AttendanceScreenProps> = ({ navigation }
   }, [checkInState, checkIn, checkOut]);
 
   // Helper text
+  // TODO: real distance needs geofence-center coords added to the Attendance domain in a future spec
   const helperText = locating
     ? t('attendance.locating')
     : inRange
       ? t('attendance.inZone')
-      : t('attendance.outZone', { m: position ? Math.round(0) : '?' });
+      : t('attendance.outZone', { m: '?' });
 
   // Today log row: show if checked in or there's a lastLog entry
   const logTime = att.data?.checkInAt
@@ -153,9 +160,10 @@ export const AttendanceScreen: React.FC<AttendanceScreenProps> = ({ navigation }
       >
         {/* GeoRadar */}
         <View style={styles.radarRow}>
+          {/* TODO: real distance needs geofence-center coords added to the Attendance domain in a future spec */}
           <GeoRadar
             state={radarState}
-            distanceM={position ? 0 : undefined}
+            distanceM={undefined}
             accuracyM={position?.accuracy}
             accent={role.accent}
           />

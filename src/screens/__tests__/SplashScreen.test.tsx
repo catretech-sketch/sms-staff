@@ -19,3 +19,10 @@ it('skips on tap', () => {
   fireEvent.press(getByTestId('splash'));
   expect(onDone).toHaveBeenCalledTimes(1);
 });
+it('fires onDone exactly once even if tapped and the timer also elapses', () => {
+  const onDone = jest.fn();
+  const { getByTestId } = renderWithTheme(<SplashScreen onDone={onDone} />);
+  fireEvent.press(getByTestId('splash'));
+  jest.advanceTimersByTime(2300);
+  expect(onDone).toHaveBeenCalledTimes(1);
+});

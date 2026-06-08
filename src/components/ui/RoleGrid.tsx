@@ -59,6 +59,8 @@ export const RoleGrid: React.FC<RoleGridProps> = ({ selected, onSelect }) => {
           </Pressable>
         );
       })}
+      {/* Hidden spacer keeps the bottom row of 3 at the same width as the top row of 4 */}
+      <View style={styles.spacer} />
     </View>
   );
 };
@@ -71,9 +73,9 @@ const styles = StyleSheet.create({
   },
   tile: {
     // 4 columns with gap: roughly (100% - 3*10px) / 4
-    // Use a fixed width approach — flexBasis ~23%
+    // Fixed width (no flexGrow) keeps all rows uniform
     flexBasis: '22%',
-    flexGrow: 1,
+    flexGrow: 0,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
@@ -84,6 +86,10 @@ const styles = StyleSheet.create({
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 4,
+  },
+  spacer: {
+    flexBasis: '22%',
+    flexGrow: 0,
   },
   label: {
     textAlign: 'center',

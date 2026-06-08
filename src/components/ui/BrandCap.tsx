@@ -75,6 +75,7 @@ const styles = StyleSheet.create({
     borderRadius: 100,
     paddingHorizontal: 10,
     paddingVertical: 5,
+    minHeight: 44,
   },
   langText: {
     color: '#FFFFFF',

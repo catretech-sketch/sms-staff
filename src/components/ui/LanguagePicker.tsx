@@ -1,6 +1,6 @@
 // src/components/ui/LanguagePicker.tsx
 import React from 'react';
-import { View, Text, Pressable, StyleSheet, Modal } from 'react-native';
+import { Text, Pressable, StyleSheet, Modal } from 'react-native';
 import { useTheme } from '@/theme';
 import { TextScale } from '@/theme/typography';
 import { Icon } from '@/components/icons';
@@ -20,8 +20,6 @@ export const LanguagePicker: React.FC<LanguagePickerProps> = ({
   onClose,
 }) => {
   const { colors, role } = useTheme();
-
-  if (!visible) return null;
 
   return (
     <Modal

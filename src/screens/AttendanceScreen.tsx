@@ -18,6 +18,7 @@ import {
   Confetti,
   type ConfettiHandle,
   IconBtn,
+  useToast,
 } from '@/components/ui';
 import {
   useAttendanceStatus,
@@ -32,6 +33,7 @@ export interface AttendanceScreenProps {
 export const AttendanceScreen: React.FC<AttendanceScreenProps> = ({ navigation }) => {
   const { t } = useTranslation();
   const { colors, role } = useTheme();
+  const toast = useToast();
 
   const att = useAttendanceStatus();
   const checkIn = useCheckIn();
@@ -113,13 +115,15 @@ export const AttendanceScreen: React.FC<AttendanceScreenProps> = ({ navigation }
         await checkIn.mutateAsync({ at: new Date().toISOString(), inZone: true });
         if (!mountedRef.current) return;
         confettiRef.current?.fire();
+      } catch {
+        if (mountedRef.current) toast.show(t('common.somethingWrong'), 'error');
       } finally {
         if (mountedRef.current) setBusy(false);
       }
     } else if (checkInState === 'checkedIn') {
       checkOut.mutate({ at: new Date().toISOString() });
     }
-  }, [checkInState, checkIn, checkOut]);
+  }, [checkInState, checkIn, checkOut, t, toast]);
 
   // Helper text
   // TODO: real distance needs geofence-center coords added to the Attendance domain in a future spec

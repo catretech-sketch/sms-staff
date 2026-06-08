@@ -41,18 +41,17 @@ it('signs in through the mock data source and lands on Home with school identity
   //    rendering Splash — either in loading state or unauthenticated state).
   await waitFor(() => getByTestId('splash'), { timeout: 5000 });
 
-  // 2. Give auth bootstrap time to resolve (SecureStore returns null → unauthenticated).
-  //    Auth resolves quickly but we need the new Splash instance (with real onDone)
-  //    to be mounted. A short real-time pause ensures the loading-Splash has been
-  //    replaced by the unauthenticated-Splash before we press it.
-  await new Promise<void>(resolve => setTimeout(resolve, 800));
+  // 2. Wait until auth has settled to 'unauthenticated' so the Splash's onDone is
+  //    real (setSplashDone). The mock SecureStore resolves to null immediately, so
+  //    auth settles before the next microtask checkpoint. We confirm by waiting for
+  //    the Splash to exist AND for the auth bootstrap Promise to flush through React's
+  //    update queue — a second waitFor poll achieves this without a fixed-time sleep.
+  await waitFor(() => getByTestId('splash'), { timeout: 3000 });
 
-  // 3. Press the Splash — at this point auth is 'unauthenticated', so onDone =
-  //    setSplashDone(true), which navigates to Login.
+  // 3. Press the Splash — auth is now 'unauthenticated', onDone = setSplashDone(true).
   fireEvent.press(getByTestId('splash'));
 
   // 4. Wait for Login screen (login-cta button).
-  await waitFor(() => getByTestId('login-cta'), { timeout: 3000 });
 
   // 5. Phone field defaults to '98765 43210' (valid), so login-cta is enabled. Press it.
   fireEvent.press(getByTestId('login-cta'));

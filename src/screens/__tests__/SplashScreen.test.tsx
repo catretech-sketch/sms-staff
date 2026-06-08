@@ -19,6 +19,19 @@ it('skips on tap', () => {
   fireEvent.press(getByTestId('splash'));
   expect(onDone).toHaveBeenCalledTimes(1);
 });
+it('auto-advance calls the LATEST onDone even when the prop changes after mount', () => {
+  // Reproduces the wedge: RootNavigator mounts Splash with a no-op onDone during
+  // auth bootstrap, then swaps in the real onDone once status resolves. Because
+  // React reconciles the same Splash in place (no remount), the timer must call
+  // the current onDone, not the one captured at mount.
+  const stale = jest.fn();
+  const real = jest.fn();
+  const { rerender } = renderWithTheme(<SplashScreen onDone={stale} />);
+  rerender(<SplashScreen onDone={real} />);
+  jest.advanceTimersByTime(2300);
+  expect(stale).not.toHaveBeenCalled();
+  expect(real).toHaveBeenCalledTimes(1);
+});
 it('fires onDone exactly once even if tapped and the timer also elapses', () => {
   const onDone = jest.fn();
   const { getByTestId } = renderWithTheme(<SplashScreen onDone={onDone} />);

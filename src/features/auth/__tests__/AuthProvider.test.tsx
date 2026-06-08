@@ -67,6 +67,17 @@ describe('AuthProvider', () => {
     expect(screen.getByTestId('role')).toHaveTextContent('cook');
   });
 
+  it('fails safe to unauthenticated when token storage throws during bootstrap', async () => {
+    // Reproduces the web bug: expo-secure-store has no web impl, so getItemAsync
+    // throws. Bootstrap must fall back to the Login screen, not hang on 'loading'.
+    const SecureStore = require('expo-secure-store');
+    (SecureStore.getItemAsync as jest.Mock).mockRejectedValueOnce(
+      new Error('SecureStore.getValueWithKeyAsync is not a function'),
+    );
+    await renderWithProviders();
+    await waitFor(() => expect(screen.getByTestId('status')).toHaveTextContent('unauthenticated'));
+  });
+
   it('signOut returns to unauthenticated', async () => {
     await renderWithProviders();
     await waitFor(() => expect(screen.getByTestId('status')).toHaveTextContent('unauthenticated'));

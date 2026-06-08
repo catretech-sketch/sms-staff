@@ -25,24 +25,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     (async () => {
-      const tokens = await tokenStore.read();
-      const stored = await asyncStore.get<Session>(SESSION_KEY);
-      if (!tokens || !stored) {
-        if (tokens) await tokenStore.clear();
-        setStatus('unauthenticated');
-        return;
-      }
       try {
-        const user = await repos.auth.me();
-        // tokens (SecureStore) take precedence over the AsyncStorage snapshot, so a
-        // mid-session token refresh is honoured even if the stored session is stale.
-        const rehydrated: Session = { ...stored, ...tokens, user };
-        authSnapshot.set({ accessToken: rehydrated.accessToken, tenantId: rehydrated.tenant.id });
-        setSession(rehydrated);
-        setStatus('authenticated');
+        const tokens = await tokenStore.read();
+        const stored = await asyncStore.get<Session>(SESSION_KEY);
+        if (!tokens || !stored) {
+          if (tokens) await tokenStore.clear();
+          setStatus('unauthenticated');
+          return;
+        }
+        try {
+          const user = await repos.auth.me();
+          // tokens (SecureStore) take precedence over the AsyncStorage snapshot, so a
+          // mid-session token refresh is honoured even if the stored session is stale.
+          const rehydrated: Session = { ...stored, ...tokens, user };
+          authSnapshot.set({ accessToken: rehydrated.accessToken, tenantId: rehydrated.tenant.id });
+          setSession(rehydrated);
+          setStatus('authenticated');
+        } catch {
+          await tokenStore.clear();
+          await asyncStore.remove(SESSION_KEY);
+          setStatus('unauthenticated');
+        }
       } catch {
-        await tokenStore.clear();
-        await asyncStore.remove(SESSION_KEY);
+        // Storage unavailable or any other unexpected bootstrap failure must never
+        // wedge the app on the loading splash — fail safe to the Login screen.
         setStatus('unauthenticated');
       }
     })();

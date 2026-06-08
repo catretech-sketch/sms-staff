@@ -26,11 +26,17 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onDone }) => {
   const { t } = useTranslation();
   const doneRef = useRef(false);
 
+  // Always call the CURRENT onDone. The mount-time timer closure would otherwise
+  // capture a stale prop (RootNavigator swaps a no-op onDone for the real one once
+  // auth resolves, without remounting), which previously wedged the app on Splash.
+  const onDoneRef = useRef(onDone);
+  onDoneRef.current = onDone;
+
   // Guard so tap + timer never double-fire
   const fireDone = () => {
     if (!doneRef.current) {
       doneRef.current = true;
-      onDone();
+      onDoneRef.current();
     }
   };
 

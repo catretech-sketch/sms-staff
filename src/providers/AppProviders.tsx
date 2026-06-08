@@ -10,6 +10,7 @@ import { createMockRepositories, createHttpRepositories } from '@/data/repositor
 import { RepositoryProvider } from '@/data/repositories/RepositoryContext';
 import { AuthProvider } from '@/features/auth/AuthProvider';
 import { ThemeProvider } from '@/theme';
+import { ToastProvider } from '@/components/ui';
 import type { Repositories } from '@/data/repositories/types';
 
 export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -42,7 +43,7 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <RepositoryProvider repositories={repositories}>
-          <AuthProvider>{children}</AuthProvider>
+          <AuthProvider><ToastProvider>{children}</ToastProvider></AuthProvider>
         </RepositoryProvider>
       </ThemeProvider>
     </QueryClientProvider>

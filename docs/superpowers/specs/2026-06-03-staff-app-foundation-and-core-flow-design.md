@@ -406,5 +406,18 @@ Jest + React Native Testing Library (added with this scaffold):
 
 1. **Roster + Leave + Tasks** — week strip, leave balances + approval timeline, swipe-to-complete.
 2. **Driver + Profile** — vehicle/license/trip control + identity/documents/settings/language sheet.
-</content>
-</invoke>
+
+---
+
+## Plans 3 & 4 complete (production UI) — 2026-06-08
+
+All 17 tasks of the production-UI plan shipped:
+
+- **Icon set** (40+ monochrome SVG icons via `<Icon>`)
+- **UI primitive library** (Btn, Card, Pill, Avatar, Ring, Skeleton, Toast, BrandCap, PhoneField, RoleGrid, LanguagePicker, Header, StatTrio, HeroTodayCard, TasksPeek, AlertCard, role-specialized cards, GeoRadar, CheckInButton, Confetti, TabBar)
+- **Screens** — animated Splash (reanimated), role+language Login (zod-validated), branded Home dashboard (7 role-specialized cards), geo-fence Attendance check-in with confetti burst
+- **Navigation** — floating frosted TabBar + center check-in FAB overlay; Attendance as a stack overlay
+- **ToastProvider** wired into AppProviders (inside AuthProvider); screens can call `useToast()`
+- **Test count:** 112 tests across 43 suites — all green
+- **Verified:** `npm test` ✓ · `npm run typecheck` ✓ · `npm run lint` (0 errors) ✓ · `npx expo export --platform web` ✓ (1274 modules, 2.58 MB bundle)
+

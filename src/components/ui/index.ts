@@ -33,3 +33,5 @@ export { TasksPeek } from './TasksPeek';
 export type { TasksPeekProps } from './TasksPeek';
 export { AlertCard } from './AlertCard';
 export type { AlertCardProps } from './AlertCard';
+export { RoleSpecializedCard } from './roleCards/RoleSpecializedCard';
+export type { RoleSpecializedCardProps } from './roleCards/RoleSpecializedCard';

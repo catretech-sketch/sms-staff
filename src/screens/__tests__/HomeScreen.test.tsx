@@ -4,8 +4,13 @@ import { waitFor, render } from '@testing-library/react-native';
 import { AppProviders } from '@/providers/AppProviders';
 import { HomeScreen } from '@/screens/HomeScreen';
 
+jest.mock('react-native-reanimated', () => require('react-native-reanimated/mock'));
+
 // Render under providers; AuthProvider starts unauthenticated, so this test
 // signs in through the mock first via a small harness, OR mock useDashboard/useAuth.
+jest.mock('@/features/attendance/hooks', () => ({
+  useAttendanceStatus: () => ({ data: { checkedIn: false, lastLog: [], dutyPost: 'Bus / Route', geofenceRadiusM: 120 }, isLoading: false }),
+}));
 jest.mock('@/features/dashboard/hooks', () => ({
   useDashboard: () => ({ data: {
     hoursThisWeek: 34, hoursTarget: 44, streakDays: 21, leaveLeft: 12,

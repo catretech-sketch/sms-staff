@@ -2,10 +2,12 @@
 import React from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/theme';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { useDashboard } from '@/features/dashboard/hooks';
+import { useAttendanceStatus } from '@/features/attendance/hooks';
 import {
   Header,
   HeroTodayCard,
@@ -22,6 +24,7 @@ export const HomeScreen = ({ navigation }: { navigation: any }) => {
   const { colors, dark, toggleDark, role } = useTheme();
   const { session } = useAuth();
   const { data: d, isLoading, isError, refetch } = useDashboard();
+  const att = useAttendanceStatus();
 
   const openAttendance = () => navigation.navigate('Attendance');
 
@@ -63,28 +66,41 @@ export const HomeScreen = ({ navigation }: { navigation: any }) => {
           dark={dark}
           onToggleTheme={toggleDark}
         />
-        <HeroTodayCard
-          timing={session.user.timing}
-          dutyPostLabel={t('home.dutyPostLabel')}
-          dutyPost={session.user.dutyPost}
-          checkedIn={false}
-          onPressCheckIn={openAttendance}
-        />
-        <StatTrio
-          hoursThisWeek={d.hoursThisWeek}
-          hoursTarget={d.hoursTarget}
-          streakDays={d.streakDays}
-          leaveLeft={d.leaveLeft}
-        />
-        <RoleSpecializedCard
-          roleCard={d.roleCard}
-          accent={role.accent}
-        />
-        <TasksPeek
-          tasks={d.pendingTasksPeek}
-          onViewAll={() => {}}
-        />
-        {d.alert && <AlertCard message={d.alert} />}
+        <Animated.View entering={FadeInDown.delay(0).duration(300)}>
+          <HeroTodayCard
+            timing={session.user.timing}
+            dutyPostLabel={t('home.dutyPostLabel')}
+            dutyPost={session.user.dutyPost}
+            checkedIn={att.data?.checkedIn ?? false}
+            checkInAt={att.data?.checkInAt}
+            onPressCheckIn={openAttendance}
+          />
+        </Animated.View>
+        <Animated.View entering={FadeInDown.delay(65).duration(300)}>
+          <StatTrio
+            hoursThisWeek={d.hoursThisWeek}
+            hoursTarget={d.hoursTarget}
+            streakDays={d.streakDays}
+            leaveLeft={d.leaveLeft}
+          />
+        </Animated.View>
+        <Animated.View entering={FadeInDown.delay(130).duration(300)}>
+          <RoleSpecializedCard
+            roleCard={d.roleCard}
+            accent={role.accent}
+          />
+        </Animated.View>
+        <Animated.View entering={FadeInDown.delay(195).duration(300)}>
+          <TasksPeek
+            tasks={d.pendingTasksPeek}
+            onViewAll={() => {}}
+          />
+        </Animated.View>
+        {d.alert && (
+          <Animated.View entering={FadeInDown.delay(260).duration(300)}>
+            <AlertCard message={d.alert} />
+          </Animated.View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );

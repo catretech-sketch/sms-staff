@@ -1,7 +1,7 @@
 // src/screens/HomeScreen.tsx
 import React from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/theme';
@@ -22,6 +22,7 @@ import { ErrorState } from '@/components/state';
 export const HomeScreen = ({ navigation }: { navigation: any }) => {
   const { t } = useTranslation();
   const { colors, dark, toggleDark, role } = useTheme();
+  const insets = useSafeAreaInsets();
   const { session } = useAuth();
   const { data: d, isLoading, isError, refetch } = useDashboard();
   const att = useAttendanceStatus();
@@ -58,7 +59,7 @@ export const HomeScreen = ({ navigation }: { navigation: any }) => {
 
   return (
     <SafeAreaView style={[styles.fill, { backgroundColor: colors.bg }]}>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 120 }]} showsVerticalScrollIndicator={false}>
         <Header
           schoolName={session.tenant.name}
           firstName={session.user.firstName}
@@ -111,7 +112,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 120,
     gap: 12,
   },
   skeletonContainer: {

@@ -27,11 +27,11 @@ const BAR_MARGIN_BOTTOM = 26;
 const BAR_SIDE_INSET = 14;
 const BAR_RADIUS = 26;
 
-export const TabBar: React.FC<TabBarProps> = ({ state, navigation, onPressFab }) => {
+export const TabBar: React.FC<TabBarProps> = ({ state, navigation, descriptors, onPressFab }) => {
   const { colors, role } = useTheme();
   const insets = useSafeAreaInsets();
 
-  const routes: Array<{ key: string; name: string }> = state.routes;
+  const routes: { key: string; name: string }[] = state.routes;
   const activeIndex: number = state.index;
 
   // Split routes into left and right halves around the center FAB
@@ -53,15 +53,17 @@ export const TabBar: React.FC<TabBarProps> = ({ state, navigation, onPressFab })
     const isFocused = index === activeIndex;
     const iconName = TAB_ICONS[route.name] ?? 'home';
     const iconColor = isFocused ? role.accent : colors.inkFaint;
+    const label = descriptors[route.key]?.options.tabBarAccessibilityLabel ?? route.name;
 
     return (
       <Pressable
         key={route.key}
+        testID={`tab-${route.name}`}
         onPress={() => handleTabPress(route, index)}
         style={styles.tab}
         accessibilityRole="button"
         accessibilityState={{ selected: isFocused }}
-        accessibilityLabel={route.name}
+        accessibilityLabel={label}
       >
         <Icon
           name={iconName}
@@ -105,13 +107,16 @@ export const TabBar: React.FC<TabBarProps> = ({ state, navigation, onPressFab })
         </View>
       </View>
 
-      {/* Center FAB — floats above the bar */}
+      {/* Center FAB — floats above the bar, centered on bar's top edge */}
       <Pressable
         testID="tab-fab"
         onPress={onPressFab}
         style={[
           styles.fab,
-          { backgroundColor: role.accent },
+          {
+            backgroundColor: role.accent,
+            bottom: insets.bottom + BAR_MARGIN_BOTTOM + BAR_HEIGHT - FAB_SIZE / 2,
+          },
         ]}
         accessibilityRole="button"
         accessibilityLabel="Check in"
@@ -163,7 +168,6 @@ const styles = StyleSheet.create({
   },
   fab: {
     position: 'absolute',
-    bottom: BAR_HEIGHT - FAB_SIZE / 2,
     width: FAB_SIZE,
     height: FAB_SIZE,
     borderRadius: FAB_SIZE / 2,

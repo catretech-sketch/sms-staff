@@ -85,7 +85,7 @@ const _ICONS = {
   bellAlert: { viewBox: '0 0 24 24', paths: [
     { d: 'M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9' },
     { d: 'M13.73 21a2 2 0 0 1-3.46 0' },
-    { d: 'M12 2v2', mode: 'stroke' },
+    { d: 'M19 1a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z', mode: 'fill' },
   ] },
   fire: { viewBox: '0 0 24 24', paths: [
     { d: 'M8.5 14.5C8.5 11 11 9 12 7c0 0 .5 2 2 3.5 1 1 1.5 2 1.5 3A3.5 3.5 0 0 1 12 17a3.5 3.5 0 0 1-3.5-2.5Z' },
@@ -107,7 +107,9 @@ const _ICONS = {
     { d: 'M12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z' },
   ] },
   route: { viewBox: '0 0 24 24', paths: [
-    { d: 'M3 11l19-9-9 19-2-8-8-2Z' },
+    { d: 'M7 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z' },
+    { d: 'M17 21a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z' },
+    { d: 'M7 7c0 4 4 4 4 8s4 4 6 2' },
   ] },
   license: { viewBox: '0 0 24 24', paths: [
     { d: 'M2 5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5Z' },
@@ -116,9 +118,7 @@ const _ICONS = {
     { d: 'M14 15c0-1.1.9-2 2-2s2 .9 2 2' },
   ] },
   fitness: { viewBox: '0 0 24 24', paths: [
-    { d: 'M18 8h1a4 4 0 0 1 0 8h-1' },
-    { d: 'M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8Z' },
-    { d: 'M6 1v3M10 1v3M14 1v3' },
+    { d: 'M2 12h4l2-5 4 10 2-7 2 4h6' },
   ] },
   meal: { viewBox: '0 0 24 24', paths: [
     { d: 'M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2' },
@@ -180,6 +180,6 @@ const _ICONS = {
   ] },
 } satisfies Record<string, IconDef>;
 
-export const ICONS: Record<string, IconDef> = _ICONS;
-export type IconName = keyof typeof _ICONS;
-export const ICON_NAMES = Object.keys(_ICONS) as IconName[];
+export const ICONS = _ICONS;
+export type IconName = keyof typeof ICONS;
+export const ICON_NAMES = Object.keys(ICONS) as IconName[];

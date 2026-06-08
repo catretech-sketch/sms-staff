@@ -36,6 +36,7 @@ export const GeoRadar: React.FC<GeoRadarProps> = ({ state, distanceM, accuracyM,
   useEffect(() => {
     if (state === 'locating') {
       sweepOpacity.value = 1;
+      sweepRadius.value = RADII[0];
       sweepRadius.value = withRepeat(
         withTiming(RADII[2], { duration: 1400, easing: Easing.out(Easing.quad) }),
         -1,

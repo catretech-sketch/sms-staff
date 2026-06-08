@@ -1,11 +1,12 @@
 // src/components/ui/Confetti.tsx
-import React, { forwardRef, useImperativeHandle, useRef } from 'react';
+import React, { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
   withDelay,
+  withSequence,
   Easing,
 } from 'react-native-reanimated';
 
@@ -47,29 +48,41 @@ const ParticleItem: React.FC<ParticleItemProps> = ({ index, total, color, trigge
 
   const traj = getTrajectory(index, total);
 
-  // Register trigger function at this particle's index slot
-  triggerFns[index] = () => {
-    tx.value = 0;
-    ty.value = 0;
-    opacity.value = 0;
-    scale.value = 0.3;
+  // Register trigger function on mount; unregister on unmount (concurrent-safe)
+  useEffect(() => {
+    triggerFns[index] = () => {
+      tx.value = 0;
+      ty.value = 0;
+      opacity.value = 0;
+      scale.value = 0.3;
 
-    opacity.value = withDelay(traj.delay, withTiming(1, { duration: 80 }));
-    scale.value = withDelay(
-      traj.delay,
-      withTiming(1, { duration: 200, easing: Easing.out(Easing.back(1.5)) }),
-    );
-    tx.value = withDelay(
-      traj.delay,
-      withTiming(traj.tx, { duration: 600, easing: Easing.out(Easing.quad) }),
-    );
-    ty.value = withDelay(
-      traj.delay,
-      withTiming(traj.ty, { duration: 600, easing: Easing.out(Easing.quad) }),
-    );
-    // Fade out after reaching peak
-    opacity.value = withDelay(traj.delay + 400, withTiming(0, { duration: 300 }));
-  };
+      // Single chained animation so the second assignment doesn't cancel the first
+      opacity.value = withDelay(
+        traj.delay,
+        withSequence(
+          withTiming(1, { duration: 80 }),
+          withTiming(1, { duration: 320 }),
+          withTiming(0, { duration: 300 }),
+        ),
+      );
+      scale.value = withDelay(
+        traj.delay,
+        withTiming(1, { duration: 200, easing: Easing.out(Easing.back(1.5)) }),
+      );
+      tx.value = withDelay(
+        traj.delay,
+        withTiming(traj.tx, { duration: 600, easing: Easing.out(Easing.quad) }),
+      );
+      ty.value = withDelay(
+        traj.delay,
+        withTiming(traj.ty, { duration: 600, easing: Easing.out(Easing.quad) }),
+      );
+    };
+    return () => {
+      triggerFns[index] = undefined as unknown as () => void;
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [index]);
 
   const animStyle = useAnimatedStyle(() => ({
     transform: [

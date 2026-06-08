@@ -1,5 +1,5 @@
 // src/components/ui/Toast.tsx
-import React, { createContext, useCallback, useContext, useRef, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { Animated, StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '@/theme';
 import { TextScale } from '@/theme/typography';
@@ -28,6 +28,16 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const idRef = useRef(0);
   // Animation value shared per-toast — store by id
   const animsRef = useRef<Record<number, Animated.Value>>({});
+  // Composite animations — store so we can stop them on unmount
+  const compositeAnimsRef = useRef<Record<number, Animated.CompositeAnimation>>({});
+
+  // Cancel all in-flight animations/timers on unmount
+  useEffect(() => {
+    const anims = compositeAnimsRef.current;
+    return () => {
+      Object.values(anims).forEach(a => a.stop());
+    };
+  }, []);
 
   const show = useCallback((msg: string, kind: 'info' | 'error' | 'success' = 'info') => {
     const id = ++idRef.current;
@@ -37,7 +47,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setToasts(prev => [...prev, { id, msg, kind }]);
 
     // Slide down + fade in, hold, then fade out
-    Animated.sequence([
+    const composite = Animated.sequence([
       Animated.timing(anim, {
         toValue: 1,
         duration: 260,
@@ -49,9 +59,12 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         duration: 240,
         useNativeDriver: true,
       }),
-    ]).start(() => {
+    ]);
+    compositeAnimsRef.current[id] = composite;
+    composite.start(() => {
       setToasts(prev => prev.filter(t => t.id !== id));
       delete animsRef.current[id];
+      delete compositeAnimsRef.current[id];
     });
   }, []);
 
@@ -61,6 +74,16 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (kind === 'success') return colors.success;
     if (kind === 'error') return colors.danger;
     return colors.ink;
+  }
+
+  // Text must contrast with the banner background in both light and dark mode.
+  // success/error use colors.success / colors.danger (mid-tone greens/reds) →
+  //   white (onPrimary in light, or surface in dark) is readable.
+  // info uses colors.ink (near-black in light, near-white in dark) →
+  //   use colors.bg so the text always contrasts with the ink background.
+  function kindTextColor(kind: 'info' | 'error' | 'success'): string {
+    if (kind === 'info') return colors.bg;
+    return colors.onPrimary;
   }
 
   return (
@@ -82,7 +105,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 { backgroundColor: kindColor(toast.kind), opacity: anim, transform: [{ translateY }] },
               ]}
             >
-              <Text style={[TextScale.body, styles.bannerText]}>{toast.msg}</Text>
+              <Text style={[TextScale.body, styles.bannerText, { color: kindTextColor(toast.kind) }]}>{toast.msg}</Text>
             </Animated.View>
           );
         })}
@@ -111,7 +134,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   bannerText: {
-    color: '#FFFFFF',
     textAlign: 'center',
   },
 });

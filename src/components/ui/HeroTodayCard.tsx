@@ -8,7 +8,6 @@ import { TextScale } from '@/theme/typography';
 import { Pill } from './Pill';
 
 export interface HeroTodayCardProps {
-  firstName: string;
   timing: string;
   dutyPostLabel: string;
   dutyPost: string;

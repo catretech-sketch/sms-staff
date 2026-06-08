@@ -13,6 +13,7 @@ jest.mock('@react-native-async-storage/async-storage', () => {
       getItem: jest.fn((k) => Promise.resolve(mem[k] ?? null)),
       setItem: jest.fn((k, v) => { mem[k] = v; return Promise.resolve(); }),
       removeItem: jest.fn((k) => { delete mem[k]; return Promise.resolve(); }),
+      clear: jest.fn(() => { mem = {}; return Promise.resolve(); }),
     },
   };
 });

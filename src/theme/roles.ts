@@ -1,3 +1,5 @@
+import type { IconName } from '@/components/icons';
+
 export const ROLE_KEYS = [
   'driver', 'cook', 'guard', 'gardener', 'sweeper', 'peon', 'clerk',
 ] as const;
@@ -7,7 +9,7 @@ export type Role = (typeof ROLE_KEYS)[number];
 export interface RoleConfig {
   key: Role;
   labelKey: string;
-  icon: string;
+  icon: IconName;
   accent: string;
   accentSoft: string;
   dutyPostLabelKey: string;

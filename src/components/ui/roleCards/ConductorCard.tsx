@@ -47,8 +47,8 @@ export const ConductorCard: React.FC<ConductorCardProps> = ({
       <View style={styles.pillRow}>
         <Pill
           label={`${t('role.conductor.onBoard')} · ${onBoard}/${capacity}`}
-          color={colors.primary}
-          bg={colors.primaryDim}
+          color={accent}
+          bg={colors.surface2}
           icon="visitor"
         />
         <Pill

@@ -7,6 +7,7 @@ import { RepositoryProvider } from '@/data/repositories/RepositoryContext';
 import { createMockRepositories } from '@/data/repositories/factory';
 import { createStore } from '@/data/mock/store';
 import { TripScreen } from '@/screens/TripScreen';
+import { ToastProvider } from '@/components/ui';
 
 jest.mock('@react-native-async-storage/async-storage', () => {
   let mem: Record<string, string> = {};
@@ -31,9 +32,11 @@ async function renderScreen() {
     <SafeAreaProvider initialMetrics={{ frame: { x: 0, y: 0, width: 0, height: 0 }, insets: { top: 0, left: 0, right: 0, bottom: 0 } }}>
       <QueryClientProvider client={qc}>
         <ThemeProvider>
-          <RepositoryProvider repositories={repos}>
-            <TripScreen navigation={nav as never} />
-          </RepositoryProvider>
+          <ToastProvider>
+            <RepositoryProvider repositories={repos}>
+              <TripScreen navigation={nav as never} />
+            </RepositoryProvider>
+          </ToastProvider>
         </ThemeProvider>
       </QueryClientProvider>
     </SafeAreaProvider>,

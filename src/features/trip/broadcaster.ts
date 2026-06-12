@@ -1,7 +1,7 @@
 import * as Location from 'expo-location';
 import * as TaskManager from 'expo-task-manager';
 import type { TripPing } from '@/data/domain';
-import { shouldPublish, type Sample } from './pingQueue';
+import { shouldPublish, createPingBuffer, type Sample } from './pingQueue';
 
 export const TRIP_LOCATION_TASK = 'sms-trip-location';
 const CADENCE_MS = 10_000;
@@ -27,7 +27,7 @@ TaskManager.defineTask(TRIP_LOCATION_TASK, async ({ data, error }) => {
       heading: loc.coords.heading ?? 0,
       at: new Date(loc.timestamp).toISOString(),
     };
-    try { await publish(ping); } catch { /* offline — caller's buffer retries */ }
+    try { await publish(ping); } catch { /* offline — buffer retries on next event */ }
   }
 });
 
@@ -44,8 +44,9 @@ export async function startBroadcast({ tripId, onPing }: BroadcastDeps): Promise
   if (bg.status !== 'granted') return false;
 
   activeTripId = tripId;
-  publish = onPing;
   last = null;
+  const buffer = createPingBuffer(onPing);
+  publish = (ping) => { buffer.enqueue(ping); return buffer.flush(); };
 
   await Location.startLocationUpdatesAsync(TRIP_LOCATION_TASK, {
     accuracy: Location.Accuracy.High,

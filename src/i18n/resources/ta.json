@@ -90,5 +90,6 @@
   "trip.boarding.boarded": "ஏறினார்",
   "trip.boarding.dropped": "இறங்கினார்",
   "trip.boarding.absent": "வரவில்லை",
-  "trip.open": "நேரடி பயணத்தைத் திற"
+  "trip.open": "நேரடி பயணத்தைத் திற",
+  "trip.permissionDenied": "பயணத்தை ஒளிபரப்ப இருப்பிட அனுமதி தேவை"
 }

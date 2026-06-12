@@ -1,14 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, ScrollView, StyleSheet, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/theme';
 import { useRepositories } from '@/data/repositories/RepositoryContext';
-import { IconBtn, Btn, Card, Pill, RouteStrip, Skeleton } from '@/components/ui';
+import { IconBtn, Btn, Card, Pill, RouteStrip, Skeleton, useToast } from '@/components/ui';
 import { ErrorState } from '@/components/state';
 import { TextScale } from '@/theme/typography';
 import { useTripAssignment, useCurrentTrip, useStartTrip, useEndTrip, useRoster, useBoarding } from '@/features/trip/hooks';
 import { startBroadcast, stopBroadcast } from '@/features/trip/broadcaster';
+import { simulateBusPosition } from '@/features/trip/simulateBus';
 import type { TripDirection, TripSummary, BoardingState } from '@/data/domain';
 
 const NEXT: Record<BoardingState, BoardingState> = { boarded: 'dropped', dropped: 'absent', absent: 'boarded' };
@@ -52,28 +53,58 @@ export const TripScreen = ({ navigation }: { navigation: any }) => {
   const { t } = useTranslation();
   const { colors, role } = useTheme();
   const repos = useRepositories();
+  const toast = useToast();
   const assignment = useTripAssignment();
   const current = useCurrentTrip();
   const startTrip = useStartTrip();
   const endTrip = useEndTrip();
   const [direction, setDirection] = useState<TripDirection>('pickup');
   const [summary, setSummary] = useState<TripSummary | null>(null);
+  // Tick state so the RouteStrip advances every 5 s without a full refetch.
+  const [now, setNow] = useState(() => Date.now());
 
   const accent = role.accent;
   const trip = current.data;
 
+  // Update 'now' every 5 s while a live trip is active so progress animates.
+  useEffect(() => {
+    if (!trip) return;
+    const id = setInterval(() => setNow(Date.now()), 5_000);
+    return () => clearInterval(id);
+  }, [trip]);
+
   const onStart = async () => {
     if (!assignment.data) return;
     const started = await startTrip.mutateAsync({ routeId: assignment.data.route.id, direction });
-    await startBroadcast({ tripId: started.id, onPing: (p) => repos.trip.publishPing(p) });
+    const ok = await startBroadcast({ tripId: started.id, onPing: (p) => repos.trip.publishPing(p) });
+    if (!ok) {
+      toast.show(t('trip.permissionDenied'), 'error');
+      await endTrip.mutateAsync(started.id);
+    }
   };
 
   const onEnd = async () => {
     if (!trip) return;
-    await stopBroadcast();
+    await stopBroadcast().catch(() => {});
     const s = await endTrip.mutateAsync(trip.id);
     setSummary(s);
   };
+
+  // Derive live bus position from simulated route progress.
+  const routeProgress = useCallback(() => {
+    if (!trip || !assignment.data) return { progress: 0, currentStopName: undefined, nextStopName: undefined };
+    const stops = assignment.data.route.stops;
+    const lastStop = stops[stops.length - 1];
+    const totalMs = (lastStop?.etaMin ?? 30) * 60 * 1000;
+    const elapsed = trip.startedAt ? now - Date.parse(trip.startedAt) : 0;
+    const progress = Math.max(0, Math.min(1, totalMs > 0 ? elapsed / totalMs : 0));
+    const sim = simulateBusPosition(assignment.data.route, elapsed, totalMs);
+    return {
+      progress,
+      currentStopName: stops[sim.segmentIndex]?.name,
+      nextStopName: stops[sim.segmentIndex + 1]?.name,
+    };
+  }, [trip, assignment.data, now]);
 
   return (
     <SafeAreaView style={[styles.fill, { backgroundColor: colors.bg }]}>
@@ -101,15 +132,18 @@ export const TripScreen = ({ navigation }: { navigation: any }) => {
             <View style={[styles.banner, { backgroundColor: accent }]}>
               <Text style={[TextScale.bodyStrong, { color: '#FFFFFF' }]}>{t('trip.broadcasting')}</Text>
             </View>
-            {assignment.data && (
-              <RouteStrip
-                route={assignment.data.route}
-                progress={0.1}
-                accent={accent}
-                currentStopName={assignment.data.route.stops[0]?.name}
-                nextStopName={assignment.data.route.stops[1]?.name}
-              />
-            )}
+            {assignment.data && (() => {
+              const { progress, currentStopName, nextStopName } = routeProgress();
+              return (
+                <RouteStrip
+                  route={assignment.data.route}
+                  progress={progress}
+                  accent={accent}
+                  currentStopName={currentStopName}
+                  nextStopName={nextStopName}
+                />
+              );
+            })()}
             <Card>
               <Text style={[TextScale.caption, { color: colors.inkSoft }]}>{t('trip.bus')}</Text>
               <Text style={[TextScale.body, { color: colors.ink }]}>{trip.busNo}</Text>

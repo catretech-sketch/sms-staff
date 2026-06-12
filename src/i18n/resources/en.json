@@ -90,5 +90,6 @@
   "trip.boarding.boarded": "On board",
   "trip.boarding.dropped": "Dropped",
   "trip.boarding.absent": "Absent",
-  "trip.open": "Open Live Trip"
+  "trip.open": "Open Live Trip",
+  "trip.permissionDenied": "Location permission is required to broadcast the trip"
 }

@@ -27,3 +27,10 @@ it('is monotonic along the route and stays on the line', () => {
   expect(b.lng).toBeGreaterThan(a.lng);
   expect(a.lat).toBeCloseTo(0); // straight east line → lat stays 0
 });
+
+it('due-east segment yields heading 90 (compass bearing)', () => {
+  // Route runs along constant latitude with increasing longitude → due east.
+  // Compass bearing formula: atan2(dLng, dLat) * 180/PI → atan2(+, 0) = 90.
+  const p = simulateBusPosition(route, 15_000, 60_000); // mid-route, on first segment
+  expect(p.heading).toBeCloseTo(90);
+});

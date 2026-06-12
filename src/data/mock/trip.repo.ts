@@ -75,7 +75,7 @@ export function mockTrip(store: Store): TripRepository {
       return summary;
     },
 
-    async roster(): Promise<StudentLite[]> {
+    async roster(_tripId: string): Promise<StudentLite[]> {
       await simulateLatency();
       return clone(store.students);
     },
@@ -88,7 +88,7 @@ export function mockTrip(store: Store): TripRepository {
       await store.persistTrip();
     },
 
-    async boardingState(): Promise<Boarding[]> {
+    async boardingState(_tripId: string): Promise<Boarding[]> {
       await simulateLatency();
       return clone(store.boarding);
     },

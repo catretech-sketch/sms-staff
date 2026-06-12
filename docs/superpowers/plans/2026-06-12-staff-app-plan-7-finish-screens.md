@@ -34,6 +34,15 @@ Profile       = { documents: StaffDocument[] };   // identity comes from session
 
 ---
 
+> ## ⚠️ SCOPE CHANGE (2026-06-12, user directive: "keep attendance, roster no need")
+> This overrides the plan below where they conflict:
+> - **DROP Part B (Roster) entirely** — do NOT build the Roster data slice or screen. Skip Tasks B1 and B2.
+> - **Attendance stays exactly as-is** (geo-fence check-in + center FAB unchanged).
+> - **Leave becomes a TAB, not an overlay.** It takes the freed "Roster" tab slot, so the tabs are **Home · Leave · Tasks · Me** (+ center check-in FAB). Concretely in Part C2 Step 4: instead of registering a `Leave` stack overlay, rename the `Roster` tab → `Leave` in `MainTabParamList`, swap the `Tab.Screen name="Roster" component={RosterScreen}` for `name="Leave" component={LeaveScreen}` in `MainTabNavigator.tsx`, add a `Leave` entry to `TAB_ICONS` in `TabBar.tsx` (use the `gift` icon, which already exists), and add a `nav.leave` i18n key (en "Leave", hi "अवकाश", mr "रजा", ta "விடுப்பு") in all 4 files. The `LeaveScreen` no longer needs a back button/overlay header — give it a screen title like the other tab screens. Remove the `RosterScreen` import from the navigator. (Leave the existing `RosterScreen.tsx` stub file in place, just unreferenced — do not build it out.)
+> - **Profile's "Apply for leave" button** (Part D2) should `navigation.navigate('Leave')` as a tab jump (still works), OR be removed — keep it, it's harmless.
+> - **Task E (contract assertions):** SKIP the roster contract test; keep the tasks/leave/profile ones.
+> - Everything else (Part A Tasks, Part C Leave data + form, Part D Profile) is unchanged.
+
 ## PART A — TASKS
 
 ### Task A1: Tasks data slice

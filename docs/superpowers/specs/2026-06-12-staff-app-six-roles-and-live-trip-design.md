@@ -7,6 +7,11 @@ finish the remaining staff screens for a genuinely complete app, and build the f
 **Bus Driver / Conductor "Live Trip"** broadcasting feature against a defined real-time
 location contract (mock now, real backend later).
 
+> **Scope change (2026-06-12):** Per user directive "keep attendance, roster no need" — the
+> **Roster screen is dropped** from SP-1 (Attendance check-in stays as-is). The freed bottom-tab
+> slot is given to **Leave**, which becomes a tab instead of an overlay. Final tabs:
+> **Home · Leave · Tasks · Me** + center check-in FAB. This applies to all 6 roles.
+
 ## Background
 
 `sms-staff` (SchoolMate Staff) is the non-teaching-staff app in the SMS suite. Spec #1

@@ -43,3 +43,5 @@ export { Confetti } from './Confetti';
 export type { ConfettiHandle, ConfettiProps } from './Confetti';
 export { TabBar } from './TabBar';
 export type { TabBarProps } from './TabBar';
+export { RouteStrip } from './RouteStrip';
+export type { RouteStripProps } from './RouteStrip';

@@ -103,6 +103,7 @@
   "leave.submit": "विनंती पाठवा",
   "leave.submitted": "विनंती पाठवली",
   "leave.invalid": "कृपया सर्व रकाने भरा (कारण ≥ 3 अक्षरे)",
+  "leave.submitError": "सबमिट करता आले नाही — कृपया पुन्हा प्रयत्न करा",
   "leave.history": "तुमच्या विनंत्या",
   "leave.type.casual": "नैमित्तिक",
   "leave.type.sick": "आजारपण",

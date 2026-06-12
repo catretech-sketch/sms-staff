@@ -103,6 +103,7 @@
   "leave.submit": "Submit request",
   "leave.submitted": "Request submitted",
   "leave.invalid": "Please fill all fields (reason ≥ 3 chars)",
+  "leave.submitError": "Could not submit — please try again",
   "leave.history": "Your requests",
   "leave.type.casual": "Casual",
   "leave.type.sick": "Sick",

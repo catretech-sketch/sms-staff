@@ -2,6 +2,7 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { NavigationContainer } from '@react-navigation/native';
 import { ThemeProvider } from '@/theme';
 import { AuthProvider } from '@/features/auth/AuthProvider';
 import { RepositoryProvider } from '@/data/repositories/RepositoryContext';
@@ -40,19 +41,21 @@ async function renderScreen() {
   await SecureStore.setItemAsync('sms_staff_refresh_token', 'mock-refresh-token');
   await AsyncStorage.setItem('sms.session', JSON.stringify({ accessToken: 'mock-access-token', refreshToken: 'mock-refresh-token', user: { id: 'staff_ramesh', name: 'Ramesh Kumar', firstName: 'Ramesh', roleKey: 'driver', empId: 'EMP-2041', joined: '2019-06-12', rating: 4.6, dutyPost: 'Bus / Route', shift: 'Morning Shift', timing: '7:30–3:30', phone: '98765 43210' }, tenant: { id: 'school_greenfield', name: 'Greenfield Public School' } }));
   return render(
-    <SafeAreaProvider initialMetrics={{ frame: { x: 0, y: 0, width: 0, height: 0 }, insets: { top: 0, left: 0, right: 0, bottom: 0 } }}>
-      <QueryClientProvider client={qc}>
-        <ThemeProvider>
-          <RepositoryProvider repositories={repos}>
-            <AuthProvider>
-              <ToastProvider>
-                <ProfileScreen />
-              </ToastProvider>
-            </AuthProvider>
-          </RepositoryProvider>
-        </ThemeProvider>
-      </QueryClientProvider>
-    </SafeAreaProvider>,
+    <NavigationContainer>
+      <SafeAreaProvider initialMetrics={{ frame: { x: 0, y: 0, width: 0, height: 0 }, insets: { top: 0, left: 0, right: 0, bottom: 0 } }}>
+        <QueryClientProvider client={qc}>
+          <ThemeProvider>
+            <RepositoryProvider repositories={repos}>
+              <AuthProvider>
+                <ToastProvider>
+                  <ProfileScreen />
+                </ToastProvider>
+              </AuthProvider>
+            </RepositoryProvider>
+          </ThemeProvider>
+        </QueryClientProvider>
+      </SafeAreaProvider>
+    </NavigationContainer>,
   );
 }
 

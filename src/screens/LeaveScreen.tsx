@@ -36,9 +36,13 @@ export const LeaveScreen = () => {
     const parsed = schema.safeParse({ type, fromDate, toDate, reason });
     if (!parsed.success) { setError(t('leave.invalid')); return; }
     setError(null);
-    await submit.mutateAsync(parsed.data);
-    setSubmitted(true);
-    setReason('');
+    try {
+      await submit.mutateAsync(parsed.data);
+      setSubmitted(true);
+      setReason('');
+    } catch {
+      setError(t('leave.submitError'));
+    }
   };
 
   return (

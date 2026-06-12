@@ -103,6 +103,7 @@
   "leave.submit": "अनुरोध भेजें",
   "leave.submitted": "अनुरोध भेजा गया",
   "leave.invalid": "कृपया सभी फ़ील्ड भरें (कारण ≥ 3 अक्षर)",
+  "leave.submitError": "सबमिट नहीं हो सका — कृपया पुनः प्रयास करें",
   "leave.history": "आपके अनुरोध",
   "leave.type.casual": "आकस्मिक",
   "leave.type.sick": "बीमारी",

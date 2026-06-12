@@ -3,6 +3,7 @@ import { View, Text, ScrollView, StyleSheet, Pressable } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import i18next from 'i18next';
+import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '@/theme';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { useLogout } from '@/features/auth/hooks';
@@ -18,6 +19,7 @@ export const ProfileScreen = () => {
   const insets = useSafeAreaInsets();
   const { session } = useAuth();
   const logout = useLogout();
+  const navigation = useNavigation();
   const { data, isLoading, isError, refetch } = useProfile();
 
   if (!session) return null;
@@ -70,7 +72,7 @@ export const ProfileScreen = () => {
           })}
         </Card>
 
-        <Btn label={t('profile.applyLeave')} variant="ghost" icon="doc" onPress={() => {}} style={styles.spacer} />
+        <Btn label={t('profile.applyLeave')} variant="ghost" icon="doc" onPress={() => navigation.navigate('Leave' as never)} style={styles.spacer} />
         <Btn testID="logout" label={t('profile.logout')} accent={colors.danger} onPress={() => logout.mutate()} loading={logout.isPending} />
       </ScrollView>
     </SafeAreaView>

@@ -1,6 +1,8 @@
 import type { Session, Staff, Tenant, Dashboard, RoleCard, Attendance, AttendanceLog, TaskPeek,
   Route, Stop, Trip, TripSummary, StudentLite, Boarding, TripAssignment,
   TripDirection, TripStatus, BoardingState,
+  Task, LeaveSummary, LeaveBalance, LeaveRequest, NewLeaveRequest,
+  Profile, StaffDocument,
 } from '@/data/domain';
 import type { Role } from '@/theme/roles';
 
@@ -123,7 +125,6 @@ export const toStudentLite = (d: StudentLiteDTO): StudentLite => ({ id: d.id, na
 export const toBoarding = (d: BoardingDTO): Boarding => ({ tripId: d.trip_id, studentId: d.student_id, stopId: d.stop_id, state: d.state, at: d.at });
 export const toTripAssignment = (d: TripAssignmentDTO): TripAssignment => ({ route: toRoute(d.route), busNo: d.bus_no, conductorName: d.conductor_name ?? null });
 
-import type { Task } from '@/data/domain';
 export interface TaskDTO { id: string; title: string; detail?: string; priority: 'urgent' | 'normal'; done: boolean; due_label?: string; }
 export function toTask(d: TaskDTO): Task {
   const t: Task = { id: d.id, title: d.title, priority: d.priority, done: d.done };
@@ -132,7 +133,6 @@ export function toTask(d: TaskDTO): Task {
   return t;
 }
 
-import type { LeaveSummary, LeaveBalance, LeaveRequest, NewLeaveRequest } from '@/data/domain';
 export interface LeaveBalanceDTO { type: LeaveRequest['type']; total: number; used: number; }
 export interface LeaveRequestDTO { id: string; type: LeaveRequest['type']; from_date: string; to_date: string; reason: string; status: LeaveRequest['status']; }
 export interface LeaveSummaryDTO { balances: LeaveBalanceDTO[]; requests: LeaveRequestDTO[]; }
@@ -141,7 +141,6 @@ export const toLeaveRequest = (d: LeaveRequestDTO): LeaveRequest => ({ id: d.id,
 export const toLeaveSummary = (d: LeaveSummaryDTO): LeaveSummary => ({ balances: d.balances.map(toLeaveBalance), requests: d.requests.map(toLeaveRequest) });
 export const fromNewLeave = (r: NewLeaveRequest) => ({ type: r.type, from_date: r.fromDate, to_date: r.toDate, reason: r.reason });
 
-import type { Profile, StaffDocument } from '@/data/domain';
 export interface StaffDocumentDTO { id: string; label: string; value: string; ok?: boolean; }
 export interface ProfileDTO { documents: StaffDocumentDTO[]; }
 export const toStaffDocument = (d: StaffDocumentDTO): StaffDocument => ({ id: d.id, label: d.label, value: d.value, ok: d.ok });

@@ -34,7 +34,7 @@ function fixtureHttp(): HttpClient {
       bus_no: 'HR-26-BX-4412', conductor_name: 'Sita Devi',
     },
     'GET /staff/tasks': [{ id: 'task_1', title: 'X', priority: 'normal', done: false, due_label: 'x' }],
-    'GET /staff/leave': { balances: [{ type: 'casual', total: 12, used: 4 }], requests: [] },
+    'GET /staff/leave': { balances: [{ type: 'casual', total: 12, used: 4 }], requests: [{ id: 'lv_1', type: 'casual', from_date: '2026-05-20', to_date: '2026-05-21', reason: 'X', status: 'approved' }] },
     'GET /staff/profile': { documents: [{ id: 'd1', label: 'L', value: 'V', ok: true }] },
   };
   return {
@@ -97,6 +97,7 @@ describe('mock <-> http contract', () => {
     const b = await http.leave.summary();
     expect(keys(a)).toEqual(keys(b));
     expect(keys(a.balances[0])).toEqual(keys(b.balances[0]));
+    expect(keys(a.requests[0])).toEqual(keys(b.requests[0]));
   });
   it('profile.get returns the same Profile shape from both adapters', async () => {
     const mock = createMockRepositories(await createStore());

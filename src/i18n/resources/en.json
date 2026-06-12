@@ -73,5 +73,22 @@
   "common.viewAll": "View all",
   "common.somethingWrong": "Something went wrong",
   "common.nothingHere": "Nothing here yet",
-  "comingSoon": "Coming soon"
+  "comingSoon": "Coming soon",
+  "common.back": "Back",
+  "common.done": "Done",
+  "trip.title": "Live Trip",
+  "trip.start": "Start trip",
+  "trip.end": "End trip",
+  "trip.broadcasting": "Broadcasting live",
+  "trip.bus": "Bus",
+  "trip.stops": "Stops",
+  "trip.dir.pickup": "Pickup",
+  "trip.dir.drop": "Drop",
+  "trip.summaryTitle": "Trip summary",
+  "trip.summaryLine": "{{min}} min · {{km}} km · {{stops}} stops",
+  "trip.roster": "Students",
+  "trip.boarding.boarded": "On board",
+  "trip.boarding.dropped": "Dropped",
+  "trip.boarding.absent": "Absent",
+  "trip.open": "Open Live Trip"
 }

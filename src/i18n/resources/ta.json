@@ -73,5 +73,22 @@
   "common.viewAll": "அனைத்தையும் காண்க",
   "common.somethingWrong": "ஏதோ தவறாகிவிட்டது",
   "common.nothingHere": "இங்கே இன்னும் எதுவும் இல்லை",
-  "comingSoon": "விரைவில் வருகிறது"
+  "comingSoon": "விரைவில் வருகிறது",
+  "common.back": "பின்",
+  "common.done": "முடிந்தது",
+  "trip.title": "நேரடி பயணம்",
+  "trip.start": "பயணத்தைத் தொடங்கு",
+  "trip.end": "பயணத்தை முடி",
+  "trip.broadcasting": "நேரடியாக ஒளிபரப்பப்படுகிறது",
+  "trip.bus": "பேருந்து",
+  "trip.stops": "நிறுத்தங்கள்",
+  "trip.dir.pickup": "ஏற்றம்",
+  "trip.dir.drop": "இறக்கம்",
+  "trip.summaryTitle": "பயண சுருக்கம்",
+  "trip.summaryLine": "{{min}} நிமிடம் · {{km}} கி.மீ · {{stops}} நிறுத்தங்கள்",
+  "trip.roster": "மாணவர்கள்",
+  "trip.boarding.boarded": "ஏறினார்",
+  "trip.boarding.dropped": "இறங்கினார்",
+  "trip.boarding.absent": "வரவில்லை",
+  "trip.open": "நேரடி பயணத்தைத் திற"
 }

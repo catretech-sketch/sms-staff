@@ -73,5 +73,22 @@
   "common.viewAll": "सभी देखें",
   "common.somethingWrong": "कुछ गलत हो गया",
   "common.nothingHere": "अभी कुछ नहीं है",
-  "comingSoon": "जल्द आ रहा है"
+  "comingSoon": "जल्द आ रहा है",
+  "common.back": "वापस",
+  "common.done": "हो गया",
+  "trip.title": "लाइव ट्रिप",
+  "trip.start": "ट्रिप शुरू करें",
+  "trip.end": "ट्रिप समाप्त करें",
+  "trip.broadcasting": "लाइव प्रसारण हो रहा है",
+  "trip.bus": "बस",
+  "trip.stops": "स्टॉप",
+  "trip.dir.pickup": "पिकअप",
+  "trip.dir.drop": "ड्रॉप",
+  "trip.summaryTitle": "ट्रिप सारांश",
+  "trip.summaryLine": "{{min}} मिनट · {{km}} किमी · {{stops}} स्टॉप",
+  "trip.roster": "छात्र",
+  "trip.boarding.boarded": "सवार",
+  "trip.boarding.dropped": "उतर गए",
+  "trip.boarding.absent": "अनुपस्थित",
+  "trip.open": "लाइव ट्रिप खोलें"
 }

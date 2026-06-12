@@ -1,4 +1,4 @@
-import { shouldPublish, haversineMeters, createPingBuffer } from '@/features/trip/pingQueue';
+import { shouldPublish, createPingBuffer } from '@/features/trip/pingQueue';
 
 describe('shouldPublish', () => {
   it('publishes the first ping', () => {

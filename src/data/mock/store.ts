@@ -1,6 +1,6 @@
 import { asyncStore } from '@/lib/asyncStore';
 import { seed, dutyPostByRole } from './seed';
-import type { Session, Attendance, Route, StudentLite, Boarding, Trip, TripPing, Task, LeaveSummary, Profile } from '@/data/domain';
+import type { Session, Attendance, Boarding, Trip, TripPing, Task, LeaveSummary, Profile } from '@/data/domain';
 import type { Role } from '@/theme/roles';
 
 const KEY = 'sms.mock.';

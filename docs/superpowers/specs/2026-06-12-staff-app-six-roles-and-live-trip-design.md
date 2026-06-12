@@ -55,7 +55,7 @@ discipline so SP-2's backend lights up these same screens with no rewrite.
 | --- | --- |
 | First sub-project to design | **SP-1, the Staff app only.** Other apps follow in later cycles. |
 | Role set | **6 roles**: bus driver, conductor (new), cleaner, gardener, security guard, peon. **Drop cook + clerk.** |
-| Role mapping | `driver`→**Bus Driver** (relabel), **conductor** (new), `sweeper`→**Cleaner**, `guard`→**Security Guard**, keep gardener + peon. |
+| Role mapping | KEEP keys `driver`/`guard`/`sweeper`; relabel via i18n (`driver`→"Bus Driver", `guard`→"Security Guard", `sweeper`→"Cleaner"). Add `conductor` key. Remove `cook`+`clerk`. |
 | Driver vs conductor | **Driver = primary GPS broadcaster** (one source of truth). **Conductor = student manager** (board/drop/absent + headcount) **and fallback broadcaster** if the driver's phone is absent. Exactly one active broadcaster per trip, driver preferred. |
 | Broadcasting model | **Background location task + persistent foreground-service notification.** Battery-friendly cadence (~10 s / ~50 m). Offline points queue + flush. Foreground-only (screen-on) is explicitly rejected as not production-grade. |
 | "Complete" depth | Bus roles get the special **Trip** feature; the other 4 roles get the **standard** flow (Home + role card + Attendance + Roster/Leave/Tasks/Profile). No bespoke per-role overlays this round. |
@@ -83,8 +83,7 @@ No change to the auth, theme, i18n, or existing repository infrastructure.
 `theme/roles.ts` is the single source of truth for everything that varies per role, so this is
 a contained change; screens already read from it.
 
-- Update `Role` union to `'busDriver' | 'conductor' | 'cleaner' | 'gardener' | 'securityGuard'
-  | 'peon'`. (Keep keys stable and explicit; migrate the old `driver/sweeper/guard` keys.)
+- Keep the `Role` union keys `driver`/`guard`/`sweeper`/`gardener`/`peon`; add `conductor`; remove `cook`+`clerk`. Display names change only in i18n (`role.driver`="Bus Driver", `role.guard`="Security Guard", `role.sweeper`="Cleaner").
 - Each role keeps its `accent / accentSoft / icon / labelKey / dutyPostLabelKey / roleCardKind`.
   **conductor** gets a new accent + icon; **busDriver** inherits the driver accent/icon;
   **cleaner**/**securityGuard** reuse the old sweeper/guard visuals with new labels.

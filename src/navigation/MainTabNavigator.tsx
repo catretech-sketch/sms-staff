@@ -3,7 +3,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useNavigation } from '@react-navigation/native';
 import { HomeScreen } from '@/screens/HomeScreen';
-import { RosterScreen } from '@/screens/RosterScreen';
+import { LeaveScreen } from '@/screens/LeaveScreen';
 import { TasksScreen } from '@/screens/TasksScreen';
 import { ProfileScreen } from '@/screens/ProfileScreen';
 import { AttendanceScreen } from '@/screens/AttendanceScreen';
@@ -30,7 +30,7 @@ const TabsNavigator = () => {
       )}
     >
       <Tab.Screen name="Home" component={HomeScreen} />
-      <Tab.Screen name="Roster" component={RosterScreen} />
+      <Tab.Screen name="Leave" component={LeaveScreen} />
       <Tab.Screen name="Tasks" component={TasksScreen} />
       <Tab.Screen name="Me" component={ProfileScreen} />
     </Tab.Navigator>

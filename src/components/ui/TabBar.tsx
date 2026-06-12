@@ -16,7 +16,7 @@ export interface TabBarProps {
 // Icon names for the 4 tabs
 const TAB_ICONS: Record<string, IconName> = {
   Home: 'home',
-  Roster: 'roster',
+  Leave: 'gift',
   Tasks: 'tasks',
   Me: 'user',
 };

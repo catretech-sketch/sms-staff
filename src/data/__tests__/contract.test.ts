@@ -33,6 +33,9 @@ function fixtureHttp(): HttpClient {
       },
       bus_no: 'HR-26-BX-4412', conductor_name: 'Sita Devi',
     },
+    'GET /staff/tasks': [{ id: 'task_1', title: 'X', priority: 'normal', done: false, due_label: 'x' }],
+    'GET /staff/leave': { balances: [{ type: 'casual', total: 12, used: 4 }], requests: [] },
+    'GET /staff/profile': { documents: [{ id: 'd1', label: 'L', value: 'V', ok: true }] },
   };
   return {
     get: <T>(path: string) => Promise.resolve(routes[`GET ${path}`] as T),
@@ -78,5 +81,28 @@ describe('mock <-> http contract', () => {
     expect(keys(a)).toEqual(keys(b));
     expect(a.checkedIn).toBe(b.checkedIn);
     expect(a.geofenceRadiusM).toBe(b.geofenceRadiusM);
+  });
+
+  it('tasks.list returns the same Task shape from both adapters', async () => {
+    const mock = createMockRepositories(await createStore());
+    const http = createHttpRepositories(fixtureHttp());
+    const a = (await mock.tasks.list())[0];
+    const b = (await http.tasks.list())[0];
+    expect(keys(a)).toEqual(keys(b));
+  });
+  it('leave.summary returns the same LeaveSummary shape from both adapters', async () => {
+    const mock = createMockRepositories(await createStore());
+    const http = createHttpRepositories(fixtureHttp());
+    const a = await mock.leave.summary();
+    const b = await http.leave.summary();
+    expect(keys(a)).toEqual(keys(b));
+    expect(keys(a.balances[0])).toEqual(keys(b.balances[0]));
+  });
+  it('profile.get returns the same Profile shape from both adapters', async () => {
+    const mock = createMockRepositories(await createStore());
+    const http = createHttpRepositories(fixtureHttp());
+    const a = await mock.profile.get();
+    const b = await http.profile.get();
+    expect(keys(a.documents[0])).toEqual(keys(b.documents[0]));
   });
 });

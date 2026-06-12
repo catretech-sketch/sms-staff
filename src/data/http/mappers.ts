@@ -125,7 +125,12 @@ export const toTripAssignment = (d: TripAssignmentDTO): TripAssignment => ({ rou
 
 import type { Task } from '@/data/domain';
 export interface TaskDTO { id: string; title: string; detail?: string; priority: 'urgent' | 'normal'; done: boolean; due_label?: string; }
-export const toTask = (d: TaskDTO): Task => ({ id: d.id, title: d.title, detail: d.detail, priority: d.priority, done: d.done, dueLabel: d.due_label });
+export function toTask(d: TaskDTO): Task {
+  const t: Task = { id: d.id, title: d.title, priority: d.priority, done: d.done };
+  if (d.detail !== undefined) t.detail = d.detail;
+  if (d.due_label !== undefined) t.dueLabel = d.due_label;
+  return t;
+}
 
 import type { LeaveSummary, LeaveBalance, LeaveRequest, NewLeaveRequest } from '@/data/domain';
 export interface LeaveBalanceDTO { type: LeaveRequest['type']; total: number; used: number; }

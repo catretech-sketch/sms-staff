@@ -20,9 +20,20 @@ jest.mock('expo-secure-store', () => {
 // never tries to access native modules in the test environment.
 jest.mock('expo-location', () => ({
   requestForegroundPermissionsAsync: async () => ({ status: 'granted' }),
+  requestBackgroundPermissionsAsync: async () => ({ status: 'granted' }),
   getCurrentPositionAsync: async () => ({
     coords: { latitude: 0, longitude: 0, accuracy: 8 },
   }),
+  startLocationUpdatesAsync: jest.fn(),
+  stopLocationUpdatesAsync: jest.fn(),
+  hasStartedLocationUpdatesAsync: jest.fn(() => Promise.resolve(false)),
+  Accuracy: { High: 6 },
+}));
+
+// expo-task-manager is imported transitively through TripScreen → broadcaster;
+// defineTask runs at module load time so we mock the whole module.
+jest.mock('expo-task-manager', () => ({
+  defineTask: jest.fn(),
 }));
 
 // Reanimated mock — Splash uses reanimated; the mock keeps it inert in tests.

@@ -19,11 +19,12 @@ jest.mock('@react-native-async-storage/async-storage', () => {
 async function wrapper() {
   const repos = createMockRepositories(await createStore());
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  return ({ children }: { children: React.ReactNode }) => (
+  const Wrapper = ({ children }: { children: React.ReactNode }) => (
     <QueryClientProvider client={qc}>
       <RepositoryProvider repositories={repos}>{children}</RepositoryProvider>
     </QueryClientProvider>
   );
+  return Wrapper;
 }
 
 it('useTripAssignment loads the assigned route', async () => {

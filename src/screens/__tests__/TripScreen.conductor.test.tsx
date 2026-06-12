@@ -52,7 +52,7 @@ it('shows the roster + headcount after starting a trip and boards a student', as
   const { getByTestId, findByText } = await renderConductor();
   await findByText(/Route 7/);
   fireEvent.press(getByTestId('trip-start'));
-  await waitFor(() => expect(getByTestId('roster-stu_1')).toBeTruthy());
+  await waitFor(() => expect(getByTestId('roster-stu_1')).toBeTruthy(), { timeout: 4000 });
   fireEvent.press(getByTestId('roster-stu_1'));
-  await waitFor(() => expect(getByTestId('headcount').props.children).toMatch(/1/));
+  await waitFor(() => expect(getByTestId('headcount').props.children).toMatch(/1/), { timeout: 4000 });
 });

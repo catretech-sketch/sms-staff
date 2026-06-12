@@ -109,5 +109,13 @@
   "leave.type.earned": "Earned",
   "leave.status.pending": "Pending",
   "leave.status.approved": "Approved",
-  "leave.status.rejected": "Rejected"
+  "leave.status.rejected": "Rejected",
+  "profile.documents": "Documents",
+  "profile.verified": "Verified",
+  "profile.settings": "Settings",
+  "profile.darkMode": "Dark mode",
+  "profile.on": "On",
+  "profile.off": "Off",
+  "profile.applyLeave": "Apply for leave",
+  "profile.logout": "Log out"
 }

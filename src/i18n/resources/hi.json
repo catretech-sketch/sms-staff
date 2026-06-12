@@ -109,5 +109,13 @@
   "leave.type.earned": "अर्जित",
   "leave.status.pending": "लंबित",
   "leave.status.approved": "स्वीकृत",
-  "leave.status.rejected": "अस्वीकृत"
+  "leave.status.rejected": "अस्वीकृत",
+  "profile.documents": "दस्तावेज़",
+  "profile.verified": "सत्यापित",
+  "profile.settings": "सेटिंग्स",
+  "profile.darkMode": "डार्क मोड",
+  "profile.on": "चालू",
+  "profile.off": "बंद",
+  "profile.applyLeave": "अवकाश के लिए आवेदन करें",
+  "profile.logout": "लॉग आउट"
 }

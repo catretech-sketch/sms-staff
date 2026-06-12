@@ -91,5 +91,8 @@
   "trip.boarding.dropped": "Dropped",
   "trip.boarding.absent": "Absent",
   "trip.open": "Open Live Trip",
-  "trip.permissionDenied": "Location permission is required to broadcast the trip"
+  "trip.permissionDenied": "Location permission is required to broadcast the trip",
+  "tasks.urgent": "Urgent",
+  "tasks.done": "Done",
+  "tasks.complete": "Mark done"
 }

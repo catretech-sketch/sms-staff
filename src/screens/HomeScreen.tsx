@@ -106,7 +106,7 @@ export const HomeScreen = ({ navigation }: { navigation: any }) => {
         <Animated.View entering={FadeInDown.delay(195).duration(300)}>
           <TasksPeek
             tasks={d.pendingTasksPeek}
-            onViewAll={() => {}}
+            onViewAll={() => navigation.navigate('Tasks')}
           />
         </Animated.View>
         {d.alert && (

@@ -91,5 +91,8 @@
   "trip.boarding.dropped": "उतरले",
   "trip.boarding.absent": "अनुपस्थित",
   "trip.open": "लाइव्ह ट्रिप उघडा",
-  "trip.permissionDenied": "ट्रिप प्रसारित करण्यासाठी स्थान परवानगी आवश्यक आहे"
+  "trip.permissionDenied": "ट्रिप प्रसारित करण्यासाठी स्थान परवानगी आवश्यक आहे",
+  "tasks.urgent": "तातडीचे",
+  "tasks.done": "पूर्ण",
+  "tasks.complete": "पूर्ण करा"
 }

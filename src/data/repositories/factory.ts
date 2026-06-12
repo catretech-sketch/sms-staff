@@ -8,6 +8,7 @@ import { mockTrip } from '@/data/mock/trip.repo';
 import { httpAuth } from '@/data/http/auth.repo';
 import { httpDashboard } from '@/data/http/dashboard.repo';
 import { httpAttendance } from '@/data/http/attendance.repo';
+import { httpTrip } from '@/data/http/trip.repo';
 
 export function createMockRepositories(store: Store): Repositories {
   return {
@@ -23,5 +24,6 @@ export function createHttpRepositories(http: HttpClient): Repositories {
     auth: httpAuth(http),
     dashboard: httpDashboard(http),
     attendance: httpAttendance(http),
+    trip: httpTrip(http),
   };
 }

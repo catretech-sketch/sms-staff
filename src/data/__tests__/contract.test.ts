@@ -26,6 +26,13 @@ function fixtureHttp(): HttpClient {
   const routes: Record<string, unknown> = {
     'POST /staff/auth/login': sessionDTO,
     'GET /staff/attendance': attendanceDTO,
+    'GET /staff/trip/assignment': {
+      route: {
+        id: 'route_7', name: 'Route 7', assigned_bus_no: 'HR-26-BX-4412',
+        stops: [{ id: 'stop_1', name: 'School Gate', lat: 28.4595, lng: 77.0266, seq: 0 }],
+      },
+      bus_no: 'HR-26-BX-4412', conductor_name: 'Sita Devi',
+    },
   };
   return {
     get: <T>(path: string) => Promise.resolve(routes[`GET ${path}`] as T),
@@ -50,6 +57,17 @@ describe('mock <-> http contract', () => {
     expect(keys(a.tenant)).toEqual(keys(b.tenant));
     expect(a.user.roleKey).toBe(b.user.roleKey);
     expect(a.tenant.name).toBe(b.tenant.name);
+  });
+
+  it('trip.myAssignment returns the same TripAssignment shape from both adapters', async () => {
+    const mock = createMockRepositories(await createStore());
+    const http = createHttpRepositories(fixtureHttp());
+    const a = await mock.trip.myAssignment();
+    const b = await http.trip.myAssignment();
+    expect(keys(a)).toEqual(keys(b));
+    expect(keys(a.route)).toEqual(keys(b.route));
+    expect(a.busNo).toBe(b.busNo);
+    expect(a.conductorName).toBe(b.conductorName);
   });
 
   it('attendance.status returns the same Attendance shape from both adapters', async () => {

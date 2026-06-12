@@ -135,3 +135,9 @@ export const toLeaveBalance = (d: LeaveBalanceDTO): LeaveBalance => ({ type: d.t
 export const toLeaveRequest = (d: LeaveRequestDTO): LeaveRequest => ({ id: d.id, type: d.type, fromDate: d.from_date, toDate: d.to_date, reason: d.reason, status: d.status });
 export const toLeaveSummary = (d: LeaveSummaryDTO): LeaveSummary => ({ balances: d.balances.map(toLeaveBalance), requests: d.requests.map(toLeaveRequest) });
 export const fromNewLeave = (r: NewLeaveRequest) => ({ type: r.type, from_date: r.fromDate, to_date: r.toDate, reason: r.reason });
+
+import type { Profile, StaffDocument } from '@/data/domain';
+export interface StaffDocumentDTO { id: string; label: string; value: string; ok?: boolean; }
+export interface ProfileDTO { documents: StaffDocumentDTO[]; }
+export const toStaffDocument = (d: StaffDocumentDTO): StaffDocument => ({ id: d.id, label: d.label, value: d.value, ok: d.ok });
+export const toProfile = (d: ProfileDTO): Profile => ({ documents: d.documents.map(toStaffDocument) });

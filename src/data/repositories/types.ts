@@ -3,6 +3,7 @@ import type {
   TripAssignment, Trip, TripPing, TripSummary, StudentLite, Boarding, TripDirection,
   Task,
   LeaveSummary, LeaveRequest, NewLeaveRequest,
+  Profile,
 } from '@/data/domain';
 import type { Role } from '@/theme/roles';
 
@@ -44,6 +45,8 @@ export interface LeaveRepository {
   submit(req: NewLeaveRequest): Promise<LeaveRequest>;
 }
 
+export interface ProfileRepository { get(): Promise<Profile>; }
+
 export interface Repositories {
   auth: AuthRepository;
   dashboard: DashboardRepository;
@@ -51,4 +54,5 @@ export interface Repositories {
   trip: TripRepository;
   tasks: TasksRepository;
   leave: LeaveRepository;
+  profile: ProfileRepository;
 }

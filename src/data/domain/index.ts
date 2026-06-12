@@ -7,3 +7,4 @@ export type { Role } from '@/theme/roles';
 export * from './trip';
 export * from './task';
 export * from './leave';
+export * from './profile';

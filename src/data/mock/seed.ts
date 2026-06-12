@@ -1,5 +1,5 @@
 import type { Role } from '@/theme/roles';
-import type { Staff, Tenant, RoleCard, TaskPeek, Attendance, Route, StudentLite, Boarding, Trip, Task, LeaveSummary } from '@/data/domain';
+import type { Staff, Tenant, RoleCard, TaskPeek, Attendance, Route, StudentLite, Boarding, Trip, Task, LeaveSummary, Profile } from '@/data/domain';
 
 export const dutyPostByRole: Record<Role, string> = {
   driver: 'Bus / Route',
@@ -85,6 +85,14 @@ const conductorName = 'Sita Devi';
 const currentTrip: Trip | null = null;
 const boarding: Boarding[] = [];
 
+const profile: Profile = {
+  documents: [
+    { id: 'doc_license', label: 'Driving licence', value: 'DL-0420190012345', ok: true },
+    { id: 'doc_fitness', label: 'Bus fitness', value: 'Valid till 2027-03', ok: true },
+    { id: 'doc_aadhaar', label: 'ID verified', value: 'Yes', ok: true },
+  ],
+};
+
 const leaveSummary: LeaveSummary = {
   balances: [
     { type: 'casual', total: 12, used: 4 },
@@ -116,9 +124,10 @@ export interface SeedShape {
   boarding: Boarding[];
   tasks: Task[];
   leaveSummary: LeaveSummary;
+  profile: Profile;
 }
 
 export const seed: SeedShape = {
   staff, tenant, roleCards, tasksPeek, dashboardBase, attendance,
-  route, students, conductorName, currentTrip, boarding, tasks, leaveSummary,
+  route, students, conductorName, currentTrip, boarding, tasks, leaveSummary, profile,
 };

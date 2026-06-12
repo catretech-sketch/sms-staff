@@ -21,12 +21,12 @@ describe('http mappers', () => {
   it('toSession maps tokens and nested user/tenant', () => {
     const s = toSession({
       access_token: 'a', refresh_token: 'r',
-      user: { id: 's1', name: 'R K', first_name: 'R', role_key: 'cook', emp_id: 'E', joined: '2020-01-01', rating: 4, duty_post: 'Kitchen / Mess', shift: 'Morning Shift', timing: '7:30–3:30', phone: '1' },
+      user: { id: 's1', name: 'R K', first_name: 'R', role_key: 'conductor', emp_id: 'E', joined: '2020-01-01', rating: 4, duty_post: 'Bus / Students', shift: 'Morning Shift', timing: '7:30–3:30', phone: '1' },
       tenant: { id: 't1', name: 'School' },
     });
     expect(s.accessToken).toBe('a');
     expect(s.refreshToken).toBe('r');
-    expect(s.user.roleKey).toBe('cook');
+    expect(s.user.roleKey).toBe('conductor');
     expect(s.tenant.id).toBe('t1');
   });
 

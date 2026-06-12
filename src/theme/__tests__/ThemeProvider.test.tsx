@@ -23,7 +23,7 @@ function Probe() {
       <Text testID="role">{role.key}</Text>
       <Text testID="dark">{String(dark)}</Text>
       <Pressable testID="toggle" onPress={toggleDark}><Text>t</Text></Pressable>
-      <Pressable testID="cook" onPress={() => setRole('cook')}><Text>c</Text></Pressable>
+      <Pressable testID="conductor" onPress={() => setRole('conductor')}><Text>c</Text></Pressable>
     </>
   );
 }
@@ -44,7 +44,7 @@ describe('ThemeProvider', () => {
 
   it('setRole switches the active role', async () => {
     render(<ThemeProvider><Probe /></ThemeProvider>);
-    fireEvent.press(screen.getByTestId('cook'));
-    await waitFor(() => expect(screen.getByTestId('role')).toHaveTextContent('cook'));
+    fireEvent.press(screen.getByTestId('conductor'));
+    await waitFor(() => expect(screen.getByTestId('role')).toHaveTextContent('conductor'));
   });
 });

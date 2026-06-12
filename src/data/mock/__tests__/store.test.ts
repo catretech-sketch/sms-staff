@@ -27,10 +27,10 @@ describe('createStore', () => {
 
   it('persistRole writes the current role; a new store rehydrates it', async () => {
     const store = await createStore();
-    store.session.user.roleKey = 'cook';
+    store.session.user.roleKey = 'conductor';
     await store.persistRole();
     const store2 = await createStore();
-    expect(store2.session.user.roleKey).toBe('cook');
+    expect(store2.session.user.roleKey).toBe('conductor');
   });
 
   it('persistAttendance survives a reload', async () => {

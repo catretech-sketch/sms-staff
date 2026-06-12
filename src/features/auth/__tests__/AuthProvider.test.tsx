@@ -35,7 +35,7 @@ function Harness() {
       <Text testID="status">{status}</Text>
       <Text testID="school">{session?.tenant.name ?? ''}</Text>
       <Text testID="role">{session?.user.roleKey ?? ''}</Text>
-      <Pressable testID="in" onPress={() => signIn('98765 43210', 'cook')}><Text>in</Text></Pressable>
+      <Pressable testID="in" onPress={() => signIn('98765 43210', 'conductor')}><Text>in</Text></Pressable>
       <Pressable testID="out" onPress={() => signOut()}><Text>out</Text></Pressable>
     </>
   );
@@ -64,7 +64,7 @@ describe('AuthProvider', () => {
     fireEvent.press(screen.getByTestId('in'));
     await waitFor(() => expect(screen.getByTestId('status')).toHaveTextContent('authenticated'));
     expect(screen.getByTestId('school')).toHaveTextContent('Greenfield Public School');
-    expect(screen.getByTestId('role')).toHaveTextContent('cook');
+    expect(screen.getByTestId('role')).toHaveTextContent('conductor');
   });
 
   it('fails safe to unauthenticated when token storage throws during bootstrap', async () => {

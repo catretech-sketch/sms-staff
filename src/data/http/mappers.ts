@@ -122,3 +122,7 @@ export const toTripSummary = (d: TripSummaryDTO): TripSummary => ({
 export const toStudentLite = (d: StudentLiteDTO): StudentLite => ({ id: d.id, name: d.name, stopId: d.stop_id, photoUrl: d.photo_url });
 export const toBoarding = (d: BoardingDTO): Boarding => ({ tripId: d.trip_id, studentId: d.student_id, stopId: d.stop_id, state: d.state, at: d.at });
 export const toTripAssignment = (d: TripAssignmentDTO): TripAssignment => ({ route: toRoute(d.route), busNo: d.bus_no, conductorName: d.conductor_name ?? null });
+
+import type { Task } from '@/data/domain';
+export interface TaskDTO { id: string; title: string; detail?: string; priority: 'urgent' | 'normal'; done: boolean; due_label?: string; }
+export const toTask = (d: TaskDTO): Task => ({ id: d.id, title: d.title, detail: d.detail, priority: d.priority, done: d.done, dueLabel: d.due_label });

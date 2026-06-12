@@ -1,6 +1,6 @@
 import { asyncStore } from '@/lib/asyncStore';
 import { seed, dutyPostByRole } from './seed';
-import type { Session, Attendance, Route, StudentLite, Boarding, Trip, TripPing } from '@/data/domain';
+import type { Session, Attendance, Route, StudentLite, Boarding, Trip, TripPing, Task } from '@/data/domain';
 import type { Role } from '@/theme/roles';
 
 const KEY = 'sms.mock.';
@@ -17,6 +17,7 @@ export interface Store {
   currentTrip: Trip | null;
   boarding: Boarding[];
   pings: TripPing[];
+  tasks: Task[];
   persistAttendance(): Promise<void>;
   persistRole(): Promise<void>;
   persistTrip(): Promise<void>;
@@ -54,6 +55,7 @@ export async function createStore(): Promise<Store> {
     currentTrip,
     boarding,
     pings: [],
+    tasks: clone(seed.tasks),
     async persistTrip() {
       await asyncStore.set(`${KEY}trip`, store.currentTrip);
       await asyncStore.set(`${KEY}boarding`, store.boarding);

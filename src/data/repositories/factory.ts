@@ -5,10 +5,12 @@ import { mockAuth } from '@/data/mock/auth.repo';
 import { mockDashboard } from '@/data/mock/dashboard.repo';
 import { mockAttendance } from '@/data/mock/attendance.repo';
 import { mockTrip } from '@/data/mock/trip.repo';
+import { mockTasks } from '@/data/mock/tasks.repo';
 import { httpAuth } from '@/data/http/auth.repo';
 import { httpDashboard } from '@/data/http/dashboard.repo';
 import { httpAttendance } from '@/data/http/attendance.repo';
 import { httpTrip } from '@/data/http/trip.repo';
+import { httpTasks } from '@/data/http/tasks.repo';
 
 export function createMockRepositories(store: Store): Repositories {
   return {
@@ -16,6 +18,7 @@ export function createMockRepositories(store: Store): Repositories {
     dashboard: mockDashboard(store),
     attendance: mockAttendance(store),
     trip: mockTrip(store),
+    tasks: mockTasks(store),
   };
 }
 
@@ -25,5 +28,6 @@ export function createHttpRepositories(http: HttpClient): Repositories {
     dashboard: httpDashboard(http),
     attendance: httpAttendance(http),
     trip: httpTrip(http),
+    tasks: httpTasks(http),
   };
 }

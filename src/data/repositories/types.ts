@@ -1,6 +1,7 @@
 import type {
   Session, Staff, Dashboard, Attendance,
   TripAssignment, Trip, TripPing, TripSummary, StudentLite, Boarding, TripDirection,
+  Task,
 } from '@/data/domain';
 import type { Role } from '@/theme/roles';
 
@@ -32,9 +33,15 @@ export interface TripRepository {
   boardingState(tripId: string): Promise<Boarding[]>;
 }
 
+export interface TasksRepository {
+  list(): Promise<Task[]>;
+  complete(id: string): Promise<Task[]>;
+}
+
 export interface Repositories {
   auth: AuthRepository;
   dashboard: DashboardRepository;
   attendance: AttendanceRepository;
   trip: TripRepository;
+  tasks: TasksRepository;
 }

@@ -1,6 +1,6 @@
 import { asyncStore } from '@/lib/asyncStore';
 import { seed, dutyPostByRole } from './seed';
-import type { Session, Attendance } from '@/data/domain';
+import type { Session, Attendance, Route, StudentLite, Boarding, Trip, TripPing } from '@/data/domain';
 import type { Role } from '@/theme/roles';
 
 const KEY = 'sms.mock.';
@@ -11,8 +11,15 @@ export interface Store {
   dashboardBase: typeof seed.dashboardBase;
   roleCards: typeof seed.roleCards;
   tasksPeek: typeof seed.tasksPeek;
+  route: typeof seed.route;
+  students: typeof seed.students;
+  conductorName: string;
+  currentTrip: Trip | null;
+  boarding: Boarding[];
+  pings: TripPing[];
   persistAttendance(): Promise<void>;
   persistRole(): Promise<void>;
+  persistTrip(): Promise<void>;
   genId(prefix: string): string;
 }
 
@@ -26,6 +33,8 @@ export async function createStore(): Promise<Store> {
     staff.dutyPost = dutyPostByRole[savedRole];
   }
   const attendance = (await asyncStore.get<Attendance>(`${KEY}attendance`)) ?? clone(seed.attendance);
+  const currentTrip = (await asyncStore.get<Trip | null>(`${KEY}trip`)) ?? clone(seed.currentTrip);
+  const boarding = (await asyncStore.get<Boarding[]>(`${KEY}boarding`)) ?? clone(seed.boarding);
   let counter = 0;
 
   const store: Store = {
@@ -39,6 +48,16 @@ export async function createStore(): Promise<Store> {
     dashboardBase: clone(seed.dashboardBase),
     roleCards: clone(seed.roleCards),
     tasksPeek: clone(seed.tasksPeek),
+    route: clone(seed.route),
+    students: clone(seed.students),
+    conductorName: seed.conductorName,
+    currentTrip,
+    boarding,
+    pings: [],
+    async persistTrip() {
+      await asyncStore.set(`${KEY}trip`, store.currentTrip);
+      await asyncStore.set(`${KEY}boarding`, store.boarding);
+    },
     async persistAttendance() {
       await asyncStore.set(`${KEY}attendance`, store.attendance);
     },

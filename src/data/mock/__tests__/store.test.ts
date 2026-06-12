@@ -51,6 +51,14 @@ describe('createStore', () => {
     });
   });
 
+  it('seeds the bus route, students, and empty trip state', async () => {
+    const store = await createStore();
+    expect(store.route.stops.length).toBe(6);
+    expect(store.students.length).toBe(6);
+    expect(store.currentTrip).toBeNull();
+    expect(store.boarding).toEqual([]);
+  });
+
   it('mutating the store does not mutate the shared seed', async () => {
     const store = await createStore();
     store.session.user.name = 'Changed';

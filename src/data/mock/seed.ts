@@ -1,5 +1,5 @@
 import type { Role } from '@/theme/roles';
-import type { Staff, Tenant, RoleCard, TaskPeek, Attendance } from '@/data/domain';
+import type { Staff, Tenant, RoleCard, TaskPeek, Attendance, Route, StudentLite, Boarding, Trip } from '@/data/domain';
 
 export const dutyPostByRole: Record<Role, string> = {
   driver: 'Bus / Route',
@@ -58,6 +58,33 @@ const attendance: Attendance = {
   geofenceRadiusM: 120,
 };
 
+const route: Route = {
+  id: 'route_7',
+  name: 'Route 7',
+  assignedBusNo: 'HR-26-BX-4412',
+  stops: [
+    { id: 'stop_1', name: 'School Gate', lat: 28.4595, lng: 77.0266, seq: 0 },
+    { id: 'stop_2', name: 'Sector 12', lat: 28.4660, lng: 77.0410, seq: 1, etaMin: 6 },
+    { id: 'stop_3', name: 'Sector 15 Market', lat: 28.4712, lng: 77.0525, seq: 2, etaMin: 12 },
+    { id: 'stop_4', name: 'Green Park', lat: 28.4781, lng: 77.0648, seq: 3, etaMin: 18 },
+    { id: 'stop_5', name: 'Rail Vihar', lat: 28.4850, lng: 77.0770, seq: 4, etaMin: 24 },
+    { id: 'stop_6', name: 'Civil Lines', lat: 28.4925, lng: 77.0890, seq: 5, etaMin: 30 },
+  ],
+};
+
+const students: StudentLite[] = [
+  { id: 'stu_1', name: 'Aarav Sharma', stopId: 'stop_2' },
+  { id: 'stu_2', name: 'Diya Gupta', stopId: 'stop_2' },
+  { id: 'stu_3', name: 'Kabir Singh', stopId: 'stop_3' },
+  { id: 'stu_4', name: 'Anaya Verma', stopId: 'stop_3' },
+  { id: 'stu_5', name: 'Vivaan Mehta', stopId: 'stop_4' },
+  { id: 'stu_6', name: 'Myra Reddy', stopId: 'stop_5' },
+];
+
+const conductorName = 'Sita Devi';
+const currentTrip: Trip | null = null;
+const boarding: Boarding[] = [];
+
 export interface SeedShape {
   staff: Staff;
   tenant: Tenant;
@@ -65,6 +92,14 @@ export interface SeedShape {
   tasksPeek: TaskPeek[];
   dashboardBase: typeof dashboardBase;
   attendance: Attendance;
+  route: Route;
+  students: StudentLite[];
+  conductorName: string;
+  currentTrip: Trip | null;
+  boarding: Boarding[];
 }
 
-export const seed: SeedShape = { staff, tenant, roleCards, tasksPeek, dashboardBase, attendance };
+export const seed: SeedShape = {
+  staff, tenant, roleCards, tasksPeek, dashboardBase, attendance,
+  route, students, conductorName, currentTrip, boarding,
+};

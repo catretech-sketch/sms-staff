@@ -5,12 +5,11 @@ import type { RoleCard } from '@/data/domain';
 
 const cases: [RoleCard, RegExp][] = [
   [{ kind: 'driver', busNo: 'HR-26-BX-4412', routeName: 'Route 7', licenseExpiresInDays: 24, fitnessOk: true }, /HR-26-BX-4412/],
-  [{ kind: 'cook', mealCount: 320, menu: ['Rice'], lowStock: ['Oil'] }, /320/],
+  [{ kind: 'conductor', routeName: 'Route 7', onBoard: 18, capacity: 24, nextStop: 'Sector 12' }, /Sector 12/],
   [{ kind: 'guard', gate: 'Main Gate', roundsDone: 3, roundsTotal: 6, visitorsToday: 14 }, /Main Gate/],
   [{ kind: 'gardener', zones: ['Front lawn'], wateringDue: 2 }, /Front lawn/],
   [{ kind: 'sweeper', blocks: ['Block A'], suppliesLow: ['Phenyl'] }, /Block A/],
   [{ kind: 'peon', errands: 4, bellDuty: true }, /4/],
-  [{ kind: 'clerk', pendingFiles: 7, requestsOpen: 3 }, /7/],
 ];
 
 it.each(cases)('renders %s card', (roleCard, re) => {

@@ -2,12 +2,11 @@
 import React from 'react';
 import type { RoleCard } from '@/data/domain';
 import { DriverCard } from './DriverCard';
-import { CookCard } from './CookCard';
+import { ConductorCard } from './ConductorCard';
 import { GuardCard } from './GuardCard';
 import { GardenerCard } from './GardenerCard';
 import { SweeperCard } from './SweeperCard';
 import { PeonCard } from './PeonCard';
-import { ClerkCard } from './ClerkCard';
 
 export interface RoleSpecializedCardProps {
   roleCard: RoleCard;
@@ -26,12 +25,13 @@ export const RoleSpecializedCard: React.FC<RoleSpecializedCardProps> = ({ roleCa
           accent={accent}
         />
       );
-    case 'cook':
+    case 'conductor':
       return (
-        <CookCard
-          mealCount={roleCard.mealCount}
-          menu={roleCard.menu}
-          lowStock={roleCard.lowStock}
+        <ConductorCard
+          routeName={roleCard.routeName}
+          onBoard={roleCard.onBoard}
+          capacity={roleCard.capacity}
+          nextStop={roleCard.nextStop}
           accent={accent}
         />
       );
@@ -66,14 +66,6 @@ export const RoleSpecializedCard: React.FC<RoleSpecializedCardProps> = ({ roleCa
         <PeonCard
           errands={roleCard.errands}
           bellDuty={roleCard.bellDuty}
-          accent={accent}
-        />
-      );
-    case 'clerk':
-      return (
-        <ClerkCard
-          pendingFiles={roleCard.pendingFiles}
-          requestsOpen={roleCard.requestsOpen}
           accent={accent}
         />
       );

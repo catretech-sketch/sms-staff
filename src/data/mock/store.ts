@@ -1,6 +1,6 @@
 import { asyncStore } from '@/lib/asyncStore';
 import { seed, dutyPostByRole } from './seed';
-import type { Session, Attendance, Route, StudentLite, Boarding, Trip, TripPing, Task } from '@/data/domain';
+import type { Session, Attendance, Route, StudentLite, Boarding, Trip, TripPing, Task, LeaveSummary } from '@/data/domain';
 import type { Role } from '@/theme/roles';
 
 const KEY = 'sms.mock.';
@@ -18,7 +18,9 @@ export interface Store {
   boarding: Boarding[];
   pings: TripPing[];
   tasks: Task[];
+  leave: LeaveSummary;
   persistAttendance(): Promise<void>;
+  persistLeave(): Promise<void>;
   persistRole(): Promise<void>;
   persistTrip(): Promise<void>;
   genId(prefix: string): string;
@@ -36,6 +38,7 @@ export async function createStore(): Promise<Store> {
   const attendance = (await asyncStore.get<Attendance>(`${KEY}attendance`)) ?? clone(seed.attendance);
   const currentTrip = (await asyncStore.get<Trip | null>(`${KEY}trip`)) ?? clone(seed.currentTrip);
   const boarding = (await asyncStore.get<Boarding[]>(`${KEY}boarding`)) ?? clone(seed.boarding);
+  const leave = (await asyncStore.get<LeaveSummary>(`${KEY}leave`)) ?? clone(seed.leaveSummary);
   let counter = 0;
 
   const store: Store = {
@@ -56,12 +59,16 @@ export async function createStore(): Promise<Store> {
     boarding,
     pings: [],
     tasks: clone(seed.tasks),
+    leave,
     async persistTrip() {
       await asyncStore.set(`${KEY}trip`, store.currentTrip);
       await asyncStore.set(`${KEY}boarding`, store.boarding);
     },
     async persistAttendance() {
       await asyncStore.set(`${KEY}attendance`, store.attendance);
+    },
+    async persistLeave() {
+      await asyncStore.set(`${KEY}leave`, store.leave);
     },
     async persistRole() {
       await asyncStore.set(`${KEY}role`, store.session.user.roleKey);

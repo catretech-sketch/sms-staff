@@ -126,3 +126,12 @@ export const toTripAssignment = (d: TripAssignmentDTO): TripAssignment => ({ rou
 import type { Task } from '@/data/domain';
 export interface TaskDTO { id: string; title: string; detail?: string; priority: 'urgent' | 'normal'; done: boolean; due_label?: string; }
 export const toTask = (d: TaskDTO): Task => ({ id: d.id, title: d.title, detail: d.detail, priority: d.priority, done: d.done, dueLabel: d.due_label });
+
+import type { LeaveSummary, LeaveBalance, LeaveRequest, NewLeaveRequest } from '@/data/domain';
+export interface LeaveBalanceDTO { type: LeaveRequest['type']; total: number; used: number; }
+export interface LeaveRequestDTO { id: string; type: LeaveRequest['type']; from_date: string; to_date: string; reason: string; status: LeaveRequest['status']; }
+export interface LeaveSummaryDTO { balances: LeaveBalanceDTO[]; requests: LeaveRequestDTO[]; }
+export const toLeaveBalance = (d: LeaveBalanceDTO): LeaveBalance => ({ type: d.type, total: d.total, used: d.used });
+export const toLeaveRequest = (d: LeaveRequestDTO): LeaveRequest => ({ id: d.id, type: d.type, fromDate: d.from_date, toDate: d.to_date, reason: d.reason, status: d.status });
+export const toLeaveSummary = (d: LeaveSummaryDTO): LeaveSummary => ({ balances: d.balances.map(toLeaveBalance), requests: d.requests.map(toLeaveRequest) });
+export const fromNewLeave = (r: NewLeaveRequest) => ({ type: r.type, from_date: r.fromDate, to_date: r.toDate, reason: r.reason });

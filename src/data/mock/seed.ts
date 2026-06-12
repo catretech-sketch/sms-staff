@@ -1,5 +1,5 @@
 import type { Role } from '@/theme/roles';
-import type { Staff, Tenant, RoleCard, TaskPeek, Attendance, Route, StudentLite, Boarding, Trip, Task } from '@/data/domain';
+import type { Staff, Tenant, RoleCard, TaskPeek, Attendance, Route, StudentLite, Boarding, Trip, Task, LeaveSummary } from '@/data/domain';
 
 export const dutyPostByRole: Record<Role, string> = {
   driver: 'Bus / Route',
@@ -85,6 +85,17 @@ const conductorName = 'Sita Devi';
 const currentTrip: Trip | null = null;
 const boarding: Boarding[] = [];
 
+const leaveSummary: LeaveSummary = {
+  balances: [
+    { type: 'casual', total: 12, used: 4 },
+    { type: 'sick', total: 8, used: 1 },
+    { type: 'earned', total: 15, used: 6 },
+  ],
+  requests: [
+    { id: 'lv_1', type: 'casual', fromDate: '2026-05-20', toDate: '2026-05-21', reason: 'Family function', status: 'approved' },
+  ],
+};
+
 const tasks: Task[] = [
   { id: 'task_1', title: 'Pre-trip bus inspection', priority: 'urgent', done: false, dueLabel: 'Today 7:00 AM' },
   { id: 'task_2', title: 'Submit trip log sheet', priority: 'normal', done: false, dueLabel: 'Today 4:00 PM' },
@@ -104,9 +115,10 @@ export interface SeedShape {
   currentTrip: Trip | null;
   boarding: Boarding[];
   tasks: Task[];
+  leaveSummary: LeaveSummary;
 }
 
 export const seed: SeedShape = {
   staff, tenant, roleCards, tasksPeek, dashboardBase, attendance,
-  route, students, conductorName, currentTrip, boarding, tasks,
+  route, students, conductorName, currentTrip, boarding, tasks, leaveSummary,
 };

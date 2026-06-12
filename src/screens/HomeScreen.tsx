@@ -16,6 +16,7 @@ import {
   TasksPeek,
   AlertCard,
   Skeleton,
+  Btn,
 } from '@/components/ui';
 import { ErrorState } from '@/components/state';
 
@@ -91,6 +92,17 @@ export const HomeScreen = ({ navigation }: { navigation: any }) => {
             accent={role.accent}
           />
         </Animated.View>
+        {(role.key === 'driver' || role.key === 'conductor') && (
+          <Animated.View entering={FadeInDown.delay(160).duration(300)}>
+            <Btn
+              testID="home-open-trip"
+              label={t('trip.open')}
+              icon="bus"
+              accent={role.accent}
+              onPress={() => navigation.navigate('Trip')}
+            />
+          </Animated.View>
+        )}
         <Animated.View entering={FadeInDown.delay(195).duration(300)}>
           <TasksPeek
             tasks={d.pendingTasksPeek}

@@ -24,8 +24,18 @@ jest.mock('@/features/auth/AuthProvider', () => ({
   useAuth: () => ({ status: 'authenticated', session: { user: { firstName: 'Ramesh', name: 'Ramesh Kumar', roleKey: 'driver', timing: '7:30–3:30', dutyPost: 'Bus / Route' }, tenant: { id: 'school_greenfield', name: 'Greenfield Public School' } }, signIn: jest.fn(), signOut: jest.fn() }),
 }));
 
+function renderHome() {
+  return render(<AppProviders><HomeScreen navigation={{ navigate: jest.fn() } as any} /></AppProviders>);
+}
+
 it('renders the dashboard with school identity and role card', async () => {
-  const { getByText } = render(<AppProviders><HomeScreen navigation={{ navigate: jest.fn() } as any} /></AppProviders>);
+  const { getByText } = renderHome();
   await waitFor(() => expect(getByText('Greenfield Public School')).toBeTruthy());
   expect(getByText(/HR-26-BX-4412/)).toBeTruthy();
+});
+
+it('shows the Live Trip CTA for the bus driver role', async () => {
+  // (uses the existing harness in this file, which renders Home for the seeded driver)
+  const { findByTestId } = renderHome(); // <- use this file's existing render helper
+  expect(await findByTestId('home-open-trip')).toBeTruthy();
 });

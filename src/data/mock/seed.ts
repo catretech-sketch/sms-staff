@@ -3,12 +3,11 @@ import type { Staff, Tenant, RoleCard, TaskPeek, Attendance } from '@/data/domai
 
 export const dutyPostByRole: Record<Role, string> = {
   driver: 'Bus / Route',
-  cook: 'Kitchen / Mess',
-  guard: 'Gate / Post',
-  gardener: 'Grounds / Zone',
+  conductor: 'Bus / Students',
   sweeper: 'Block / Area',
+  gardener: 'Grounds / Zone',
+  guard: 'Gate / Post',
   peon: 'Office / Desk',
-  clerk: 'Office / Desk',
 };
 
 const tenant: Tenant = {
@@ -32,12 +31,11 @@ const staff: Staff = {
 
 const roleCards: Record<Role, RoleCard> = {
   driver: { kind: 'driver', busNo: 'HR-26-BX-4412', routeName: 'Route 7', licenseExpiresInDays: 24, fitnessOk: true },
-  cook: { kind: 'cook', mealCount: 320, menu: ['Rice', 'Dal', 'Mixed veg'], lowStock: ['Cooking oil'] },
-  guard: { kind: 'guard', gate: 'Main Gate', roundsDone: 3, roundsTotal: 6, visitorsToday: 14 },
-  gardener: { kind: 'gardener', zones: ['Front lawn', 'Playground'], wateringDue: 2 },
+  conductor: { kind: 'conductor', routeName: 'Route 7', onBoard: 18, capacity: 24, nextStop: 'Sector 12' },
   sweeper: { kind: 'sweeper', blocks: ['Block A', 'Block B'], suppliesLow: ['Phenyl'] },
+  gardener: { kind: 'gardener', zones: ['Front lawn', 'Playground'], wateringDue: 2 },
+  guard: { kind: 'guard', gate: 'Main Gate', roundsDone: 3, roundsTotal: 6, visitorsToday: 14 },
   peon: { kind: 'peon', errands: 4, bellDuty: true },
-  clerk: { kind: 'clerk', pendingFiles: 7, requestsOpen: 3 },
 };
 
 const tasksPeek: TaskPeek[] = [

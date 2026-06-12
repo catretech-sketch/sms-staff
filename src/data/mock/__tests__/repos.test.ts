@@ -23,9 +23,9 @@ describe('mock repositories', () => {
 
   it('login sets the chosen role and returns a session', async () => {
     const store = await createStore();
-    const session = await mockAuth(store).login('98765 43210', 'cook');
-    expect(session.user.roleKey).toBe('cook');
-    expect(session.user.dutyPost).toBe('Kitchen / Mess');
+    const session = await mockAuth(store).login('98765 43210', 'conductor');
+    expect(session.user.roleKey).toBe('conductor');
+    expect(session.user.dutyPost).toBe('Bus / Students');
     expect(session.tenant.name).toBe('Greenfield Public School');
   });
 
@@ -45,15 +45,15 @@ describe('mock repositories', () => {
 
   it('dashboard result does not alias store-internal arrays', async () => {
     const store = await createStore();
-    await mockAuth(store).login('98765 43210', 'cook');
+    await mockAuth(store).login('98765 43210', 'gardener');
     const dash1 = await mockDashboard(store).get();
-    if (dash1.roleCard.kind === 'cook') {
-      dash1.roleCard.menu.push('Chapati');
+    if (dash1.roleCard.kind === 'gardener') {
+      dash1.roleCard.zones.push('Rooftop');
     }
     const dash2 = await mockDashboard(store).get();
     // The mutation to dash1 must not leak into a fresh read.
-    if (dash2.roleCard.kind === 'cook') {
-      expect(dash2.roleCard.menu).not.toContain('Chapati');
+    if (dash2.roleCard.kind === 'gardener') {
+      expect(dash2.roleCard.zones).not.toContain('Rooftop');
     }
   });
 

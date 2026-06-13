@@ -18,6 +18,12 @@ export interface StaffDTO {
   shift: string;
   timing: string;
   phone: string;
+  // canonical school-admin superset (mapper ignores fields the domain does not use)
+  category?: string;
+  department?: string;
+  attendance_pct?: number;
+  status?: 'active' | 'inactive';
+  avatar_hue?: number;
 }
 export interface TenantDTO {
   id: string;
@@ -133,11 +139,13 @@ export function toTask(d: TaskDTO): Task {
   return t;
 }
 
-export interface LeaveBalanceDTO { type: LeaveRequest['type']; total: number; used: number; }
-export interface LeaveRequestDTO { id: string; type: LeaveRequest['type']; from_date: string; to_date: string; reason: string; status: LeaveRequest['status']; }
+export type CanonicalLeaveType =
+  | 'casual' | 'sick' | 'earned' | 'medical' | 'maternity' | 'emergency' | 'other';
+export interface LeaveBalanceDTO { type: CanonicalLeaveType; total: number; used: number; }
+export interface LeaveRequestDTO { id: string; type: CanonicalLeaveType; from_date: string; to_date: string; reason: string; status: LeaveRequest['status']; }
 export interface LeaveSummaryDTO { balances: LeaveBalanceDTO[]; requests: LeaveRequestDTO[]; }
-export const toLeaveBalance = (d: LeaveBalanceDTO): LeaveBalance => ({ type: d.type, total: d.total, used: d.used });
-export const toLeaveRequest = (d: LeaveRequestDTO): LeaveRequest => ({ id: d.id, type: d.type, fromDate: d.from_date, toDate: d.to_date, reason: d.reason, status: d.status });
+export const toLeaveBalance = (d: LeaveBalanceDTO): LeaveBalance => ({ type: d.type as LeaveBalance['type'], total: d.total, used: d.used });
+export const toLeaveRequest = (d: LeaveRequestDTO): LeaveRequest => ({ id: d.id, type: d.type as LeaveRequest['type'], fromDate: d.from_date, toDate: d.to_date, reason: d.reason, status: d.status });
 export const toLeaveSummary = (d: LeaveSummaryDTO): LeaveSummary => ({ balances: d.balances.map(toLeaveBalance), requests: d.requests.map(toLeaveRequest) });
 export const fromNewLeave = (r: NewLeaveRequest) => ({ type: r.type, from_date: r.fromDate, to_date: r.toDate, reason: r.reason });
 

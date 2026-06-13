@@ -22,11 +22,11 @@ const sessionDTO = {
 
 describe('http repositories', () => {
   it('auth.login posts phone + role_key and maps the session', async () => {
-    const { http, calls } = fakeHttp({ 'POST /staff/auth/login': sessionDTO });
+    const { http, calls } = fakeHttp({ 'POST /auth/login': sessionDTO });
     const session = await httpAuth(http).login('98765 43210', 'driver');
     expect(session.accessToken).toBe('a');
     expect(session.user.roleKey).toBe('driver');
-    expect(calls[0]).toEqual({ method: 'POST', path: '/staff/auth/login', body: { phone: '98765 43210', role_key: 'driver' } });
+    expect(calls[0]).toEqual({ method: 'POST', path: '/auth/login', body: { phone: '98765 43210', role_key: 'driver' } });
   });
 
   it('dashboard.get fetches and maps', async () => {

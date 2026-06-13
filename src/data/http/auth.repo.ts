@@ -5,10 +5,10 @@ import { toSession, toStaff, type SessionDTO, type StaffDTO } from './mappers';
 export function httpAuth(http: HttpClient): AuthRepository {
   return {
     login: (phone, roleKey) =>
-      http.post<SessionDTO>('/staff/auth/login', { phone, role_key: roleKey }).then(toSession),
+      http.post<SessionDTO>('/auth/login', { phone, role_key: roleKey }).then(toSession),
     refresh: (refreshToken) =>
-      http.post<SessionDTO>('/staff/auth/refresh', { refresh_token: refreshToken }).then(toSession),
-    me: () => http.get<StaffDTO>('/staff/auth/me').then(toStaff),
-    logout: () => http.post<void>('/staff/auth/logout'),
+      http.post<SessionDTO>('/auth/refresh', { refresh_token: refreshToken }).then(toSession),
+    me: () => http.get<StaffDTO>('/auth/me').then(toStaff),
+    logout: () => http.post<void>('/auth/logout'),
   };
 }

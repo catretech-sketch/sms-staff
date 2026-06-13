@@ -24,7 +24,7 @@ function fixtureHttp(): HttpClient {
   };
   const attendanceDTO = { checked_in: false, last_log: [], duty_post: 'Bus / Route', geofence_radius_m: 120 };
   const routes: Record<string, unknown> = {
-    'POST /staff/auth/login': sessionDTO,
+    'POST /auth/login': sessionDTO,
     'GET /staff/attendance': attendanceDTO,
     'GET /staff/trip/assignment': {
       route: {

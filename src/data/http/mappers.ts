@@ -102,7 +102,7 @@ export function toAttendance(d: AttendanceDTO): Attendance {
 }
 
 export interface StopDTO { id: string; name: string; lat: number; lng: number; seq: number; eta_min?: number; }
-export interface RouteDTO { id: string; name: string; assigned_bus_no: string; stops: StopDTO[]; }
+export interface RouteDTO { id: string; name: string; bus_no: string; stops: StopDTO[]; }
 export interface TripDTO {
   id: string; route_id: string; bus_no: string; driver_id: string; conductor_id?: string;
   direction: TripDirection; status: TripStatus; started_at?: string; ended_at?: string; broadcaster_id?: string;
@@ -113,7 +113,7 @@ export interface BoardingDTO { trip_id: string; student_id: string; stop_id: str
 export interface TripAssignmentDTO { route: RouteDTO; bus_no: string; conductor_name?: string | null; }
 
 export const toStop = (d: StopDTO): Stop => ({ id: d.id, name: d.name, lat: d.lat, lng: d.lng, seq: d.seq, etaMin: d.eta_min });
-export const toRoute = (d: RouteDTO): Route => ({ id: d.id, name: d.name, assignedBusNo: d.assigned_bus_no, stops: d.stops.map(toStop) });
+export const toRoute = (d: RouteDTO): Route => ({ id: d.id, name: d.name, assignedBusNo: d.bus_no, stops: d.stops.map(toStop) });
 export const toTrip = (d: TripDTO): Trip => ({
   id: d.id, routeId: d.route_id, busNo: d.bus_no, driverId: d.driver_id, conductorId: d.conductor_id,
   direction: d.direction, status: d.status, startedAt: d.started_at, endedAt: d.ended_at, broadcasterId: d.broadcaster_id,

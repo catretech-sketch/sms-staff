@@ -28,7 +28,7 @@ function fixtureHttp(): HttpClient {
     'GET /staff/attendance': attendanceDTO,
     'GET /staff/trip/assignment': {
       route: {
-        id: 'route_7', name: 'Route 7', assigned_bus_no: 'HR-26-BX-4412',
+        id: 'route_7', name: 'Route 7', bus_no: 'HR-26-BX-4412',
         stops: [{ id: 'stop_1', name: 'School Gate', lat: 28.4595, lng: 77.0266, seq: 0 }],
       },
       bus_no: 'HR-26-BX-4412', conductor_name: 'Sita Devi',

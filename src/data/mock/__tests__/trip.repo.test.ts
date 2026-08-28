@@ -29,7 +29,7 @@ describe('mock trip repository', () => {
   it('starts a trip, exposes it via current(), and ends it with a summary', async () => {
     const repo = mockTrip(await createStore());
     expect(await repo.current()).toBeNull();
-    const trip = await repo.startTrip('route_7', 'pickup');
+    const trip = await repo.startTrip('route_7', 'pickup', 'HR-26-BX-4412');
     expect(trip.status).toBe('live');
     expect(trip.direction).toBe('pickup');
     const cur = await repo.current();
@@ -42,14 +42,14 @@ describe('mock trip repository', () => {
 
   it('startTrip is idempotent while a trip is live (single active broadcaster)', async () => {
     const repo = mockTrip(await createStore());
-    const t1 = await repo.startTrip('route_7', 'pickup');
-    const t2 = await repo.startTrip('route_7', 'drop');
+    const t1 = await repo.startTrip('route_7', 'pickup', 'HR-26-BX-4412');
+    const t2 = await repo.startTrip('route_7', 'drop', 'HR-26-BX-4412');
     expect(t2.id).toBe(t1.id);
   });
 
   it('tracks boarding state and counts boarded students in the summary', async () => {
     const repo = mockTrip(await createStore());
-    const trip = await repo.startTrip('route_7', 'pickup');
+    const trip = await repo.startTrip('route_7', 'pickup', 'HR-26-BX-4412');
     await repo.setBoarding({ tripId: trip.id, studentId: 'stu_1', stopId: 'stop_2', state: 'boarded', at: '2026-06-12T08:00:00Z' });
     await repo.setBoarding({ tripId: trip.id, studentId: 'stu_2', stopId: 'stop_2', state: 'boarded', at: '2026-06-12T08:01:00Z' });
     await repo.setBoarding({ tripId: trip.id, studentId: 'stu_1', stopId: 'stop_2', state: 'dropped', at: '2026-06-12T08:30:00Z' });
@@ -61,7 +61,7 @@ describe('mock trip repository', () => {
 
   it('roster returns the seeded students', async () => {
     const repo = mockTrip(await createStore());
-    const trip = await repo.startTrip('route_7', 'pickup');
+    const trip = await repo.startTrip('route_7', 'pickup', 'HR-26-BX-4412');
     const roster = await repo.roster(trip.id);
     expect(roster.length).toBe(6);
     expect(roster[0].name).toBe('Aarav Sharma');

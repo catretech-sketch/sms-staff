@@ -75,7 +75,9 @@ export const TripScreen = ({ navigation }: { navigation: any }) => {
 
   const onStart = async () => {
     if (!assignment.data) return;
-    const started = await startTrip.mutateAsync({ routeId: assignment.data.route.id, direction });
+    const started = await startTrip.mutateAsync({
+      routeId: assignment.data.route.id, direction, busNo: assignment.data.busNo,
+    });
     const ok = await startBroadcast({ tripId: started.id, onPing: (p) => repos.trip.publishPing(p) });
     if (!ok) {
       toast.show(t('trip.permissionDenied'), 'error');

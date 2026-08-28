@@ -11,8 +11,10 @@ export function httpTrip(http: HttpClient): TripRepository {
     myAssignment: () => http.get<TripAssignmentDTO>('/staff/trip/assignment').then(toTripAssignment),
     current: () =>
       http.get<TripDTO | null>('/staff/trip/current').then((d) => (d ? toTrip(d) : null)),
-    startTrip: (routeId: string, direction: TripDirection) =>
-      http.post<TripDTO>('/staff/trips', { route_id: routeId, direction }).then(toTrip),
+    // bus_no is required: Trip_Start resolves BusId by (TenantId, BusNo) and live tracking
+    // joins on BusId, not the trip's route — omitting it leaves the trip unbound to any bus.
+    startTrip: (routeId: string, direction: TripDirection, busNo: string) =>
+      http.post<TripDTO>('/staff/trips', { route_id: routeId, bus_no: busNo, direction }).then(toTrip),
     publishPing: (ping: TripPing) =>
       http
         .post<void>(`/staff/trips/${ping.tripId}/pings`, {

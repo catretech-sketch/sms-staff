@@ -27,8 +27,8 @@ export function useStartTrip() {
   const qc = useQueryClient();
   const tenantId = useTenantId();
   return useMutation({
-    mutationFn: (vars: { routeId: string; direction: TripDirection }) =>
-      repos.trip.startTrip(vars.routeId, vars.direction),
+    mutationFn: (vars: { routeId: string; direction: TripDirection; busNo: string }) =>
+      repos.trip.startTrip(vars.routeId, vars.direction, vars.busNo),
     onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.tripCurrent(tenantId) }),
   });
 }

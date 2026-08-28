@@ -23,7 +23,7 @@ export function mockTrip(store: Store): TripRepository {
       return store.currentTrip ? clone(store.currentTrip) : null;
     },
 
-    async startTrip(routeId: string, direction: TripDirection): Promise<Trip> {
+    async startTrip(routeId: string, direction: TripDirection, _busNo: string): Promise<Trip> {
       await simulateLatency();
       // Single active broadcaster: if a trip is already live, return it unchanged.
       if (store.currentTrip && store.currentTrip.status === 'live') {

@@ -1,7 +1,9 @@
 import * as Location from 'expo-location';
 import * as TaskManager from 'expo-task-manager';
 import type { TripPing } from '@/data/domain';
-import { shouldPublish, createPingBuffer, type Sample } from './pingQueue';
+import { shouldPublish, createPersistedPingBuffer, type Sample } from './pingQueue';
+
+const PING_QUEUE_KEY = 'sms.trip.pingQueue';
 
 export const TRIP_LOCATION_TASK = 'sms-trip-location';
 const CADENCE_MS = 10_000;
@@ -45,8 +47,10 @@ export async function startBroadcast({ tripId, onPing }: BroadcastDeps): Promise
 
   activeTripId = tripId;
   last = null;
-  const buffer = createPingBuffer(onPing);
-  publish = (ping) => { buffer.enqueue(ping); return buffer.flush(); };
+  const buffer = await createPersistedPingBuffer(onPing, PING_QUEUE_KEY);
+  // Flush anything left over from a prior run that was killed before it could send.
+  await buffer.flush();
+  publish = (ping) => buffer.enqueue(ping).then(() => buffer.flush());
 
   await Location.startLocationUpdatesAsync(TRIP_LOCATION_TASK, {
     accuracy: Location.Accuracy.High,

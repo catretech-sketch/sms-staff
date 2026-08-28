@@ -1,7 +1,8 @@
 import { env } from '@/config/env';
 
 describe('env', () => {
-  it('defaults DATA_SOURCE to mock', () => {
+  // Dev/test default is mock; production builds force live (see resolveDataSource in env.ts).
+  it('defaults DATA_SOURCE to mock in development/test', () => {
     expect(env.DATA_SOURCE).toBe('mock');
   });
   it('exposes the documented API base URL fallback', () => {

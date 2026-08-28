@@ -1,3 +1,5 @@
+import { asyncStore } from '@/lib/asyncStore';
+
 export interface Sample { lat: number; lng: number; at: number; }
 
 const R = 6_371_000; // earth radius (m)
@@ -48,6 +50,45 @@ export function createPingBuffer<T>(send: (item: T) => Promise<void>): PingBuffe
         }
       }
       queue = remaining;
+    },
+  };
+}
+
+export interface PersistedPingBuffer<T> {
+  enqueue(item: T): Promise<void>;
+  flush(): Promise<void>;
+  size(): number;
+}
+
+// Same FIFO semantics as createPingBuffer, but the queue is mirrored to disk on every
+// mutation so a killed app process (network down, OS reclaim) doesn't silently drop GPS
+// pings — the next startBroadcast() call rehydrates from storageKey before resuming.
+export async function createPersistedPingBuffer<T>(
+  send: (item: T) => Promise<void>,
+  storageKey: string,
+): Promise<PersistedPingBuffer<T>> {
+  let queue: T[] = (await asyncStore.get<T[]>(storageKey)) ?? [];
+  const persist = () => asyncStore.set(storageKey, queue);
+
+  return {
+    async enqueue(item) {
+      queue.push(item);
+      await persist();
+    },
+    size() { return queue.length; },
+    async flush() {
+      const pending = [...queue];
+      const remaining: T[] = [];
+      for (let i = 0; i < pending.length; i += 1) {
+        try {
+          await send(pending[i]);
+        } catch {
+          remaining.push(...pending.slice(i));
+          break;
+        }
+      }
+      queue = remaining;
+      await persist();
     },
   };
 }

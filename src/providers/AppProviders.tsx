@@ -18,6 +18,8 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     (async () => {
+      // Production always uses HTTP repos (env.DATA_SOURCE is forced live there).
+      // Mock AsyncStorage SoT is allowed only when DATA_SOURCE=mock in development.
       if (env.DATA_SOURCE === 'live') {
         const http = createHttpClient({
           baseUrl: env.API_BASE_URL,

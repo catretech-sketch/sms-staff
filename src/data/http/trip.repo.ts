@@ -16,7 +16,9 @@ export function httpTrip(http: HttpClient): TripRepository {
     publishPing: (ping: TripPing) =>
       http
         .post<void>(`/staff/trips/${ping.tripId}/pings`, {
-          lat: ping.lat, lng: ping.lng, speed_kmh: ping.speedKmh, heading: ping.heading, at: ping.at,
+          pings: [
+            { lat: ping.lat, lng: ping.lng, speed_kmh: ping.speedKmh, heading: ping.heading, at: ping.at },
+          ],
         })
         .then(() => undefined),
     endTrip: (tripId: string) =>

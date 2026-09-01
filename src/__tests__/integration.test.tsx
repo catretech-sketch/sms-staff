@@ -64,10 +64,16 @@ it('signs in through the mock data source and lands on Home with school identity
 
   // 4. Wait for Login screen (login-cta button).
 
-  // 5. Phone field defaults to '98765 43210' (valid), so login-cta is enabled. Press it.
+  // 5. Phone field defaults to '98765 43210' (valid), so login-cta is enabled. Press it
+  //    to request an OTP, which advances to the verification step.
   fireEvent.press(getByTestId('login-cta'));
+  await waitFor(() => getByTestId('otp-input'), { timeout: 5000 });
 
-  // 6. Mock sign-in resolves: AuthProvider flips to authenticated, RootNavigator
+  // 6. Enter the code and verify. Mock verifyOtp accepts any 6-digit code.
+  fireEvent.changeText(getByTestId('otp-input'), '123456');
+  fireEvent.press(getByTestId('verify-cta'));
+
+  // 7. Mock sign-in resolves: AuthProvider flips to authenticated, RootNavigator
   //    renders Main stack → HomeScreen → school name visible.
   expect(await findByText('Greenfield Public School', {}, { timeout: 5000 })).toBeTruthy();
 }, 20000);

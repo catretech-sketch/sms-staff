@@ -34,7 +34,7 @@ async function renderScreen() {
   const repos = createMockRepositories(await createStore());
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   // Sign in first so session is populated
-  await repos.auth.login('98765 43210', 'driver');
+  await repos.auth.verifyOtp('98765 43210', '123456', 'driver');
   // Pre-populate auth tokens in secure store so AuthProvider bootstrap finds them
   const SecureStore = require('expo-secure-store');
   await SecureStore.setItemAsync('sms_staff_access_token', 'mock-access-token');

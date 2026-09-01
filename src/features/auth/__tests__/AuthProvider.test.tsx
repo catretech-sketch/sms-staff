@@ -29,13 +29,13 @@ jest.mock('expo-secure-store', () => {
 const AsyncStorage = require('@react-native-async-storage/async-storage').default;
 
 function Harness() {
-  const { status, session, signIn, signOut } = useAuth();
+  const { status, session, signInWithOtp, signOut } = useAuth();
   return (
     <>
       <Text testID="status">{status}</Text>
       <Text testID="school">{session?.tenant.name ?? ''}</Text>
       <Text testID="role">{session?.user.roleKey ?? ''}</Text>
-      <Pressable testID="in" onPress={() => signIn('98765 43210', 'conductor')}><Text>in</Text></Pressable>
+      <Pressable testID="in" onPress={() => signInWithOtp('98765 43210', '123456', 'conductor')}><Text>in</Text></Pressable>
       <Pressable testID="out" onPress={() => signOut()}><Text>out</Text></Pressable>
     </>
   );

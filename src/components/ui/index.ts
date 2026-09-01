@@ -23,6 +23,8 @@ export { RoleGrid } from './RoleGrid';
 export type { RoleGridProps } from './RoleGrid';
 export { PhoneField } from './PhoneField';
 export type { PhoneFieldProps } from './PhoneField';
+export { TextField } from './TextField';
+export type { TextFieldProps } from './TextField';
 export { Header } from './Header';
 export type { HeaderProps } from './Header';
 export { HeroTodayCard } from './HeroTodayCard';

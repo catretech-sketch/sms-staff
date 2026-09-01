@@ -1,6 +1,9 @@
 import { httpAuth } from '@/data/http/auth.repo';
 import { httpDashboard } from '@/data/http/dashboard.repo';
 import { httpAttendance } from '@/data/http/attendance.repo';
+import { httpLeave } from '@/data/http/leave.repo';
+import { createHttpClient } from '@/lib/httpClient';
+import { authSnapshot } from '@/lib/authSnapshot';
 import type { HttpClient } from '@/lib/httpClient';
 
 function fakeHttp(routes: Record<string, unknown>): { http: HttpClient; calls: Array<{ method: string; path: string; body?: unknown }> } {
@@ -14,19 +17,58 @@ function fakeHttp(routes: Record<string, unknown>): { http: HttpClient; calls: A
   return { http, calls };
 }
 
-const sessionDTO = {
-  access_token: 'a', refresh_token: 'r',
-  user: { id: 's1', name: 'R K', first_name: 'R', role_key: 'driver', emp_id: 'E', joined: '2020-01-01', rating: 4, duty_post: 'Bus / Route', shift: 'Morning Shift', timing: '7:30–3:30', phone: '1' },
-  tenant: { id: 't1', name: 'School' },
-};
+const meDTO = { id: 's1', tenant_id: 't1', name: 'R K', email: 'r@x.com', phone: '9876543210', employee: 'E', joined: '2020-01-01', tenant_name: 'School' };
 
 describe('http repositories', () => {
-  it('auth.login posts phone + role_key and maps the session', async () => {
-    const { http, calls } = fakeHttp({ 'POST /auth/login': sessionDTO });
-    const session = await httpAuth(http).login('98765 43210', 'driver');
+  it('auth.requestOtp posts the identifier and masks the destination', async () => {
+    const { http, calls } = fakeHttp({ 'POST /auth/otp/request': {} });
+    const challenge = await httpAuth(http).requestOtp('9876543210');
+    expect(challenge.channel).toBe('sms');
+    expect(challenge.destination).toBe('••••••3210');
+    expect(calls[0]).toEqual({ method: 'POST', path: '/auth/otp/request', body: { identifier: '9876543210' } });
+  });
+
+  it('auth.requestOtp detects an email identifier', async () => {
+    const { http } = fakeHttp({ 'POST /auth/otp/request': {} });
+    const challenge = await httpAuth(http).requestOtp('r@x.com');
+    expect(challenge.channel).toBe('email');
+    expect(challenge.destination).toBe('r•@x.com');
+  });
+
+  it('auth.verifyOtp posts identifier + code, fetches /auth/me, and applies the client-chosen role', async () => {
+    const { http, calls } = fakeHttp({
+      'POST /auth/otp/verify': { access_token: 'a', refresh_token: 'r' },
+      'GET /auth/me': meDTO,
+    });
+    const session = await httpAuth(http).verifyOtp('9876543210', '123456', 'driver');
     expect(session.accessToken).toBe('a');
     expect(session.user.roleKey).toBe('driver');
-    expect(calls[0]).toEqual({ method: 'POST', path: '/auth/login', body: { phone: '98765 43210', role_key: 'driver' } });
+    expect(session.user.name).toBe('R K');
+    expect(session.tenant.id).toBe('t1');
+    expect(calls[0]).toEqual({ method: 'POST', path: '/auth/otp/verify', body: { identifier: '9876543210', code: '123456' } });
+  });
+
+  it('auth.verifyOtp carries the fresh access token as a Bearer header on the follow-up /auth/me call', async () => {
+    // Regression test: /auth/me is [Authorize] on the real backend — a token
+    // issued by /auth/otp/verify must be in the authSnapshot *before* the /auth/me
+    // GET goes out, or that GET is sent with no Authorization header and 401s.
+    authSnapshot.clear();
+    const fetchMock = jest.fn((url: string, _init?: { headers?: Record<string, string> }) => {
+      if (url.endsWith('/auth/otp/verify')) {
+        return Promise.resolve({
+          ok: true, status: 200,
+          json: () => Promise.resolve({ data: { access_token: 'fresh-token', refresh_token: 'r' } }),
+        });
+      }
+      return Promise.resolve({
+        ok: true, status: 200,
+        json: () => Promise.resolve({ data: meDTO }),
+      });
+    });
+    const http = createHttpClient({ baseUrl: 'https://api.test', getAuth: () => authSnapshot.get(), fetchImpl: fetchMock as never });
+    await httpAuth(http).verifyOtp('9876543210', '123456', 'driver');
+    const meCall = fetchMock.mock.calls.find(([url]) => (url as string).endsWith('/auth/me'));
+    expect(meCall?.[1]?.headers?.Authorization).toBe('Bearer fresh-token');
   });
 
   it('dashboard.get fetches and maps', async () => {
@@ -51,5 +93,30 @@ describe('http repositories', () => {
     const a = await httpAttendance(http).checkIn('2026-06-03T08:00:00Z', true);
     expect(a.checkedIn).toBe(true);
     expect(calls[0]).toEqual({ method: 'POST', path: '/staff/attendance/check-in', body: { at: '2026-06-03T08:00:00Z', in_zone: true } });
+  });
+
+  it('leave.summary fetches balances + requests from the real /leave endpoints and maps both', async () => {
+    const { http, calls } = fakeHttp({
+      'GET /leave/balances': [{ type: 'casual', total: 12, used: 4 }, { type: 'sick', total: 8, used: 0 }],
+      'GET /leave': [
+        { id: 'lv_1', tenant_id: 't1', requester_id: 'u1', type: 'casual', from_date: '2026-05-20', to_date: '2026-05-21', reason: 'X', status: 'approved' },
+      ],
+    });
+    const summary = await httpLeave(http).summary();
+    expect(summary.balances).toEqual([{ type: 'casual', total: 12, used: 4 }, { type: 'sick', total: 8, used: 0 }]);
+    expect(summary.requests).toEqual([{ id: 'lv_1', type: 'casual', fromDate: '2026-05-20', toDate: '2026-05-21', reason: 'X', status: 'approved' }]);
+    expect(calls).toEqual(expect.arrayContaining([
+      { method: 'GET', path: '/leave/balances' },
+      { method: 'GET', path: '/leave' },
+    ]));
+  });
+
+  it('leave.submit posts to /leave and maps the created request', async () => {
+    const { http, calls } = fakeHttp({
+      'POST /leave': { id: 'lv_2', tenant_id: 't1', type: 'sick', from_date: '2026-06-01', to_date: '2026-06-02', reason: 'Flu', status: 'pending' },
+    });
+    const created = await httpLeave(http).submit({ type: 'sick', fromDate: '2026-06-01', toDate: '2026-06-02', reason: 'Flu' });
+    expect(created).toEqual({ id: 'lv_2', type: 'sick', fromDate: '2026-06-01', toDate: '2026-06-02', reason: 'Flu', status: 'pending' });
+    expect(calls[0]).toEqual({ method: 'POST', path: '/leave', body: { type: 'sick', from_date: '2026-06-01', to_date: '2026-06-02', reason: 'Flu' } });
   });
 });

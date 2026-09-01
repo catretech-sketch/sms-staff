@@ -9,9 +9,18 @@ const cloneSession = (s: Store['session']): Session => JSON.parse(JSON.stringify
 
 export function mockAuth(store: Store): AuthRepository {
   return {
-    async login(phone, roleKey) {
+    async requestOtp(identifier) {
       await simulateLatency();
-      if (!phone) throw new AppError('invalid', 400, 'Phone number required');
+      if (!identifier) throw new AppError('invalid', 400, 'Mobile number or email required');
+      return {
+        channel: identifier.includes('@') ? 'email' : 'sms',
+        destination: identifier,
+      };
+    },
+    async verifyOtp(identifier, code, roleKey) {
+      await simulateLatency();
+      if (!identifier) throw new AppError('invalid', 400, 'Mobile number or email required');
+      if (!/^\d{6}$/.test(code)) throw new AppError('invalid_code', 400, 'Enter the 6-digit code');
       store.session.user.roleKey = roleKey;
       store.session.user.dutyPost = dutyPostByRole[roleKey];
       await store.persistRole();

@@ -21,22 +21,40 @@ const AsyncStorage = require('@react-native-async-storage/async-storage').defaul
 describe('mock repositories', () => {
   beforeEach(async () => { await AsyncStorage.clear(); });
 
-  it('login sets the chosen role and returns a session', async () => {
+  it('requestOtp returns a challenge for the given identifier', async () => {
     const store = await createStore();
-    const session = await mockAuth(store).login('98765 43210', 'conductor');
+    const challenge = await mockAuth(store).requestOtp('98765 43210');
+    expect(challenge.channel).toBe('sms');
+    expect(challenge.destination).toBe('98765 43210');
+  });
+
+  it('requestOtp detects an email identifier', async () => {
+    const store = await createStore();
+    const challenge = await mockAuth(store).requestOtp('ramesh@example.com');
+    expect(challenge.channel).toBe('email');
+  });
+
+  it('requestOtp rejects an empty identifier with AppError', async () => {
+    const store = await createStore();
+    await expect(mockAuth(store).requestOtp('')).rejects.toBeInstanceOf(AppError);
+  });
+
+  it('verifyOtp sets the chosen role and returns a session', async () => {
+    const store = await createStore();
+    const session = await mockAuth(store).verifyOtp('98765 43210', '123456', 'conductor');
     expect(session.user.roleKey).toBe('conductor');
     expect(session.user.dutyPost).toBe('Bus / Students');
     expect(session.tenant.name).toBe('Greenfield Public School');
   });
 
-  it('login rejects an empty phone with AppError', async () => {
+  it('verifyOtp rejects a malformed code with AppError', async () => {
     const store = await createStore();
-    await expect(mockAuth(store).login('', 'driver')).rejects.toBeInstanceOf(AppError);
+    await expect(mockAuth(store).verifyOtp('98765 43210', '12', 'driver')).rejects.toBeInstanceOf(AppError);
   });
 
   it('dashboard returns the role card matching the logged-in role', async () => {
     const store = await createStore();
-    await mockAuth(store).login('98765 43210', 'guard');
+    await mockAuth(store).verifyOtp('98765 43210', '123456', 'guard');
     const dash = await mockDashboard(store).get();
     expect(dash.roleCard.kind).toBe('guard');
     expect(dash.hoursThisWeek).toBe(34);
@@ -45,7 +63,7 @@ describe('mock repositories', () => {
 
   it('dashboard result does not alias store-internal arrays', async () => {
     const store = await createStore();
-    await mockAuth(store).login('98765 43210', 'gardener');
+    await mockAuth(store).verifyOtp('98765 43210', '123456', 'gardener');
     const dash1 = await mockDashboard(store).get();
     if (dash1.roleCard.kind === 'gardener') {
       dash1.roleCard.zones.push('Rooftop');

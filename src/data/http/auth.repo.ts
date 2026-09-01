@@ -1,14 +1,40 @@
 import type { AuthRepository } from '@/data/repositories/types';
+import type { Session } from '@/data/domain';
 import type { HttpClient } from '@/lib/httpClient';
-import { toSession, toStaff, type SessionDTO, type StaffDTO } from './mappers';
+import { authSnapshot } from '@/lib/authSnapshot';
+import { toSession, type SessionDTO } from './mappers';
+import { tokenSchema, meSchema, toStaffFromMe, toTenantFromMe, maskIdentifier } from './auth.schema';
 
 export function httpAuth(http: HttpClient): AuthRepository {
   return {
-    login: (phone, roleKey) =>
-      http.post<SessionDTO>('/auth/login', { phone, role_key: roleKey }).then(toSession),
+    requestOtp: async (identifier) => {
+      await http.post('/auth/otp/request', { identifier });
+      return {
+        channel: identifier.includes('@') ? 'email' : 'sms',
+        destination: maskIdentifier(identifier),
+      };
+    },
+    verifyOtp: async (identifier, code, roleKey): Promise<Session> => {
+      const t = tokenSchema.parse(await http.post('/auth/otp/verify', { identifier, code }));
+      // /auth/me is [Authorize] — the snapshot must carry the fresh token before
+      // this GET goes out, or it's sent with no Authorization header and 401s.
+      // No tenant is known yet; tenantId is set for real once /auth/me resolves it.
+      authSnapshot.set({ accessToken: t.access_token, tenantId: null });
+      const me = meSchema.parse(await http.get('/auth/me'));
+      authSnapshot.set({ accessToken: t.access_token, tenantId: me.tenant_id });
+      return {
+        accessToken: t.access_token,
+        refreshToken: t.refresh_token,
+        user: toStaffFromMe(me, roleKey),
+        tenant: toTenantFromMe(me),
+      };
+    },
     refresh: (refreshToken) =>
       http.post<SessionDTO>('/auth/refresh', { refresh_token: refreshToken }).then(toSession),
-    me: () => http.get<StaffDTO>('/auth/me').then(toStaff),
+    me: async (previous) => {
+      const me = meSchema.parse(await http.get('/auth/me'));
+      return toStaffFromMe(me, previous?.roleKey ?? 'driver', previous);
+    },
     logout: () => http.post<void>('/auth/logout'),
   };
 }

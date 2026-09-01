@@ -178,6 +178,14 @@ const _ICONS = {
     { d: 'M12 2a7 7 0 0 1 7 7c0 5-7 13-7 13S5 14 5 9a7 7 0 0 1 7-7Z' },
     { d: 'M12 12a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z' },
   ] },
+  mail: { viewBox: '0 0 24 24', paths: [
+    { d: 'M4 5h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z' },
+    { d: 'M3.5 6.5l8.5 6 8.5-6' },
+  ] },
+  keypad: { viewBox: '0 0 24 24', paths: [
+    { d: 'M6 4h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z' },
+    { d: 'M8 9h.01M12 9h.01M16 9h.01M8 13h.01M12 13h.01M16 13h.01M8 17h.01M12 17h.01', mode: 'fill' },
+  ] },
 } satisfies Record<string, IconDef>;
 
 export const ICONS = _ICONS;

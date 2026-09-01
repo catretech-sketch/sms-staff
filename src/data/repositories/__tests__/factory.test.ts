@@ -25,13 +25,13 @@ const noopHttp = {
 describe('repository factory', () => {
   it('mock bundle exposes auth/dashboard/attendance', async () => {
     const repos = createMockRepositories(await createStore());
-    expect(typeof repos.auth.login).toBe('function');
+    expect(typeof repos.auth.verifyOtp).toBe('function');
     expect(typeof repos.dashboard.get).toBe('function');
     expect(typeof repos.attendance.checkIn).toBe('function');
   });
   it('http bundle exposes auth/dashboard/attendance', () => {
     const repos = createHttpRepositories(noopHttp);
-    expect(typeof repos.auth.login).toBe('function');
+    expect(typeof repos.auth.verifyOtp).toBe('function');
     expect(typeof repos.dashboard.get).toBe('function');
     expect(typeof repos.attendance.checkIn).toBe('function');
   });

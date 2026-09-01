@@ -149,6 +149,26 @@ export const toLeaveRequest = (d: LeaveRequestDTO): LeaveRequest => ({ id: d.id,
 export const toLeaveSummary = (d: LeaveSummaryDTO): LeaveSummary => ({ balances: d.balances.map(toLeaveBalance), requests: d.requests.map(toLeaveRequest) });
 export const fromNewLeave = (r: NewLeaveRequest) => ({ type: r.type, from_date: r.fromDate, to_date: r.toDate, reason: r.reason });
 
+// sms-backend's real /v1/leave — a superset of LeaveRequestDTO (requester_id, child_id,
+// substitute, applied_on, decided_note, priority, attachment_urls are ignored for now, not
+// modeled by sms-staff's domain). /v1/leave/balances is the separate LeaveBalanceDTO[] source.
+export interface LeaveRequestWireDTO {
+  id: string;
+  type: CanonicalLeaveType;
+  from_date: string | null;
+  to_date: string | null;
+  reason: string | null;
+  status: LeaveRequest['status'];
+}
+export const toLeaveRequestFromWire = (d: LeaveRequestWireDTO): LeaveRequest => ({
+  id: d.id,
+  type: d.type as LeaveRequest['type'],
+  fromDate: d.from_date ?? '',
+  toDate: d.to_date ?? '',
+  reason: d.reason ?? '',
+  status: d.status,
+});
+
 export interface StaffDocumentDTO { id: string; label: string; value: string; ok?: boolean; }
 export interface ProfileDTO { documents: StaffDocumentDTO[]; }
 export const toStaffDocument = (d: StaffDocumentDTO): StaffDocument => ({ id: d.id, label: d.label, value: d.value, ok: d.ok });

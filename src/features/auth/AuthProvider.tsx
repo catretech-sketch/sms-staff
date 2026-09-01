@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import type { Session } from '@/data/domain';
 import type { Role } from '@/theme/roles';
+import type { OtpChallenge } from '@/data/repositories/types';
 import { tokenStore } from '@/lib/tokenStore';
 import { asyncStore } from '@/lib/asyncStore';
 import { authSnapshot } from '@/lib/authSnapshot';
@@ -13,7 +14,8 @@ type Status = 'loading' | 'authenticated' | 'unauthenticated';
 interface AuthValue {
   status: Status;
   session: Session | null;
-  signIn: (phone: string, roleKey: Role) => Promise<void>;
+  requestOtp: (identifier: string) => Promise<OtpChallenge>;
+  signInWithOtp: (identifier: string, code: string, roleKey: Role) => Promise<void>;
   signOut: () => Promise<void>;
 }
 const AuthContext = createContext<AuthValue | null>(null);
@@ -34,9 +36,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           return;
         }
         try {
-          const user = await repos.auth.me();
-          // tokens (SecureStore) take precedence over the AsyncStorage snapshot, so a
-          // mid-session token refresh is honoured even if the stored session is stale.
+          // /auth/me is [Authorize] — the snapshot must carry the stored token
+          // before this call goes out, or it's sent with no Authorization header
+          // and 401s. tokens (SecureStore) take precedence over the AsyncStorage
+          // snapshot, so a mid-session token refresh is honoured even if the
+          // stored session is stale.
+          authSnapshot.set({ accessToken: tokens.accessToken, tenantId: stored.tenant.id });
+          // Real /auth/me has no concept of driver/conductor/etc, so pass the
+          // stored user through — me() preserves roleKey/dutyPost/rating/shift/
+          // timing from it and only refreshes the fields the backend does return.
+          const user = await repos.auth.me(stored.user);
           const rehydrated: Session = { ...stored, ...tokens, user };
           authSnapshot.set({ accessToken: rehydrated.accessToken, tenantId: rehydrated.tenant.id });
           setSession(rehydrated);
@@ -54,16 +63,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     })();
   }, [repos]);
 
-  const signIn = useCallback(
-    async (phone: string, roleKey: Role) => {
-      const s = await repos.auth.login(phone, roleKey);
-      await tokenStore.save({ accessToken: s.accessToken, refreshToken: s.refreshToken });
-      await asyncStore.set(SESSION_KEY, s);
-      authSnapshot.set({ accessToken: s.accessToken, tenantId: s.tenant.id });
-      setSession(s);
-      setStatus('authenticated');
-    },
+  const establishSession = useCallback(async (s: Session) => {
+    await tokenStore.save({ accessToken: s.accessToken, refreshToken: s.refreshToken });
+    await asyncStore.set(SESSION_KEY, s);
+    authSnapshot.set({ accessToken: s.accessToken, tenantId: s.tenant.id });
+    setSession(s);
+    setStatus('authenticated');
+  }, []);
+
+  const requestOtp = useCallback(
+    (identifier: string) => repos.auth.requestOtp(identifier),
     [repos],
+  );
+
+  const signInWithOtp = useCallback(
+    async (identifier: string, code: string, roleKey: Role) => {
+      const s = await repos.auth.verifyOtp(identifier, code, roleKey);
+      await establishSession(s);
+    },
+    [repos, establishSession],
   );
 
   const signOut = useCallback(async () => {
@@ -80,8 +98,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [repos]);
 
   const value = useMemo<AuthValue>(
-    () => ({ status, session, signIn, signOut }),
-    [status, session, signIn, signOut],
+    () => ({ status, session, requestOtp, signInWithOtp, signOut }),
+    [status, session, requestOtp, signInWithOtp, signOut],
   );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

@@ -33,4 +33,30 @@ describe('httpClient', () => {
     });
     await expect(http.get('/missing')).rejects.toBeInstanceOf(AppError);
   });
+
+  it('unwraps sms-backend\'s { data: T } success envelope', async () => {
+    const fetchMock = jest.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: () => Promise.resolve({ data: { hello: 'world' } }),
+    });
+    const http = createHttpClient({ baseUrl: 'https://api.test', getAuth, fetchImpl: fetchMock });
+    const data = await http.get<{ hello: string }>('/ping');
+    expect(data).toEqual({ hello: 'world' });
+  });
+
+  it('unwraps sms-backend\'s { error: { code, message } } failure envelope', async () => {
+    const fetchMock = jest.fn().mockResolvedValue({
+      ok: false,
+      status: 404,
+      json: () => Promise.resolve({ error: { code: 'not_registered', message: "This mobile or email isn't registered." } }),
+    });
+    const http = createHttpClient({ baseUrl: 'https://api.test', getAuth, fetchImpl: fetchMock });
+    await expect(http.get('/missing')).rejects.toMatchObject({
+      name: 'AppError',
+      status: 404,
+      code: 'not_registered',
+      message: "This mobile or email isn't registered.",
+    });
+  });
 });

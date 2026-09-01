@@ -49,11 +49,21 @@ export function createHttpClient(opts: HttpClientOptions): HttpClient {
       payload = null;
     }
 
+    // sms-backend wraps every body: success as { data: T }, failure as
+    // { error: { code, message, details } }. Fall back to a flat body so
+    // test doubles / mocks that hand back unwrapped JSON keep working.
+    const envelope = (payload ?? {}) as {
+      data?: unknown;
+      error?: { code?: string; message?: string };
+      code?: string;
+      message?: string;
+    };
+
     if (!res.ok) {
-      const p = (payload ?? {}) as { code?: string; message?: string };
-      throw new AppError(p.code ?? 'http_error', res.status, p.message ?? `HTTP ${res.status}`);
+      const err = envelope.error ?? envelope;
+      throw new AppError(err.code ?? 'http_error', res.status, err.message ?? `HTTP ${res.status}`);
     }
-    return payload as T;
+    return ('data' in envelope ? envelope.data : payload) as T;
   }
 
   return {

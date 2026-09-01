@@ -7,10 +7,16 @@ import type {
 } from '@/data/domain';
 import type { Role } from '@/theme/roles';
 
+export interface OtpChallenge {
+  channel: 'sms' | 'email';
+  destination: string;
+}
+
 export interface AuthRepository {
-  login(phone: string, roleKey: Role): Promise<Session>;
+  requestOtp(identifier: string): Promise<OtpChallenge>;
+  verifyOtp(identifier: string, code: string, roleKey: Role): Promise<Session>;
   refresh(refreshToken: string): Promise<Session>;
-  me(): Promise<Staff>;
+  me(previous?: Staff): Promise<Staff>;
   logout(): Promise<void>;
 }
 

@@ -3,7 +3,9 @@ import type { Session } from '@/data/domain';
 import type { HttpClient } from '@/lib/httpClient';
 import { authSnapshot } from '@/lib/authSnapshot';
 import { toSession, type SessionDTO } from './mappers';
-import { tokenSchema, meSchema, toStaffFromMe, toTenantFromMe, maskIdentifier } from './auth.schema';
+import {
+  tokenSchema, meSchema, toStaffFromMe, toTenantFromMe, maskIdentifier, buildLoginRequest,
+} from './auth.schema';
 
 export function httpAuth(http: HttpClient): AuthRepository {
   return {
@@ -16,9 +18,6 @@ export function httpAuth(http: HttpClient): AuthRepository {
     },
     verifyOtp: async (identifier, code, roleKey): Promise<Session> => {
       const t = tokenSchema.parse(await http.post('/auth/otp/verify', { identifier, code }));
-      // /auth/me is [Authorize] — the snapshot must carry the fresh token before
-      // this GET goes out, or it's sent with no Authorization header and 401s.
-      // No tenant is known yet; tenantId is set for real once /auth/me resolves it.
       authSnapshot.set({ accessToken: t.access_token, tenantId: null });
       const me = meSchema.parse(await http.get('/auth/me'));
       authSnapshot.set({ accessToken: t.access_token, tenantId: me.tenant_id });
@@ -28,6 +27,22 @@ export function httpAuth(http: HttpClient): AuthRepository {
         user: toStaffFromMe(me, roleKey),
         tenant: toTenantFromMe(me),
       };
+    },
+    login: async (identifier, password, roleKey): Promise<Session> => {
+      const t = tokenSchema.parse(await http.post('/auth/login', buildLoginRequest(identifier, password, roleKey)));
+      // Same ordering requirement as verifyOtp: /auth/me is [Authorize].
+      authSnapshot.set({ accessToken: t.access_token, tenantId: null });
+      const me = meSchema.parse(await http.get('/auth/me'));
+      authSnapshot.set({ accessToken: t.access_token, tenantId: me.tenant_id });
+      return {
+        accessToken: t.access_token,
+        refreshToken: t.refresh_token,
+        user: toStaffFromMe(me, roleKey),
+        tenant: toTenantFromMe(me),
+      };
+    },
+    setPassword: async (password) => {
+      await http.post('/auth/set-password', { password });
     },
     refresh: (refreshToken) =>
       http.post<SessionDTO>('/auth/refresh', { refresh_token: refreshToken }).then(toSession),

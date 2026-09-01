@@ -26,6 +26,19 @@ export function mockAuth(store: Store): AuthRepository {
       await store.persistRole();
       return cloneSession(store.session);
     },
+    async login(identifier, password, roleKey) {
+      await simulateLatency();
+      if (!identifier) throw new AppError('invalid', 400, 'Mobile number or email required');
+      if (!password) throw new AppError('invalid', 400, 'Password required');
+      store.session.user.roleKey = roleKey;
+      store.session.user.dutyPost = dutyPostByRole[roleKey];
+      await store.persistRole();
+      return cloneSession(store.session);
+    },
+    async setPassword(password) {
+      await simulateLatency();
+      if (!password) throw new AppError('invalid', 400, 'Password required');
+    },
     async refresh() {
       await simulateLatency();
       return cloneSession(store.session);

@@ -6,6 +6,7 @@ import { AppError } from '@/lib/errors';
 import { dutyPostByRole } from './seed';
 
 const cloneSession = (s: Store['session']): Session => JSON.parse(JSON.stringify(s)) as Session;
+const MIN_PASSWORD_LEN = 8;
 
 export function mockAuth(store: Store): AuthRepository {
   return {
@@ -28,8 +29,9 @@ export function mockAuth(store: Store): AuthRepository {
     },
     async login(identifier, password, roleKey) {
       await simulateLatency();
-      if (!identifier) throw new AppError('invalid', 400, 'Mobile number or email required');
-      if (!password) throw new AppError('invalid', 400, 'Password required');
+      if (!identifier || !password || password.length < MIN_PASSWORD_LEN) {
+        throw new AppError('invalid_credentials', 401, 'bad email or password');
+      }
       store.session.user.roleKey = roleKey;
       store.session.user.dutyPost = dutyPostByRole[roleKey];
       await store.persistRole();
@@ -37,7 +39,9 @@ export function mockAuth(store: Store): AuthRepository {
     },
     async setPassword(password) {
       await simulateLatency();
-      if (!password) throw new AppError('invalid', 400, 'Password required');
+      if (password.length < MIN_PASSWORD_LEN) {
+        throw new AppError('weak_password', 422, 'password must be at least 8 characters');
+      }
     },
     async refresh() {
       await simulateLatency();

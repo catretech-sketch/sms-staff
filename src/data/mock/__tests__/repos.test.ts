@@ -52,6 +52,30 @@ describe('mock repositories', () => {
     await expect(mockAuth(store).verifyOtp('98765 43210', '12', 'driver')).rejects.toBeInstanceOf(AppError);
   });
 
+  it('login sets the chosen role and returns a session for a valid password', async () => {
+    const store = await createStore();
+    const session = await mockAuth(store).login('98765 43210', 'hunter2222', 'peon');
+    expect(session.user.roleKey).toBe('peon');
+    expect(session.tenant.name).toBe('Greenfield Public School');
+  });
+
+  it('login rejects a too-short password with invalid_credentials', async () => {
+    const store = await createStore();
+    await expect(mockAuth(store).login('98765 43210', 'short', 'peon')).rejects.toMatchObject({
+      code: 'invalid_credentials',
+    });
+  });
+
+  it('setPassword resolves for a valid password', async () => {
+    const store = await createStore();
+    await expect(mockAuth(store).setPassword('hunter2222')).resolves.toBeUndefined();
+  });
+
+  it('setPassword rejects a too-short password with weak_password', async () => {
+    const store = await createStore();
+    await expect(mockAuth(store).setPassword('short')).rejects.toMatchObject({ code: 'weak_password' });
+  });
+
   it('dashboard returns the role card matching the logged-in role', async () => {
     const store = await createStore();
     await mockAuth(store).verifyOtp('98765 43210', '123456', 'guard');

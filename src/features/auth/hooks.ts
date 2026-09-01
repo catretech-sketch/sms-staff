@@ -15,6 +15,19 @@ export function useVerifyOtp() {
   });
 }
 
+export function useLogin() {
+  const { signInWithPassword } = useAuth();
+  return useMutation({
+    mutationFn: ({ identifier, password, roleKey }: { identifier: string; password: string; roleKey: Role }) =>
+      signInWithPassword(identifier, password, roleKey),
+  });
+}
+
+export function useSetPassword() {
+  const { completePasswordSetup } = useAuth();
+  return useMutation({ mutationFn: (password: string) => completePasswordSetup(password) });
+}
+
 export function useLogout() {
   const { signOut } = useAuth();
   return useMutation({ mutationFn: () => signOut() });

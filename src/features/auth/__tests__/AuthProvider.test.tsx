@@ -29,13 +29,20 @@ jest.mock('expo-secure-store', () => {
 const AsyncStorage = require('@react-native-async-storage/async-storage').default;
 
 function Harness() {
-  const { status, session, signInWithOtp, signOut } = useAuth();
+  const {
+    status, session, pendingPasswordSetup,
+    signInWithOtp, signInWithPassword, completePasswordSetup, cancelPasswordSetup, signOut,
+  } = useAuth();
   return (
     <>
       <Text testID="status">{status}</Text>
+      <Text testID="pending">{pendingPasswordSetup ? 'yes' : 'no'}</Text>
       <Text testID="school">{session?.tenant.name ?? ''}</Text>
       <Text testID="role">{session?.user.roleKey ?? ''}</Text>
-      <Pressable testID="in" onPress={() => signInWithOtp('98765 43210', '123456', 'conductor')}><Text>in</Text></Pressable>
+      <Pressable testID="otp-in" onPress={() => signInWithOtp('98765 43210', '123456', 'conductor')}><Text>otp-in</Text></Pressable>
+      <Pressable testID="pw-in" onPress={() => signInWithPassword('98765 43210', 'hunter2222', 'peon')}><Text>pw-in</Text></Pressable>
+      <Pressable testID="complete" onPress={() => completePasswordSetup('hunter2222')}><Text>complete</Text></Pressable>
+      <Pressable testID="cancel" onPress={() => cancelPasswordSetup()}><Text>cancel</Text></Pressable>
       <Pressable testID="out" onPress={() => signOut()}><Text>out</Text></Pressable>
     </>
   );
@@ -58,18 +65,43 @@ describe('AuthProvider', () => {
     await waitFor(() => expect(screen.getByTestId('status')).toHaveTextContent('unauthenticated'));
   });
 
-  it('signIn authenticates and exposes school + role', async () => {
+  it('signInWithPassword authenticates directly and exposes school + role', async () => {
     await renderWithProviders();
     await waitFor(() => expect(screen.getByTestId('status')).toHaveTextContent('unauthenticated'));
-    fireEvent.press(screen.getByTestId('in'));
+    fireEvent.press(screen.getByTestId('pw-in'));
     await waitFor(() => expect(screen.getByTestId('status')).toHaveTextContent('authenticated'));
     expect(screen.getByTestId('school')).toHaveTextContent('Greenfield Public School');
+    expect(screen.getByTestId('role')).toHaveTextContent('peon');
+  });
+
+  it('signInWithOtp verifies but stays unauthenticated, marking pendingPasswordSetup', async () => {
+    await renderWithProviders();
+    await waitFor(() => expect(screen.getByTestId('status')).toHaveTextContent('unauthenticated'));
+    fireEvent.press(screen.getByTestId('otp-in'));
+    await waitFor(() => expect(screen.getByTestId('pending')).toHaveTextContent('yes'));
+    expect(screen.getByTestId('status')).toHaveTextContent('unauthenticated');
+  });
+
+  it('completePasswordSetup sets the password then authenticates', async () => {
+    await renderWithProviders();
+    fireEvent.press(screen.getByTestId('otp-in'));
+    await waitFor(() => expect(screen.getByTestId('pending')).toHaveTextContent('yes'));
+    fireEvent.press(screen.getByTestId('complete'));
+    await waitFor(() => expect(screen.getByTestId('status')).toHaveTextContent('authenticated'));
+    expect(screen.getByTestId('pending')).toHaveTextContent('no');
     expect(screen.getByTestId('role')).toHaveTextContent('conductor');
   });
 
+  it('cancelPasswordSetup clears the pending session without authenticating', async () => {
+    await renderWithProviders();
+    fireEvent.press(screen.getByTestId('otp-in'));
+    await waitFor(() => expect(screen.getByTestId('pending')).toHaveTextContent('yes'));
+    fireEvent.press(screen.getByTestId('cancel'));
+    await waitFor(() => expect(screen.getByTestId('pending')).toHaveTextContent('no'));
+    expect(screen.getByTestId('status')).toHaveTextContent('unauthenticated');
+  });
+
   it('fails safe to unauthenticated when token storage throws during bootstrap', async () => {
-    // Reproduces the web bug: expo-secure-store has no web impl, so getItemAsync
-    // throws. Bootstrap must fall back to the Login screen, not hang on 'loading'.
     const SecureStore = require('expo-secure-store');
     (SecureStore.getItemAsync as jest.Mock).mockRejectedValueOnce(
       new Error('SecureStore.getValueWithKeyAsync is not a function'),
@@ -81,7 +113,7 @@ describe('AuthProvider', () => {
   it('signOut returns to unauthenticated', async () => {
     await renderWithProviders();
     await waitFor(() => expect(screen.getByTestId('status')).toHaveTextContent('unauthenticated'));
-    fireEvent.press(screen.getByTestId('in'));
+    fireEvent.press(screen.getByTestId('pw-in'));
     await waitFor(() => expect(screen.getByTestId('status')).toHaveTextContent('authenticated'));
     fireEvent.press(screen.getByTestId('out'));
     await waitFor(() => expect(screen.getByTestId('status')).toHaveTextContent('unauthenticated'));

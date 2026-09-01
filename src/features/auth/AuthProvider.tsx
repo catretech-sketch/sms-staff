@@ -14,8 +14,15 @@ type Status = 'loading' | 'authenticated' | 'unauthenticated';
 interface AuthValue {
   status: Status;
   session: Session | null;
+  /** Set once OTP verify succeeds; the caller must set a password before this
+   *  becomes the real session (see completePasswordSetup). Non-null means the
+   *  Set Password screen should be showing. */
+  pendingPasswordSetup: Session | null;
   requestOtp: (identifier: string) => Promise<OtpChallenge>;
   signInWithOtp: (identifier: string, code: string, roleKey: Role) => Promise<void>;
+  signInWithPassword: (identifier: string, password: string, roleKey: Role) => Promise<void>;
+  completePasswordSetup: (password: string) => Promise<void>;
+  cancelPasswordSetup: () => void;
   signOut: () => Promise<void>;
 }
 const AuthContext = createContext<AuthValue | null>(null);
@@ -24,6 +31,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const repos = useRepositories();
   const [status, setStatus] = useState<Status>('loading');
   const [session, setSession] = useState<Session | null>(null);
+  const [pendingPasswordSetup, setPendingPasswordSetup] = useState<Session | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -76,13 +84,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     [repos],
   );
 
+  // OTP verify only ever feeds the password-setup flow now: it authenticates
+  // with the backend (tokens are live) but must not flip app status to
+  // 'authenticated' until a password is set, so the pending session is held
+  // here instead of passed to establishSession.
   const signInWithOtp = useCallback(
     async (identifier: string, code: string, roleKey: Role) => {
       const s = await repos.auth.verifyOtp(identifier, code, roleKey);
+      authSnapshot.set({ accessToken: s.accessToken, tenantId: s.tenant.id });
+      setPendingPasswordSetup(s);
+    },
+    [repos],
+  );
+
+  const signInWithPassword = useCallback(
+    async (identifier: string, password: string, roleKey: Role) => {
+      const s = await repos.auth.login(identifier, password, roleKey);
       await establishSession(s);
     },
     [repos, establishSession],
   );
+
+  const completePasswordSetup = useCallback(
+    async (password: string) => {
+      if (!pendingPasswordSetup) throw new Error('completePasswordSetup called with no pending session');
+      await repos.auth.setPassword(password);
+      const s = pendingPasswordSetup;
+      setPendingPasswordSetup(null);
+      await establishSession(s);
+    },
+    [repos, pendingPasswordSetup, establishSession],
+  );
+
+  const cancelPasswordSetup = useCallback(() => {
+    authSnapshot.clear();
+    setPendingPasswordSetup(null);
+  }, []);
 
   const signOut = useCallback(async () => {
     try {
@@ -93,13 +130,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       authSnapshot.clear();
       queryClient.clear();
       setSession(null);
+      setPendingPasswordSetup(null);
       setStatus('unauthenticated');
     }
   }, [repos]);
 
   const value = useMemo<AuthValue>(
-    () => ({ status, session, requestOtp, signInWithOtp, signOut }),
-    [status, session, requestOtp, signInWithOtp, signOut],
+    () => ({
+      status, session, pendingPasswordSetup,
+      requestOtp, signInWithOtp, signInWithPassword, completePasswordSetup, cancelPasswordSetup, signOut,
+    }),
+    [status, session, pendingPasswordSetup, requestOtp, signInWithOtp, signInWithPassword, completePasswordSetup, cancelPasswordSetup, signOut],
   );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

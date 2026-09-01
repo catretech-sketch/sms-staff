@@ -20,10 +20,19 @@ jest.mock('expo-secure-store', () => {
   };
 });
 
-beforeEach(() => {
+beforeEach(async () => {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const secureStore = require('expo-secure-store') as { __reset: () => void };
   secureStore.__reset();
+
+  // establishSession() also writes the session to AsyncStorage (src/lib/asyncStore.ts).
+  // The global AsyncStorage mock in jest.setup.js is module-scoped like the
+  // secure-store mock above, so it leaks across tests in this file too — clear it
+  // here for the same reason.
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const asyncStorage = require('@react-native-async-storage/async-storage')
+    .default as { clear: () => Promise<void> };
+  await asyncStorage.clear();
 });
 
 // expo-location is imported transitively through AttendanceScreen; mock it so it

@@ -160,12 +160,34 @@ export const LoginScreen = () => {
 
   const accent = ROLES[selected].accent;
 
+  function handleCancelPasswordSetup() {
+    backToPasswordLogin();
+    setNewPassword('');
+    setConfirmPassword('');
+    setSetupTouched(false);
+    setPassword.reset();
+    cancelPasswordSetup();
+  }
+
+  // Shared across both branches below so the language picker overlay is always
+  // reachable, regardless of which screen (login vs. set-password) is showing.
+  const languagePicker = (
+    <LanguagePicker
+      visible={langOpen}
+      current={currentLang}
+      onSelect={handleSelectLanguage}
+      onClose={() => setLangOpen(false)}
+    />
+  );
+
   if (pendingPasswordSetup) {
     return (
       <SafeAreaView
         style={[styles.safeArea, { backgroundColor: colors.bg }]}
         edges={['left', 'right', 'bottom']}
       >
+        {languagePicker}
+
         <BrandCap onPressLanguage={() => setLangOpen(true)} languageNative={languageNative} />
         <ScrollView
           style={styles.scroll}
@@ -210,7 +232,7 @@ export const LoginScreen = () => {
             accent={accent}
           />
 
-          <Pressable onPress={cancelPasswordSetup}>
+          <Pressable onPress={handleCancelPasswordSetup}>
             <Text style={[TextScale.button, { color: accent }]}>{t('common.back')}</Text>
           </Pressable>
         </ScrollView>
@@ -223,12 +245,7 @@ export const LoginScreen = () => {
       style={[styles.safeArea, { backgroundColor: colors.bg }]}
       edges={['left', 'right', 'bottom']}
     >
-      <LanguagePicker
-        visible={langOpen}
-        current={currentLang}
-        onSelect={handleSelectLanguage}
-        onClose={() => setLangOpen(false)}
-      />
+      {languagePicker}
 
       <BrandCap
         onPressLanguage={() => setLangOpen(true)}

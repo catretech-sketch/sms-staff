@@ -37,8 +37,11 @@ it('tapping the toggle reveals then re-masks the value', async () => {
   const { getByTestId } = renderField(true);
   await waitFor(() => getByTestId('pw'));
   expect(getByTestId('pw').props.secureTextEntry).toBe(true);
+  expect(getByTestId('pw-toggle').props.accessibilityLabel).toBe('Show password');
   fireEvent.press(getByTestId('pw-toggle'));
   expect(getByTestId('pw').props.secureTextEntry).toBe(false);
+  expect(getByTestId('pw-toggle').props.accessibilityLabel).toBe('Hide password');
   fireEvent.press(getByTestId('pw-toggle'));
   expect(getByTestId('pw').props.secureTextEntry).toBe(true);
+  expect(getByTestId('pw-toggle').props.accessibilityLabel).toBe('Show password');
 });

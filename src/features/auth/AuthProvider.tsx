@@ -117,9 +117,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   );
 
   const cancelPasswordSetup = useCallback(() => {
+    // By this point OTP verify has already issued real access + refresh tokens
+    // server-side. Fire-and-forget a logout so they're revoked instead of
+    // sitting valid for their full TTL — don't await it (a cancel action must
+    // not block on the network) and swallow any failure (cancelling must
+    // always succeed locally regardless of network state).
+    void repos.auth.logout().catch(() => {});
     authSnapshot.clear();
     setPendingPasswordSetup(null);
-  }, []);
+  }, [repos]);
 
   const signOut = useCallback(async () => {
     try {

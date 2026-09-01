@@ -69,6 +69,10 @@ function renderApp() {
 }
 
 async function pastSplash(getByTestId: ReturnType<typeof render>['getByTestId']) {
+  // Two waitFor calls are deliberate, not a copy-paste accident: the first
+  // waits for the splash screen to mount, and the second flushes the
+  // auth-bootstrap promise through React's update queue (no fixed-time sleep)
+  // before we interact with it.
   await waitFor(() => getByTestId('splash'), { timeout: 5000 });
   await waitFor(() => getByTestId('splash'), { timeout: 3000 });
   fireEvent.press(getByTestId('splash'));

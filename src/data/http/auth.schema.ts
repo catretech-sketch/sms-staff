@@ -62,3 +62,13 @@ export function maskIdentifier(identifier: string): string {
   const tail = identifier.slice(-4);
   return `${'•'.repeat(Math.max(identifier.length - 4, 0))}${tail}`;
 }
+
+/** Builds the snake_case /auth/login body: email XOR phone, never both. */
+export function buildLoginRequest(
+  identifier: string,
+  password: string,
+  roleKey: Role,
+): { email?: string; phone?: string; password: string; role: string } {
+  const base = { password, role: roleKey };
+  return identifier.includes('@') ? { ...base, email: identifier } : { ...base, phone: identifier };
+}

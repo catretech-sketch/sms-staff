@@ -15,6 +15,8 @@ export interface OtpChallenge {
 export interface AuthRepository {
   requestOtp(identifier: string): Promise<OtpChallenge>;
   verifyOtp(identifier: string, code: string, roleKey: Role): Promise<Session>;
+  login(identifier: string, password: string, roleKey: Role): Promise<Session>;
+  setPassword(password: string): Promise<void>;
   refresh(refreshToken: string): Promise<Session>;
   me(previous?: Staff): Promise<Staff>;
   logout(): Promise<void>;

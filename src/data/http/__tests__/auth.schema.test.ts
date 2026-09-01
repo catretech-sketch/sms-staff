@@ -1,4 +1,4 @@
-import { meSchema, maskIdentifier, toStaffFromMe, toTenantFromMe } from '@/data/http/auth.schema';
+import { meSchema, maskIdentifier, toStaffFromMe, toTenantFromMe, buildLoginRequest } from '@/data/http/auth.schema';
 import type { Staff } from '@/data/domain';
 
 const previous: Staff = {
@@ -66,5 +66,23 @@ describe('toTenantFromMe', () => {
   it('maps tenant_id/tenant_name', () => {
     const tenant = toTenantFromMe({ id: 's1', tenant_id: 't1', tenant_name: 'Greenfield' });
     expect(tenant).toEqual({ id: 't1', name: 'Greenfield' });
+  });
+});
+
+describe('buildLoginRequest', () => {
+  it('sends email for an @ identifier', () => {
+    expect(buildLoginRequest('ramesh@example.com', 'hunter2222', 'driver')).toEqual({
+      email: 'ramesh@example.com',
+      password: 'hunter2222',
+      role: 'driver',
+    });
+  });
+
+  it('sends phone for a non-@ identifier', () => {
+    expect(buildLoginRequest('9876543210', 'hunter2222', 'guard')).toEqual({
+      phone: '9876543210',
+      password: 'hunter2222',
+      role: 'guard',
+    });
   });
 });

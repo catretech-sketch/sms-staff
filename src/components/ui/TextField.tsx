@@ -1,6 +1,6 @@
 // src/components/ui/TextField.tsx
-import React from 'react';
-import { View, Text, TextInput, StyleSheet, type KeyboardTypeOptions } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TextInput, Pressable, StyleSheet, type KeyboardTypeOptions } from 'react-native';
 import { useTheme } from '@/theme';
 import { TextScale } from '@/theme/typography';
 import { Icon, type IconName } from '@/components/icons';
@@ -16,6 +16,7 @@ export interface TextFieldProps {
   keyboardType?: KeyboardTypeOptions;
   maxLength?: number;
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
+  secureTextEntry?: boolean;
 }
 
 export const TextField: React.FC<TextFieldProps> = ({
@@ -29,8 +30,11 @@ export const TextField: React.FC<TextFieldProps> = ({
   keyboardType = 'default',
   maxLength,
   autoCapitalize = 'none',
+  secureTextEntry = false,
 }) => {
   const { colors } = useTheme();
+  const [revealed, setRevealed] = useState(false);
+  const masked = secureTextEntry && !revealed;
 
   return (
     <View>
@@ -58,8 +62,21 @@ export const TextField: React.FC<TextFieldProps> = ({
           maxLength={maxLength}
           autoCapitalize={autoCapitalize}
           autoCorrect={false}
+          secureTextEntry={masked}
           accessibilityLabel={placeholder}
         />
+
+        {secureTextEntry ? (
+          <Pressable
+            testID={testID ? `${testID}-toggle` : 'textfield-toggle'}
+            onPress={() => setRevealed((r) => !r)}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel={revealed ? 'Hide password' : 'Show password'}
+          >
+            <Icon name={revealed ? 'eyeOff' : 'eye'} size={20} color={colors.inkFaint} strokeWidth={2} />
+          </Pressable>
+        ) : null}
       </View>
 
       {error ? (

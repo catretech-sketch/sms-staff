@@ -8,8 +8,10 @@ import { useTheme } from '@/theme';
 import { ROLES, type Role } from '@/theme/roles';
 import { TextScale } from '@/theme/typography';
 import { SUPPORTED_LANGUAGES, setLanguage, i18n, type LanguageCode } from '@/i18n';
-import { useRequestOtp, useVerifyOtp } from '@/features/auth/hooks';
+import { useRequestOtp, useVerifyOtp, useLogin, useSetPassword } from '@/features/auth/hooks';
+import { useAuth } from '@/features/auth/AuthProvider';
 import { authErrorMessage } from '@/features/auth/authErrors';
+import { isAppError } from '@/lib/errors';
 import {
   Btn,
   SectionLabel,
@@ -22,9 +24,9 @@ import {
 import { Icon } from '@/components/icons';
 
 type Channel = 'mobile' | 'email';
-type Step = 'enter' | 'verify';
+type Mode = 'password' | 'otp-request' | 'otp-verify';
+const MIN_PASSWORD_LEN = 8;
 
-// Phone validation: strip spaces, must be a valid 10-digit Indian mobile (starts 6-9)
 const phoneSchema = z.string().regex(/^[6-9]\d{9}$/);
 const emailSchema = z.string().email();
 
@@ -43,27 +45,36 @@ function isValidEmail(raw: string): boolean {
 export const LoginScreen = () => {
   const { t } = useTranslation();
   const { colors, roleKey, setRole } = useTheme();
+  const { pendingPasswordSetup, cancelPasswordSetup } = useAuth();
+  const login = useLogin();
   const requestOtp = useRequestOtp();
   const verifyOtp = useVerifyOtp();
+  const setPassword = useSetPassword();
 
   const [selected, setSelected] = useState<Role>(roleKey);
   const [channel, setChannel] = useState<Channel>('mobile');
-  const [step, setStep] = useState<Step>('enter');
+  const [mode, setMode] = useState<Mode>('password');
   const [phone, setPhone] = useState('98765 43210');
   const [email, setEmail] = useState('');
+  const [password, setPasswordInput] = useState('');
   const [code, setCode] = useState('');
   const [destination, setDestination] = useState('');
   const [langOpen, setLangOpen] = useState(false);
   const [touched, setTouched] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [setupTouched, setSetupTouched] = useState(false);
 
   const identifier = channel === 'mobile' ? stripPhone(phone) : email.trim();
-  const valid = channel === 'mobile' ? isValidPhone(phone) : isValidEmail(email);
-  const showError = touched && !valid && identifier.length > 0;
+  const identifierValid = channel === 'mobile' ? isValidPhone(phone) : isValidEmail(email);
+  const showIdentifierError = touched && !identifierValid && identifier.length > 0;
+  const passwordValid = password.length >= MIN_PASSWORD_LEN;
 
+  const loginErr = login.error ? authErrorMessage(login.error) : null;
   const requestErr = requestOtp.error ? authErrorMessage(requestOtp.error) : null;
   const verifyErr = verifyOtp.error ? authErrorMessage(verifyOtp.error) : null;
+  const setPasswordErr = setPassword.error ? authErrorMessage(setPassword.error) : null;
 
-  // Derive the native label for the current language
   const currentLang = i18n.language as LanguageCode;
   const languageNative =
     SUPPORTED_LANGUAGES.find((l) => l.code === currentLang)?.native ?? 'English';
@@ -78,13 +89,39 @@ export const LoginScreen = () => {
     setLangOpen(false);
   }
 
+  function resetOtpState() {
+    setCode('');
+    setDestination('');
+    requestOtp.reset();
+    verifyOtp.reset();
+  }
+
   function handleChangeChannel(next: Channel) {
     setChannel(next);
     setTouched(false);
-    setStep('enter');
-    setCode('');
-    requestOtp.reset();
-    verifyOtp.reset();
+    resetOtpState();
+    login.reset();
+  }
+
+  function enterOtpSetup() {
+    setMode('otp-request');
+    resetOtpState();
+    login.reset();
+  }
+
+  function backToPasswordLogin() {
+    setMode('password');
+    resetOtpState();
+  }
+
+  function handleLogin() {
+    login.mutate({ identifier, password, roleKey: selected }, {
+      onError: (err) => {
+        if (isAppError(err) && err.code === 'password_not_set') {
+          enterOtpSetup();
+        }
+      },
+    });
   }
 
   function handleSendOtp() {
@@ -93,7 +130,7 @@ export const LoginScreen = () => {
     requestOtp.mutate(identifier, {
       onSuccess: (challenge) => {
         setDestination(challenge.destination);
-        setStep('verify');
+        setMode('otp-verify');
       },
     });
   }
@@ -102,22 +139,90 @@ export const LoginScreen = () => {
     verifyOtp.mutate({ identifier, code, roleKey: selected });
   }
 
-  function handleChangeIdentifier() {
-    setStep('enter');
+  function handleChangeIdentifierInSetup() {
+    setMode('otp-request');
     setCode('');
     setDestination('');
     verifyOtp.reset();
     requestOtp.reset();
   }
 
+  const passwordsMatch = newPassword.length > 0 && newPassword === confirmPassword;
+  const newPasswordValid = newPassword.length >= MIN_PASSWORD_LEN;
+  const showMismatch = setupTouched && confirmPassword.length > 0 && !passwordsMatch;
+  const showTooShort = setupTouched && newPassword.length > 0 && !newPasswordValid;
+
+  function handleSetPassword() {
+    setSetupTouched(true);
+    if (!newPasswordValid || !passwordsMatch) return;
+    setPassword.mutate(newPassword);
+  }
+
   const accent = ROLES[selected].accent;
+
+  if (pendingPasswordSetup) {
+    return (
+      <SafeAreaView
+        style={[styles.safeArea, { backgroundColor: colors.bg }]}
+        edges={['left', 'right', 'bottom']}
+      >
+        <BrandCap onPressLanguage={() => setLangOpen(true)} languageNative={languageNative} />
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.content}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.greetingBlock}>
+            <Text style={[TextScale.hero, { color: colors.ink }]}>{t('setPassword.title')}</Text>
+            <Text style={[TextScale.body, { color: colors.inkSoft }]}>{t('setPassword.subtitle')}</Text>
+          </View>
+
+          <TextField
+            testID="set-password-new-input"
+            value={newPassword}
+            onChangeText={(v) => { setNewPassword(v); setSetupTouched(true); }}
+            accent={accent}
+            icon="lock"
+            placeholder={t('setPassword.newPassword')}
+            secureTextEntry
+            error={showTooShort ? t('setPassword.tooShort') : undefined}
+          />
+          <TextField
+            testID="set-password-confirm-input"
+            value={confirmPassword}
+            onChangeText={(v) => { setConfirmPassword(v); setSetupTouched(true); }}
+            accent={accent}
+            icon="lock"
+            placeholder={t('setPassword.confirmPassword')}
+            secureTextEntry
+            error={showMismatch ? t('setPassword.mismatch') : undefined}
+          />
+          {setPasswordErr && (
+            <Text style={[TextScale.caption, { color: colors.danger }]}>{setPasswordErr}</Text>
+          )}
+
+          <Btn
+            testID="set-password-cta"
+            label={t('setPassword.cta')}
+            onPress={handleSetPassword}
+            loading={setPassword.isPending}
+            accent={accent}
+          />
+
+          <Pressable onPress={cancelPasswordSetup}>
+            <Text style={[TextScale.button, { color: accent }]}>{t('common.back')}</Text>
+          </Pressable>
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView
       style={[styles.safeArea, { backgroundColor: colors.bg }]}
       edges={['left', 'right', 'bottom']}
     >
-      {/* Language picker rendered at screen root (escapes clipped cap) */}
       <LanguagePicker
         visible={langOpen}
         current={currentLang}
@@ -125,7 +230,6 @@ export const LoginScreen = () => {
         onClose={() => setLangOpen(false)}
       />
 
-      {/* Brand cap — sits outside the scroll so it's always visible */}
       <BrandCap
         onPressLanguage={() => setLangOpen(true)}
         languageNative={languageNative}
@@ -137,95 +241,123 @@ export const LoginScreen = () => {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* Greeting */}
         <View style={styles.greetingBlock}>
           <Text style={[TextScale.hero, { color: colors.ink }]}>
             {t('login.greeting')}
           </Text>
           <Text style={[TextScale.body, { color: colors.inkSoft }]}>
-            {step === 'verify' ? t('login.enterCode') : t('login.subtitle')}
+            {mode === 'otp-verify'
+              ? t('login.enterCode')
+              : mode === 'otp-request'
+                ? t('login.otpSetupSubtitle')
+                : t('login.subtitle')}
           </Text>
         </View>
 
-        {/* Role grid */}
         <SectionLabel title={t('login.selectRole')} />
         <RoleGrid selected={selected} onSelect={handleSelectRole} />
 
-        {step === 'enter' ? (
-          <>
-            {/* Mobile / Email channel toggle */}
-            <View style={[styles.tabRow, { backgroundColor: colors.surface, borderColor: colors.sunken }]}>
-              <Pressable
-                testID="channel-mobile"
-                onPress={() => handleChangeChannel('mobile')}
-                style={[styles.tab, channel === 'mobile' && { backgroundColor: accent }]}
-              >
-                <Text
-                  style={[
-                    TextScale.button,
-                    { color: channel === 'mobile' ? colors.onPrimary : colors.inkSoft },
-                  ]}
-                >
-                  {t('login.mobileTab')}
-                </Text>
-              </Pressable>
-              <Pressable
-                testID="channel-email"
-                onPress={() => handleChangeChannel('email')}
-                style={[styles.tab, channel === 'email' && { backgroundColor: accent }]}
-              >
-                <Text
-                  style={[
-                    TextScale.button,
-                    { color: channel === 'email' ? colors.onPrimary : colors.inkSoft },
-                  ]}
-                >
-                  {t('login.emailTab')}
-                </Text>
-              </Pressable>
-            </View>
+        <View style={[styles.tabRow, { backgroundColor: colors.surface, borderColor: colors.sunken }]}>
+          <Pressable
+            testID="channel-mobile"
+            onPress={() => handleChangeChannel('mobile')}
+            style={[styles.tab, channel === 'mobile' && { backgroundColor: accent }]}
+          >
+            <Text
+              style={[
+                TextScale.button,
+                { color: channel === 'mobile' ? colors.onPrimary : colors.inkSoft },
+              ]}
+            >
+              {t('login.mobileTab')}
+            </Text>
+          </Pressable>
+          <Pressable
+            testID="channel-email"
+            onPress={() => handleChangeChannel('email')}
+            style={[styles.tab, channel === 'email' && { backgroundColor: accent }]}
+          >
+            <Text
+              style={[
+                TextScale.button,
+                { color: channel === 'email' ? colors.onPrimary : colors.inkSoft },
+              ]}
+            >
+              {t('login.emailTab')}
+            </Text>
+          </Pressable>
+        </View>
 
-            {/* Identifier field */}
-            {channel === 'mobile' ? (
-              <PhoneField
-                value={phone}
-                onChangeText={(v) => {
-                  setPhone(v);
-                  setTouched(true);
-                }}
-                accent={accent}
-                error={showError ? t('login.invalidPhone') : undefined}
-              />
-            ) : (
-              <TextField
-                testID="email-input"
-                value={email}
-                onChangeText={(v) => {
-                  setEmail(v);
-                  setTouched(true);
-                }}
-                accent={accent}
-                icon="mail"
-                placeholder={t('login.email')}
-                keyboardType="email-address"
-                error={showError ? t('login.invalidEmail') : undefined}
-              />
+        {channel === 'mobile' ? (
+          <PhoneField
+            value={phone}
+            onChangeText={(v) => { setPhone(v); setTouched(true); }}
+            accent={accent}
+            error={showIdentifierError ? t('login.invalidPhone') : undefined}
+          />
+        ) : (
+          <TextField
+            testID="email-input"
+            value={email}
+            onChangeText={(v) => { setEmail(v); setTouched(true); }}
+            accent={accent}
+            icon="mail"
+            placeholder={t('login.email')}
+            keyboardType="email-address"
+            error={showIdentifierError ? t('login.invalidEmail') : undefined}
+          />
+        )}
+
+        {mode === 'password' && (
+          <>
+            <TextField
+              testID="password-input"
+              value={password}
+              onChangeText={setPasswordInput}
+              accent={accent}
+              icon="lock"
+              placeholder={t('login.password')}
+              secureTextEntry
+            />
+            {loginErr && (
+              <Text style={[TextScale.caption, { color: colors.danger }]}>{loginErr}</Text>
             )}
+
+            <Btn
+              testID="login-cta"
+              label={t('login.login')}
+              onPress={handleLogin}
+              loading={login.isPending}
+              disabled={!identifierValid || !passwordValid}
+              accent={accent}
+            />
+
+            <Pressable testID="first-time-link" onPress={enterOtpSetup}>
+              <Text style={[TextScale.button, { color: accent }]}>{t('login.firstTimeOrForgot')}</Text>
+            </Pressable>
+          </>
+        )}
+
+        {mode === 'otp-request' && (
+          <>
             {requestErr && (
               <Text style={[TextScale.caption, { color: colors.danger }]}>{requestErr}</Text>
             )}
-
-            {/* CTA */}
             <Btn
-              testID="login-cta"
+              testID="send-otp-cta"
               label={t('login.sendOtp')}
               onPress={handleSendOtp}
               loading={requestOtp.isPending}
-              disabled={!valid}
+              disabled={!identifierValid}
               accent={accent}
             />
+            <Pressable testID="back-to-password-link" onPress={backToPasswordLogin}>
+              <Text style={[TextScale.button, { color: accent }]}>{t('login.backToPasswordLogin')}</Text>
+            </Pressable>
           </>
-        ) : (
+        )}
+
+        {mode === 'otp-verify' && (
           <>
             <Text style={[TextScale.caption, styles.codeSentText, { color: colors.inkSoft }]}>
               {t('login.codeSentTo', { destination })}
@@ -255,14 +387,13 @@ export const LoginScreen = () => {
               <Pressable onPress={handleSendOtp} disabled={requestOtp.isPending}>
                 <Text style={[TextScale.button, { color: accent }]}>{t('login.resend')}</Text>
               </Pressable>
-              <Pressable onPress={handleChangeIdentifier}>
+              <Pressable onPress={handleChangeIdentifierInSetup}>
                 <Text style={[TextScale.button, { color: accent }]}>{t('login.change')}</Text>
               </Pressable>
             </View>
           </>
         )}
 
-        {/* Footer */}
         <View style={styles.footer}>
           <Icon name="lock" size={14} color={colors.inkFaint} strokeWidth={2} />
           <Text style={[TextScale.caption, { color: colors.inkFaint }]}>

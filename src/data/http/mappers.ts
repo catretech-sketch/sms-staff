@@ -38,11 +38,14 @@ export interface SessionDTO {
 }
 export interface DashboardDTO {
   hours_this_week: number;
-  hours_target: number;
-  streak_days: number;
-  leave_left: number;
-  role_card: RoleCard;
-  pending_tasks_peek: TaskPeek[];
+  // The live backend only populates these when there's a real data source behind them
+  // (e.g. role_card is omitted unless the driver/conductor has an assigned bus) — never
+  // fabricated. Treat all of these as optional and default sensibly in toDashboard.
+  hours_target?: number;
+  streak_days?: number;
+  leave_left?: number;
+  role_card?: RoleCard | null;
+  pending_tasks_peek?: TaskPeek[];
   alert?: string;
 }
 export interface AttendanceDTO {
@@ -87,11 +90,11 @@ export function toSession(d: SessionDTO): Session {
 export function toDashboard(d: DashboardDTO): Dashboard {
   return {
     hoursThisWeek: d.hours_this_week,
-    hoursTarget: d.hours_target,
-    streakDays: d.streak_days,
-    leaveLeft: d.leave_left,
-    roleCard: d.role_card,
-    pendingTasksPeek: d.pending_tasks_peek,
+    hoursTarget: d.hours_target ?? 0,
+    streakDays: d.streak_days ?? 0,
+    leaveLeft: d.leave_left ?? 0,
+    roleCard: d.role_card ?? null,
+    pendingTasksPeek: d.pending_tasks_peek ?? [],
     alert: d.alert,
   };
 }

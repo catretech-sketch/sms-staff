@@ -18,7 +18,7 @@ export interface Dashboard {
   hoursTarget: number;
   streakDays: number;
   leaveLeft: number;
-  roleCard: RoleCard;
+  roleCard: RoleCard | null;
   pendingTasksPeek: TaskPeek[];
   alert?: string;
 }

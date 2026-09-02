@@ -9,11 +9,12 @@ import { SweeperCard } from './SweeperCard';
 import { PeonCard } from './PeonCard';
 
 export interface RoleSpecializedCardProps {
-  roleCard: RoleCard;
+  roleCard: RoleCard | null;
   accent: string;
 }
 
 export const RoleSpecializedCard: React.FC<RoleSpecializedCardProps> = ({ roleCard, accent }) => {
+  if (roleCard === null) return null;
   switch (roleCard.kind) {
     case 'driver':
       return (

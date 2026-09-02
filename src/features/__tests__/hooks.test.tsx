@@ -36,7 +36,7 @@ async function wrap(ui: React.ReactElement) {
 
 function DashboardProbe() {
   const { data, isLoading } = useDashboard();
-  return <Text testID="dash">{isLoading ? 'loading' : `${data?.roleCard.kind}:${data?.hoursThisWeek}`}</Text>;
+  return <Text testID="dash">{isLoading ? 'loading' : `${data?.roleCard?.kind}:${data?.hoursThisWeek}`}</Text>;
 }
 
 function AttendanceProbe() {

@@ -39,7 +39,7 @@ describe('http mappers', () => {
     });
     expect(d.hoursThisWeek).toBe(34);
     expect(d.leaveLeft).toBe(12);
-    expect(d.roleCard.kind).toBe('driver');
+    expect(d.roleCard?.kind).toBe('driver');
     expect(d.pendingTasksPeek[0].id).toBe('t1');
     expect(d.alert).toBe('Meeting');
   });

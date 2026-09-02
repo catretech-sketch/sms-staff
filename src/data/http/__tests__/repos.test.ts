@@ -113,7 +113,7 @@ describe('http repositories', () => {
     });
     const d = await httpDashboard(http).get();
     expect(d.hoursThisWeek).toBe(34);
-    expect(d.roleCard.kind).toBe('driver');
+    expect(d.roleCard?.kind).toBe('driver');
   });
 
   it('attendance.checkIn posts at + in_zone and maps the result', async () => {

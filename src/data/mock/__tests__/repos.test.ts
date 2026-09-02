@@ -80,7 +80,7 @@ describe('mock repositories', () => {
     const store = await createStore();
     await mockAuth(store).verifyOtp('98765 43210', '123456', 'guard');
     const dash = await mockDashboard(store).get();
-    expect(dash.roleCard.kind).toBe('guard');
+    expect(dash.roleCard?.kind).toBe('guard');
     expect(dash.hoursThisWeek).toBe(34);
     expect(dash.pendingTasksPeek.length).toBeGreaterThan(0);
   });
@@ -89,12 +89,12 @@ describe('mock repositories', () => {
     const store = await createStore();
     await mockAuth(store).verifyOtp('98765 43210', '123456', 'gardener');
     const dash1 = await mockDashboard(store).get();
-    if (dash1.roleCard.kind === 'gardener') {
+    if (dash1.roleCard?.kind === 'gardener') {
       dash1.roleCard.zones.push('Rooftop');
     }
     const dash2 = await mockDashboard(store).get();
     // The mutation to dash1 must not leak into a fresh read.
-    if (dash2.roleCard.kind === 'gardener') {
+    if (dash2.roleCard?.kind === 'gardener') {
       expect(dash2.roleCard.zones).not.toContain('Rooftop');
     }
   });

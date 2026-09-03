@@ -16,6 +16,7 @@ export const queryClient = new QueryClient({
 export const queryKeys = {
   dashboard: (tenantId: string) => ['dashboard', tenantId] as const,
   attendance: (tenantId: string) => ['attendance', tenantId] as const,
+  schoolLocation: (tenantId: string) => ['attendance', 'schoolLocation', tenantId] as const,
   session: () => ['session'] as const,
   tripAssignment: (tenantId: string) => ['trip', 'assignment', tenantId] as const,
   tripCurrent: (tenantId: string) => ['trip', 'current', tenantId] as const,

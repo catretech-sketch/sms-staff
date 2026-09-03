@@ -1,4 +1,4 @@
-import { toSession, toStaff, toTenant, toDashboard, toAttendance } from '@/data/http/mappers';
+import { toSession, toStaff, toTenant, toDashboard, toAttendance, toSchoolLocation } from '@/data/http/mappers';
 
 describe('http mappers', () => {
   it('toStaff maps snake_case to domain', () => {
@@ -54,5 +54,15 @@ describe('http mappers', () => {
     expect(a.checkInAt).toBe('2026-06-03T08:00:00Z');
     expect(a.dutyPost).toBe('Bus / Route');
     expect(a.geofenceRadiusM).toBe(120);
+  });
+
+  it('toSchoolLocation maps snake_case fields', () => {
+    const loc = toSchoolLocation({ lat: 28.4595, lng: 77.0266, radius_meters: 120, name: 'Greenfield Public School' });
+    expect(loc).toEqual({ lat: 28.4595, lng: 77.0266, radiusMeters: 120, name: 'Greenfield Public School' });
+  });
+
+  it('toSchoolLocation defaults a missing name to undefined', () => {
+    const loc = toSchoolLocation({ lat: 28.4595, lng: 77.0266, radius_meters: 120 });
+    expect(loc.name).toBeUndefined();
   });
 });

@@ -11,3 +11,10 @@ export interface Attendance {
   dutyPost: string;
   geofenceRadiusM: number;
 }
+
+export interface SchoolLocation {
+  lat: number;
+  lng: number;
+  radiusMeters: number;
+  name?: string;
+}

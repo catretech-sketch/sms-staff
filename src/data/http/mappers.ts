@@ -1,4 +1,4 @@
-import type { Session, Staff, Tenant, Dashboard, RoleCard, Attendance, AttendanceLog, TaskPeek,
+import type { Session, Staff, Tenant, Dashboard, RoleCard, Attendance, AttendanceLog, SchoolLocation, TaskPeek,
   Route, Stop, Trip, TripSummary, StudentLite, Boarding, TripAssignment,
   TripDirection, TripStatus, BoardingState,
   Task, LeaveSummary, LeaveBalance, LeaveRequest, NewLeaveRequest,
@@ -109,6 +109,19 @@ export function toAttendance(d: AttendanceDTO): Attendance {
   if (d.check_in_at !== undefined) a.checkInAt = d.check_in_at;
   return a;
 }
+
+export interface SchoolLocationDTO {
+  lat: number;
+  lng: number;
+  radius_meters: number;
+  name?: string | null;
+}
+export const toSchoolLocation = (d: SchoolLocationDTO): SchoolLocation => ({
+  lat: d.lat,
+  lng: d.lng,
+  radiusMeters: d.radius_meters,
+  name: d.name ?? undefined,
+});
 
 export interface StopDTO { id: string; name: string; lat: number; lng: number; seq: number; eta_min?: number; }
 export interface RouteDTO { id: string; name: string; bus_no: string; stops: StopDTO[]; }

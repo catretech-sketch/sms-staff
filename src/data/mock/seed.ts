@@ -1,5 +1,5 @@
 import type { Role } from '@/theme/roles';
-import type { Staff, Tenant, RoleCard, TaskPeek, Attendance, Route, StudentLite, Boarding, Trip, Task, LeaveSummary, Profile } from '@/data/domain';
+import type { Staff, Tenant, RoleCard, TaskPeek, Attendance, SchoolLocation, Route, StudentLite, Boarding, Trip, Task, LeaveSummary, Profile } from '@/data/domain';
 
 export const dutyPostByRole: Record<Role, string> = {
   driver: 'Bus / Route',
@@ -56,6 +56,14 @@ const attendance: Attendance = {
   lastLog: [],
   dutyPost: dutyPostByRole.driver,
   geofenceRadiusM: 120,
+};
+
+// Same coordinates as route stop_1 ("School Gate") — the campus's front gate.
+const schoolLocation: SchoolLocation = {
+  lat: 28.4595,
+  lng: 77.0266,
+  radiusMeters: 120,
+  name: 'Greenfield Public School',
 };
 
 const route: Route = {
@@ -121,6 +129,7 @@ export interface SeedShape {
   tasksPeek: TaskPeek[];
   dashboardBase: typeof dashboardBase;
   attendance: Attendance;
+  schoolLocation: SchoolLocation;
   route: Route;
   students: StudentLite[];
   conductorName: string;
@@ -132,6 +141,6 @@ export interface SeedShape {
 }
 
 export const seed: SeedShape = {
-  staff, tenant, roleCards, tasksPeek, dashboardBase, attendance,
+  staff, tenant, roleCards, tasksPeek, dashboardBase, attendance, schoolLocation,
   route, students, conductorName, currentTrip, boarding, tasks, leaveSummary, profile,
 };

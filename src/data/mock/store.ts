@@ -1,6 +1,6 @@
 import { asyncStore } from '@/lib/asyncStore';
 import { seed, dutyPostByRole } from './seed';
-import type { Session, Attendance, Boarding, Trip, TripPing, Task, LeaveSummary, Profile } from '@/data/domain';
+import type { Session, Attendance, SchoolLocation, Boarding, Trip, TripPing, Task, LeaveSummary, Profile } from '@/data/domain';
 import type { Role } from '@/theme/roles';
 
 const KEY = 'sms.mock.';
@@ -8,6 +8,7 @@ const KEY = 'sms.mock.';
 export interface Store {
   session: Session;
   attendance: Attendance;
+  schoolLocation: SchoolLocation;
   dashboardBase: typeof seed.dashboardBase;
   roleCards: typeof seed.roleCards;
   tasksPeek: typeof seed.tasksPeek;
@@ -50,6 +51,7 @@ export async function createStore(): Promise<Store> {
       tenant: clone(seed.tenant),
     },
     attendance,
+    schoolLocation: clone(seed.schoolLocation),
     dashboardBase: clone(seed.dashboardBase),
     roleCards: clone(seed.roleCards),
     tasksPeek: clone(seed.tasksPeek),

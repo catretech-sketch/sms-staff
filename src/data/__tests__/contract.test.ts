@@ -29,6 +29,7 @@ function fixtureHttp(): HttpClient {
     'POST /auth/otp/verify': tokenDTO,
     'GET /auth/me': meDTO,
     'GET /staff/attendance': attendanceDTO,
+    'GET /me/attendance/school-location': { lat: 28.4595, lng: 77.0266, radius_meters: 120, name: 'Greenfield Public School' },
     'GET /staff/trip/assignment': {
       route: {
         id: 'route_7', name: 'Route 7', bus_no: 'HR-26-BX-4412',
@@ -85,6 +86,15 @@ describe('mock <-> http contract', () => {
     expect(keys(a)).toEqual(keys(b));
     expect(a.checkedIn).toBe(b.checkedIn);
     expect(a.geofenceRadiusM).toBe(b.geofenceRadiusM);
+  });
+
+  it('attendance.schoolLocation returns the same SchoolLocation shape from both adapters', async () => {
+    const mock = createMockRepositories(await createStore());
+    const http = createHttpRepositories(fixtureHttp());
+    const a = await mock.attendance.schoolLocation();
+    const b = await http.attendance.schoolLocation();
+    expect(keys(a)).toEqual(keys(b));
+    expect(a.radiusMeters).toBe(b.radiusMeters);
   });
 
   it('tasks.list returns the same Task shape from both adapters', async () => {

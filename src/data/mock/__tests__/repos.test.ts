@@ -99,10 +99,11 @@ describe('mock repositories', () => {
     }
   });
 
-  it('checkIn flips state, records a log, and persists', async () => {
+  it('checkIn inside the geofence flips state, records an in-zone log, and persists', async () => {
     const store = await createStore();
     const repo = mockAttendance(store);
-    const after = await repo.checkIn('2026-06-03T08:00:00Z', true);
+    const loc = await repo.schoolLocation();
+    const after = await repo.checkIn('2026-06-03T08:00:00Z', loc.lat, loc.lng, 8);
     expect(after.checkedIn).toBe(true);
     expect(after.checkInAt).toBe('2026-06-03T08:00:00Z');
     expect(after.lastLog[0]).toEqual({ at: '2026-06-03T08:00:00Z', kind: 'in', inZone: true });
@@ -110,13 +111,29 @@ describe('mock repositories', () => {
     expect(store2.attendance.checkedIn).toBe(true);
   });
 
+  it('checkIn far from the geofence records an out-of-zone log — never trusts the caller', async () => {
+    const store = await createStore();
+    const repo = mockAttendance(store);
+    // Sector 15 Market seed stop — well outside the 120m school radius.
+    const after = await repo.checkIn('2026-06-03T08:00:00Z', 28.4712, 77.0525, 8);
+    expect(after.lastLog[0]).toEqual({ at: '2026-06-03T08:00:00Z', kind: 'in', inZone: false });
+  });
+
   it('checkOut clears checkedIn and logs an out event', async () => {
     const store = await createStore();
     const repo = mockAttendance(store);
-    await repo.checkIn('2026-06-03T08:00:00Z', true);
-    const after = await repo.checkOut('2026-06-03T15:30:00Z');
+    const loc = await repo.schoolLocation();
+    await repo.checkIn('2026-06-03T08:00:00Z', loc.lat, loc.lng, 8);
+    const after = await repo.checkOut('2026-06-03T15:30:00Z', loc.lat, loc.lng, 8);
     expect(after.checkedIn).toBe(false);
     expect(after.checkInAt).toBeUndefined();
     expect(after.lastLog[0].kind).toBe('out');
+  });
+
+  it('schoolLocation returns the seeded geofence center', async () => {
+    const store = await createStore();
+    const repo = mockAttendance(store);
+    const loc = await repo.schoolLocation();
+    expect(loc).toEqual({ lat: 28.4595, lng: 77.0266, radiusMeters: 120, name: 'Greenfield Public School' });
   });
 });

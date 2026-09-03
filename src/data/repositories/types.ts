@@ -1,5 +1,5 @@
 import type {
-  Session, Staff, Dashboard, Attendance,
+  Session, Staff, Dashboard, Attendance, SchoolLocation,
   TripAssignment, Trip, TripPing, TripSummary, StudentLite, Boarding, TripDirection,
   Task,
   LeaveSummary, LeaveRequest, NewLeaveRequest,
@@ -28,8 +28,9 @@ export interface DashboardRepository {
 
 export interface AttendanceRepository {
   status(): Promise<Attendance>;
-  checkIn(at: string, inZone: boolean): Promise<Attendance>;
-  checkOut(at: string): Promise<Attendance>;
+  schoolLocation(): Promise<SchoolLocation>;
+  checkIn(at: string, lat: number, lng: number, accuracyMeters: number): Promise<Attendance>;
+  checkOut(at: string, lat: number, lng: number, accuracyMeters: number): Promise<Attendance>;
 }
 
 export interface TripRepository {

@@ -45,7 +45,10 @@ function AttendanceProbe() {
   return (
     <>
       <Text testID="checked">{String(data?.checkedIn ?? '')}</Text>
-      <Pressable testID="checkin" onPress={() => checkIn.mutate({ at: '2026-06-03T08:00:00Z', inZone: true })}>
+      <Pressable
+        testID="checkin"
+        onPress={() => checkIn.mutate({ at: '2026-06-03T08:00:00Z', lat: 28.4595, lng: 77.0266, accuracyMeters: 8 })}
+      >
         <Text>in</Text>
       </Pressable>
     </>

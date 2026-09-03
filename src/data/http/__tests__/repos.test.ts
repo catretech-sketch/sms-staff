@@ -116,15 +116,43 @@ describe('http repositories', () => {
     expect(d.roleCard?.kind).toBe('driver');
   });
 
-  it('attendance.checkIn posts at + in_zone and maps the result', async () => {
+  it('attendance.checkIn posts at + lat/lng/accuracy_meters and maps the result', async () => {
     const { http, calls } = fakeHttp({
       'POST /staff/attendance/check-in': {
         checked_in: true, check_in_at: '2026-06-03T08:00:00Z', last_log: [], duty_post: 'Bus / Route', geofence_radius_m: 120,
       },
     });
-    const a = await httpAttendance(http).checkIn('2026-06-03T08:00:00Z', true);
+    const a = await httpAttendance(http).checkIn('2026-06-03T08:00:00Z', 28.4595, 77.0266, 8);
     expect(a.checkedIn).toBe(true);
-    expect(calls[0]).toEqual({ method: 'POST', path: '/staff/attendance/check-in', body: { at: '2026-06-03T08:00:00Z', in_zone: true } });
+    expect(calls[0]).toEqual({
+      method: 'POST',
+      path: '/staff/attendance/check-in',
+      body: { at: '2026-06-03T08:00:00Z', lat: 28.4595, lng: 77.0266, accuracy_meters: 8 },
+    });
+  });
+
+  it('attendance.checkOut posts at + lat/lng/accuracy_meters and maps the result', async () => {
+    const { http, calls } = fakeHttp({
+      'POST /staff/attendance/check-out': {
+        checked_in: false, last_log: [], duty_post: 'Bus / Route', geofence_radius_m: 120,
+      },
+    });
+    const a = await httpAttendance(http).checkOut('2026-06-03T15:30:00Z', 28.4595, 77.0266, 8);
+    expect(a.checkedIn).toBe(false);
+    expect(calls[0]).toEqual({
+      method: 'POST',
+      path: '/staff/attendance/check-out',
+      body: { at: '2026-06-03T15:30:00Z', lat: 28.4595, lng: 77.0266, accuracy_meters: 8 },
+    });
+  });
+
+  it('attendance.schoolLocation fetches and maps the geofence center', async () => {
+    const { http, calls } = fakeHttp({
+      'GET /me/attendance/school-location': { lat: 28.4595, lng: 77.0266, radius_meters: 120, name: 'Greenfield Public School' },
+    });
+    const loc = await httpAttendance(http).schoolLocation();
+    expect(loc).toEqual({ lat: 28.4595, lng: 77.0266, radiusMeters: 120, name: 'Greenfield Public School' });
+    expect(calls[0]).toEqual({ method: 'GET', path: '/me/attendance/school-location' });
   });
 
   it('leave.summary fetches balances + requests from the real /leave endpoints and maps both', async () => {

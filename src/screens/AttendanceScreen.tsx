@@ -22,9 +22,11 @@ import {
 } from '@/components/ui';
 import {
   useAttendanceStatus,
+  useSchoolLocation,
   useCheckIn,
   useCheckOut,
 } from '@/features/attendance/hooks';
+import { distanceMeters } from '@/lib/geo';
 
 export interface AttendanceScreenProps {
   navigation: any;
@@ -36,6 +38,7 @@ export const AttendanceScreen: React.FC<AttendanceScreenProps> = ({ navigation }
   const toast = useToast();
 
   const att = useAttendanceStatus();
+  const schoolLocation = useSchoolLocation();
   const checkIn = useCheckIn();
   const checkOut = useCheckOut();
 
@@ -45,9 +48,9 @@ export const AttendanceScreen: React.FC<AttendanceScreenProps> = ({ navigation }
   const [locating, setLocating] = useState(true);
   const [position, setPosition] = useState<{ latitude: number; longitude: number; accuracy: number } | null>(null);
 
-  // Demo toggle: overrides derived in/out range
-  // null = not yet chosen by user (derive from real geo, which is out-of-scope)
-  // true = forced in-range; false = forced out-of-range
+  // __DEV__-only QA toggle: overrides the real GPS-derived in/out range so the
+  // check-in flow can be exercised on a simulator without real geofence coords.
+  // null = not overridden — use the real geo-derived state.
   const [demoInRange, setDemoInRange] = useState<boolean | null>(null);
 
   const [busy, setBusy] = useState(false);
@@ -86,8 +89,19 @@ export const AttendanceScreen: React.FC<AttendanceScreenProps> = ({ navigation }
     };
   }, []);
 
-  // Effective in-range: demo toggle takes precedence; otherwise default false (real geo out of scope)
-  const inRange = demoInRange !== null ? demoInRange : false;
+  // Real distance from device position to the school's geofence center.
+  const distanceM =
+    position && schoolLocation.data
+      ? distanceMeters({ lat: position.latitude, lng: position.longitude }, schoolLocation.data)
+      : undefined;
+
+  const geoInRange =
+    distanceM !== undefined && schoolLocation.data
+      ? distanceM <= schoolLocation.data.radiusMeters
+      : false;
+
+  // __DEV__ toggle takes precedence when set; otherwise use the real geo-derived state.
+  const inRange = demoInRange !== null ? demoInRange : geoInRange;
 
   // Derive GeoRadar state
   const radarState: 'locating' | 'in' | 'out' = locating
@@ -108,11 +122,20 @@ export const AttendanceScreen: React.FC<AttendanceScreenProps> = ({ navigation }
 
   const handlePress = useCallback(async () => {
     if (checkInState === 'ready') {
+      if (!position) {
+        toast.show(t('common.somethingWrong'), 'error');
+        return;
+      }
       setBusy(true);
       await new Promise<void>(resolve => setTimeout(resolve, 650));
       if (!mountedRef.current) return;
       try {
-        await checkIn.mutateAsync({ at: new Date().toISOString(), inZone: true });
+        await checkIn.mutateAsync({
+          at: new Date().toISOString(),
+          lat: position.latitude,
+          lng: position.longitude,
+          accuracyMeters: position.accuracy,
+        });
         if (!mountedRef.current) return;
         confettiRef.current?.fire();
       } catch {
@@ -120,18 +143,22 @@ export const AttendanceScreen: React.FC<AttendanceScreenProps> = ({ navigation }
       } finally {
         if (mountedRef.current) setBusy(false);
       }
-    } else if (checkInState === 'checkedIn') {
-      checkOut.mutate({ at: new Date().toISOString() });
+    } else if (checkInState === 'checkedIn' && position) {
+      checkOut.mutate({
+        at: new Date().toISOString(),
+        lat: position.latitude,
+        lng: position.longitude,
+        accuracyMeters: position.accuracy,
+      });
     }
-  }, [checkInState, checkIn, checkOut, t, toast]);
+  }, [checkInState, position, checkIn, checkOut, t, toast]);
 
   // Helper text
-  // TODO: real distance needs geofence-center coords added to the Attendance domain in a future spec
   const helperText = locating
     ? t('attendance.locating')
     : inRange
       ? t('attendance.inZone')
-      : t('attendance.outZone', { m: '?' });
+      : t('attendance.outZone', { m: distanceM !== undefined ? Math.round(distanceM) : '?' });
 
   // Today log row: show if checked in or there's a lastLog entry
   const logTime = att.data?.checkInAt
@@ -164,62 +191,63 @@ export const AttendanceScreen: React.FC<AttendanceScreenProps> = ({ navigation }
       >
         {/* GeoRadar */}
         <View style={styles.radarRow}>
-          {/* TODO: real distance needs geofence-center coords added to the Attendance domain in a future spec */}
           <GeoRadar
             state={radarState}
-            distanceM={undefined}
+            distanceM={distanceM}
             accuracyM={position?.accuracy}
             accent={role.accent}
           />
         </View>
 
-        {/* Demo range segmented toggle */}
-        <View style={styles.segmented}>
-          <Pressable
-            testID="demo-in-range"
-            onPress={() => { setDemoInRange(true); setLocating(false); }}
-            style={[
-              styles.segBtn,
-              styles.segBtnLeft,
-              {
-                backgroundColor: demoInRange === true ? role.accent : colors.surface,
-                borderColor: colors.line,
-              },
-            ]}
-            accessibilityRole="button"
-          >
-            <Text
+        {/* Demo range segmented toggle — dev-only QA affordance, never ships in production */}
+        {__DEV__ && (
+          <View style={styles.segmented}>
+            <Pressable
+              testID="demo-in-range"
+              onPress={() => { setDemoInRange(true); setLocating(false); }}
               style={[
-                TextScale.caption,
-                { color: demoInRange === true ? colors.onPrimary : colors.ink },
+                styles.segBtn,
+                styles.segBtnLeft,
+                {
+                  backgroundColor: demoInRange === true ? role.accent : colors.surface,
+                  borderColor: colors.line,
+                },
               ]}
+              accessibilityRole="button"
             >
-              {t('attendance.inRange')}
-            </Text>
-          </Pressable>
-          <Pressable
-            testID="demo-out-range"
-            onPress={() => { setDemoInRange(false); setLocating(false); }}
-            style={[
-              styles.segBtn,
-              styles.segBtnRight,
-              {
-                backgroundColor: demoInRange === false ? colors.danger : colors.surface,
-                borderColor: colors.line,
-              },
-            ]}
-            accessibilityRole="button"
-          >
-            <Text
+              <Text
+                style={[
+                  TextScale.caption,
+                  { color: demoInRange === true ? colors.onPrimary : colors.ink },
+                ]}
+              >
+                {t('attendance.inRange')}
+              </Text>
+            </Pressable>
+            <Pressable
+              testID="demo-out-range"
+              onPress={() => { setDemoInRange(false); setLocating(false); }}
               style={[
-                TextScale.caption,
-                { color: demoInRange === false ? colors.onPrimary : colors.ink },
+                styles.segBtn,
+                styles.segBtnRight,
+                {
+                  backgroundColor: demoInRange === false ? colors.danger : colors.surface,
+                  borderColor: colors.line,
+                },
               ]}
+              accessibilityRole="button"
             >
-              {t('attendance.outRange')}
-            </Text>
-          </Pressable>
-        </View>
+              <Text
+                style={[
+                  TextScale.caption,
+                  { color: demoInRange === false ? colors.onPrimary : colors.ink },
+                ]}
+              >
+                {t('attendance.outRange')}
+              </Text>
+            </Pressable>
+          </View>
+        )}
 
         {/* CheckInButton */}
         <View style={styles.btnRow}>

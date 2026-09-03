@@ -13,14 +13,32 @@ export function useAttendanceStatus() {
   });
 }
 
+export function useSchoolLocation() {
+  const repos = useRepositories();
+  const tenantId = useTenantId();
+  return useQuery({
+    queryKey: queryKeys.schoolLocation(tenantId),
+    queryFn: () => repos.attendance.schoolLocation(),
+    staleTime: 5 * 60_000,
+  });
+}
+
+interface CheckPunch {
+  at: string;
+  lat: number;
+  lng: number;
+  accuracyMeters: number;
+}
+
 export function useCheckIn() {
   const repos = useRepositories();
   const tenantId = useTenantId();
   const qc = useQueryClient();
   const key = queryKeys.attendance(tenantId);
   return useMutation({
-    mutationFn: ({ at, inZone }: { at: string; inZone: boolean }) => repos.attendance.checkIn(at, inZone),
-    onMutate: async ({ at, inZone }) => {
+    mutationFn: ({ at, lat, lng, accuracyMeters }: CheckPunch) =>
+      repos.attendance.checkIn(at, lat, lng, accuracyMeters),
+    onMutate: async ({ at }) => {
       await qc.cancelQueries({ queryKey: key });
       const prev = qc.getQueryData<Attendance>(key);
       if (prev) {
@@ -28,7 +46,7 @@ export function useCheckIn() {
           ...prev,
           checkedIn: true,
           checkInAt: at,
-          lastLog: [{ at, kind: 'in', inZone }, ...prev.lastLog],
+          lastLog: [{ at, kind: 'in', inZone: true }, ...prev.lastLog],
         });
       }
       return { prev };
@@ -46,7 +64,8 @@ export function useCheckOut() {
   const qc = useQueryClient();
   const key = queryKeys.attendance(tenantId);
   return useMutation({
-    mutationFn: ({ at }: { at: string }) => repos.attendance.checkOut(at),
+    mutationFn: ({ at, lat, lng, accuracyMeters }: CheckPunch) =>
+      repos.attendance.checkOut(at, lat, lng, accuracyMeters),
     onMutate: async ({ at }) => {
       await qc.cancelQueries({ queryKey: key });
       const prev = qc.getQueryData<Attendance>(key);

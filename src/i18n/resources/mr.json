@@ -45,6 +45,7 @@
   "home.leaveLeft": "उर्वरित रजा",
   "home.leaveLeftN": "{{n}} शिल्लक",
   "home.pendingTasks": "प्रलंबित कार्ये",
+  "home.noTasks": "सध्या कोणतेही काम प्रलंबित नाही",
   "home.alert": "सूचना",
   "role.driver": "बस चालक",
   "role.guard": "सुरक्षा रक्षक",

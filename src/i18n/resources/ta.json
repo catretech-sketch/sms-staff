@@ -45,6 +45,7 @@
   "home.leaveLeft": "மீதமுள்ள விடுப்பு",
   "home.leaveLeftN": "{{n}} மீதம்",
   "home.pendingTasks": "நிலுவையிலுள்ள பணிகள்",
+  "home.noTasks": "தற்போது நிலுவையில் எதுவும் இல்லை",
   "home.alert": "எச்சரிக்கை",
   "role.driver": "பேருந்து ஓட்டுநர்",
   "role.guard": "பாதுகாப்பு காவலர்",

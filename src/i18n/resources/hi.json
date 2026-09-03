@@ -45,6 +45,7 @@
   "home.leaveLeft": "बची हुई छुट्टी",
   "home.leaveLeftN": "{{n}} बचे",
   "home.pendingTasks": "लंबित कार्य",
+  "home.noTasks": "अभी कोई कार्य लंबित नहीं है",
   "home.alert": "अलर्ट",
   "role.driver": "बस चालक",
   "role.guard": "सुरक्षा गार्ड",

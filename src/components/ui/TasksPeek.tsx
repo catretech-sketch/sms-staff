@@ -24,6 +24,9 @@ export const TasksPeek: React.FC<TasksPeekProps> = ({ tasks, onViewAll }) => {
         onAction={onViewAll}
       />
       <View style={styles.list}>
+        {tasks.length === 0 && (
+          <Text style={[TextScale.caption, { color: colors.inkFaint }]}>{t('home.noTasks')}</Text>
+        )}
         {tasks.map((task) => (
           <View
             key={task.id}

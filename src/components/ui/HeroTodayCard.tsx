@@ -86,13 +86,13 @@ export const HeroTodayCard: React.FC<HeroTodayCardProps> = ({
           <Text style={[TextScale.micro, { color: checkedIn ? colors.inkSoft : 'rgba(255,255,255,0.7)' }]}>
             {t('home.timing')}
           </Text>
-          <Text style={[TextScale.body, { color: onPrimaryColor }]}>{timing}</Text>
+          <Text style={[TextScale.body, { color: onPrimaryColor }]}>{timing || '—'}</Text>
         </View>
         <View style={styles.column}>
           <Text style={[TextScale.micro, { color: checkedIn ? colors.inkSoft : 'rgba(255,255,255,0.7)' }]}>
             {dutyPostLabel}
           </Text>
-          <Text style={[TextScale.body, { color: onPrimaryColor }]}>{dutyPost}</Text>
+          <Text style={[TextScale.body, { color: onPrimaryColor }]}>{dutyPost || '—'}</Text>
         </View>
       </View>
 

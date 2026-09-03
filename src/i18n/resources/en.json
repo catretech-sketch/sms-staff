@@ -45,6 +45,7 @@
   "home.leaveLeft": "Leave left",
   "home.leaveLeftN": "{{n}} left",
   "home.pendingTasks": "Pending tasks",
+  "home.noTasks": "Nothing pending right now",
   "home.alert": "Alert",
   "role.driver": "Bus Driver",
   "role.guard": "Security Guard",

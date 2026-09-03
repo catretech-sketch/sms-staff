@@ -173,6 +173,18 @@ export const toLeaveRequestFromWire = (d: LeaveRequestWireDTO): LeaveRequest => 
 });
 
 export interface StaffDocumentDTO { id: string; label: string; value: string; ok?: boolean; }
-export interface ProfileDTO { documents: StaffDocumentDTO[]; }
+export interface ProfileDTO {
+  documents: StaffDocumentDTO[];
+  license_number?: string | null;
+  license_expiry?: string | null;
+  emergency_contact_name?: string | null;
+  emergency_contact_phone?: string | null;
+}
 export const toStaffDocument = (d: StaffDocumentDTO): StaffDocument => ({ id: d.id, label: d.label, value: d.value, ok: d.ok });
-export const toProfile = (d: ProfileDTO): Profile => ({ documents: d.documents.map(toStaffDocument) });
+export const toProfile = (d: ProfileDTO): Profile => ({
+  documents: d.documents.map(toStaffDocument),
+  licenseNumber: d.license_number ?? undefined,
+  licenseExpiry: d.license_expiry ?? undefined,
+  emergencyContactName: d.emergency_contact_name ?? undefined,
+  emergencyContactPhone: d.emergency_contact_phone ?? undefined,
+});

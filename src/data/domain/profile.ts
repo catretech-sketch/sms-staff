@@ -1,2 +1,8 @@
 export interface StaffDocument { id: string; label: string; value: string; ok?: boolean; }
-export interface Profile { documents: StaffDocument[]; }
+export interface Profile {
+  documents: StaffDocument[];
+  licenseNumber?: string;
+  licenseExpiry?: string;
+  emergencyContactName?: string;
+  emergencyContactPhone?: string;
+}

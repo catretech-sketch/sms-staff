@@ -91,6 +91,10 @@ const profile: Profile = {
     { id: 'doc_fitness', label: 'Bus fitness', value: 'Valid till 2027-03', ok: true },
     { id: 'doc_aadhaar', label: 'ID verified', value: 'Yes', ok: true },
   ],
+  licenseNumber: 'DL-0420190012345',
+  licenseExpiry: '2027-06-30',
+  emergencyContactName: 'Meena Sharma',
+  emergencyContactPhone: '9876500001',
 };
 
 const leaveSummary: LeaveSummary = {

@@ -36,6 +36,36 @@ export const ProfileScreen = () => {
           </View>
         </View>
 
+        {(data?.licenseNumber || data?.licenseExpiry || data?.emergencyContactName || data?.emergencyContactPhone) ? (
+          <>
+            <Text style={[TextScale.cardTitle, { color: colors.ink }]}>{t('profile.driverDetails')}</Text>
+            <Card>
+              {data?.licenseNumber ? (
+                <View style={styles.settingRow}>
+                  <Text style={[TextScale.body, { color: colors.ink }]}>{t('profile.licenseNumber')}</Text>
+                  <Text style={[TextScale.caption, { color: colors.inkSoft }]}>{data.licenseNumber}</Text>
+                </View>
+              ) : null}
+              {data?.licenseExpiry ? (
+                <View style={styles.settingRow}>
+                  <Text style={[TextScale.body, { color: colors.ink }]}>{t('profile.licenseExpiry')}</Text>
+                  <Text style={[TextScale.caption, { color: colors.inkSoft }]}>
+                    {new Date(data.licenseExpiry).toLocaleDateString()}
+                  </Text>
+                </View>
+              ) : null}
+              {(data?.emergencyContactName || data?.emergencyContactPhone) ? (
+                <View style={styles.settingRow}>
+                  <Text style={[TextScale.body, { color: colors.ink }]}>{t('profile.emergencyContact')}</Text>
+                  <Text style={[TextScale.caption, { color: colors.inkSoft }]}>
+                    {[data?.emergencyContactName, data?.emergencyContactPhone].filter(Boolean).join(' · ')}
+                  </Text>
+                </View>
+              ) : null}
+            </Card>
+          </>
+        ) : null}
+
         <Text style={[TextScale.cardTitle, { color: colors.ink }]}>{t('profile.documents')}</Text>
         {isLoading ? <Skeleton width="100%" height={64} radius={16} />
           : isError ? <ErrorState onRetry={refetch} />

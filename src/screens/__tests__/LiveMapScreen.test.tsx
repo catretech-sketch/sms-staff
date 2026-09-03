@@ -75,4 +75,19 @@ describe('LiveMapScreen', () => {
     await waitFor(() => expect(getByTestId('live-map-view')).toBeTruthy());
     expect(queryByTestId('has-live-marker')).toBeNull();
   });
+
+  it('still renders the map without a live marker when watchPositionAsync throws', async () => {
+    const Location = require('expo-location');
+    Location.requestForegroundPermissionsAsync.mockResolvedValueOnce({ status: 'granted' });
+    Location.watchPositionAsync.mockRejectedValueOnce(new Error('GPS unavailable'));
+    const { getByTestId, queryByTestId } = render(
+      <ThemeProvider>
+        <ToastProvider>
+          <LiveMapScreen navigation={{ goBack: jest.fn() }} route={{ params: { tripId: 't1' } }} />
+        </ToastProvider>
+      </ThemeProvider>
+    );
+    await waitFor(() => expect(getByTestId('live-map-view')).toBeTruthy());
+    expect(queryByTestId('has-live-marker')).toBeNull();
+  });
 });

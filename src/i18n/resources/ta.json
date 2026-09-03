@@ -115,6 +115,8 @@
   "trip.boarding.absent": "வரவில்லை",
   "trip.open": "நேரடி பயணத்தைத் திற",
   "trip.permissionDenied": "பயணத்தை ஒளிபரப்ப இருப்பிட அனுமதி தேவை",
+  "trip.viewMap": "நேரடி வரைபடத்தைப் பார்",
+  "trip.locationDenied": "வரைபடத்தில் உங்கள் இருப்பிடத்தைக் காட்ட இருப்பிட அனுமதி தேவை",
   "tasks.urgent": "அவசரம்",
   "tasks.done": "முடிந்தது",
   "tasks.complete": "முடித்ததாகக் குறி",

@@ -115,6 +115,8 @@
   "trip.boarding.absent": "अनुपस्थित",
   "trip.open": "लाइव ट्रिप खोलें",
   "trip.permissionDenied": "ट्रिप का प्रसारण करने के लिए स्थान अनुमति आवश्यक है",
+  "trip.viewMap": "लाइव मैप देखें",
+  "trip.locationDenied": "मैप पर आपकी स्थिति दिखाने के लिए स्थान अनुमति आवश्यक है",
   "tasks.urgent": "अत्यावश्यक",
   "tasks.done": "पूर्ण",
   "tasks.complete": "पूर्ण करें",

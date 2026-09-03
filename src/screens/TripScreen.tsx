@@ -150,6 +150,13 @@ export const TripScreen = ({ navigation }: { navigation: any }) => {
               <Text style={[TextScale.caption, { color: colors.inkSoft }]}>{t('trip.bus')}</Text>
               <Text style={[TextScale.body, { color: colors.ink }]}>{trip.busNo}</Text>
             </Card>
+            <Btn
+              testID="trip-view-map"
+              label={t('trip.viewMap')}
+              onPress={() => navigation.navigate('LiveMap', { tripId: trip.id })}
+              accent={accent}
+              style={styles.cta}
+            />
             {role.key === 'conductor' && <RosterPanel tripId={trip.id} accent={accent} />}
             <Btn testID="trip-end" label={t('trip.end')} onPress={onEnd} accent={colors.danger} loading={endTrip.isPending} style={styles.cta} />
           </>

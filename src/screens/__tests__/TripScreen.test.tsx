@@ -2,6 +2,7 @@ import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ThemeProvider } from '@/theme';
 import { RepositoryProvider } from '@/data/repositories/RepositoryContext';
 import { createMockRepositories } from '@/data/repositories/factory';
@@ -24,6 +25,14 @@ jest.mock('@/features/trip/broadcaster', () => ({
   stopBroadcast: jest.fn(() => Promise.resolve()),
 }));
 
+// The mocked AsyncStorage's backing store persists across tests in this file
+// (the jest.mock factory above runs once per file, not per test) since
+// createStore() reads/writes through it — reset it so each test starts from
+// a clean "no active trip" state regardless of run order.
+beforeEach(async () => {
+  await AsyncStorage.clear();
+});
+
 async function renderScreen() {
   const repos = createMockRepositories(await createStore());
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -41,7 +50,7 @@ async function renderScreen() {
       </QueryClientProvider>
     </SafeAreaProvider>,
   );
-  return { ...utils, nav };
+  return { ...utils, nav, repos };
 }
 
 it('shows the assignment then starts a trip on Start', async () => {
@@ -49,4 +58,14 @@ it('shows the assignment then starts a trip on Start', async () => {
   await findByText(/Route 7/);
   fireEvent.press(getByTestId('trip-start'));
   await waitFor(() => expect(getByTestId('trip-end')).toBeTruthy());
+});
+
+it('navigates to LiveMap with the current tripId when "View Live Map" is pressed', async () => {
+  const { getByTestId, findByText, nav, repos } = await renderScreen();
+  await findByText(/Route 7/);
+  fireEvent.press(getByTestId('trip-start'));
+  await waitFor(() => expect(getByTestId('trip-end')).toBeTruthy());
+  const liveTrip = await repos.trip.current();
+  fireEvent.press(getByTestId('trip-view-map'));
+  expect(nav.navigate).toHaveBeenCalledWith('LiveMap', { tripId: liveTrip!.id });
 });

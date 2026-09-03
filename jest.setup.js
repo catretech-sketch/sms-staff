@@ -31,6 +31,26 @@ jest.mock('react-native-safe-area-context', () =>
   require('react-native-safe-area-context/jest/mock').default,
 );
 
+// Mock react-native-maps globally so any component using it (transitively reached via real
+// navigation trees, e.g. src/__tests__/integration.test.tsx) doesn't crash on
+// TurboModuleRegistry.getEnforcing. A test that needs finer-grained control (e.g.
+// src/features/map/__tests__/LiveMapView.test.tsx) can still declare its own local
+// jest.mock('react-native-maps', ...), which takes precedence over this global one.
+jest.mock('react-native-maps', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  const MockMapView = ({ children, testID }) => React.createElement(View, { testID }, children);
+  const MockMarker = ({ testID }) => React.createElement(View, { testID });
+  const MockPolyline = ({ testID }) => React.createElement(View, { testID });
+  return {
+    __esModule: true,
+    default: MockMapView,
+    Marker: MockMarker,
+    Polyline: MockPolyline,
+    PROVIDER_GOOGLE: 'google',
+  };
+});
+
 // Mock AsyncStorage globally so ThemeProvider (used in renderWithTheme) works in all tests.
 jest.mock('@react-native-async-storage/async-storage', () => {
   let mem = {};

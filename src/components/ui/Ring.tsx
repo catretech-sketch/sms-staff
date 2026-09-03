@@ -59,13 +59,14 @@ export const Ring: React.FC<RingProps> = ({
           origin={`${cx}, ${cy}`}
         />
       </Svg>
-      {/* Center labels */}
-      <View style={styles.center} pointerEvents="none">
+      {/* Center labels — constrained to the ring's inner circle so a long sublabel
+          (e.g. "Hours this week") wraps in place instead of spilling past the arc. */}
+      <View style={[styles.center, { maxWidth: size * 0.62 }]} pointerEvents="none">
         {label !== undefined && (
-          <Text style={[TextScale.cardTitle, { color: colors.ink }]}>{label}</Text>
+          <Text style={[TextScale.cardTitle, { color: colors.ink, textAlign: 'center' }]}>{label}</Text>
         )}
         {sublabel !== undefined && (
-          <Text style={[TextScale.caption, { color: colors.inkSoft }]}>{sublabel}</Text>
+          <Text style={[TextScale.caption, { color: colors.inkSoft, textAlign: 'center' }]}>{sublabel}</Text>
         )}
       </View>
     </View>

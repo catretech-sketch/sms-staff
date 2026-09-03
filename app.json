@@ -9,6 +9,7 @@
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
+      "config": { "googleMapsApiKey": "" },
       "infoPlist": {
         "UIBackgroundModes": ["location"],
         "NSLocationAlwaysAndWhenInUseUsageDescription": "SchoolMate Staff shares the live bus position during a trip.",
@@ -32,7 +33,8 @@
         "ACCESS_BACKGROUND_LOCATION",
         "FOREGROUND_SERVICE",
         "FOREGROUND_SERVICE_LOCATION"
-      ]
+      ],
+      "config": { "googleMaps": { "apiKey": "" } }
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -43,7 +45,8 @@
         "isAndroidBackgroundLocationEnabled": true,
         "isAndroidForegroundServiceEnabled": true
       }],
-      "expo-secure-store"
+      "expo-secure-store",
+      "react-native-maps"
     ],
     "extra": {
       "eas": {

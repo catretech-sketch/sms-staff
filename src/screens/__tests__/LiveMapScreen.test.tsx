@@ -90,4 +90,31 @@ describe('LiveMapScreen', () => {
     await waitFor(() => expect(getByTestId('live-map-view')).toBeTruthy());
     expect(queryByTestId('has-live-marker')).toBeNull();
   });
+
+  it('removes the GPS subscription if the screen unmounts before watchPositionAsync resolves', async () => {
+    const Location = require('expo-location');
+    const removeMock = jest.fn();
+    let resolveWatch: (value: { remove: () => void }) => void;
+    const watchPromise = new Promise<{ remove: () => void }>((resolve) => {
+      resolveWatch = resolve;
+    });
+    Location.watchPositionAsync.mockImplementationOnce(() => watchPromise);
+
+    const { unmount } = render(
+      <ThemeProvider>
+        <ToastProvider>
+          <LiveMapScreen navigation={{ goBack: jest.fn() }} route={{ params: { tripId: 't1' } }} />
+        </ToastProvider>
+      </ThemeProvider>
+    );
+
+    // Wait until the effect has progressed past permission checks and called
+    // watchPositionAsync, then unmount before that call resolves.
+    await waitFor(() => expect(Location.watchPositionAsync).toHaveBeenCalled());
+    unmount();
+
+    // Now let watchPositionAsync resolve with a live subscription.
+    resolveWatch!({ remove: removeMock });
+    await waitFor(() => expect(removeMock).toHaveBeenCalledTimes(1));
+  });
 });

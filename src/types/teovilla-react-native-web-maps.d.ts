@@ -22,7 +22,6 @@ export {}; // Makes this file a module, so the `declare module` blocks below
 // augment the named modules instead of replacing them wholesale.
 
 declare module 'react-native-maps' {
-  // eslint-disable-next-line @typescript-eslint/no-empty-interface
   export interface MapViewProps {
     googleMapsApiKey?: string;
     googleMapsMapId?: string;

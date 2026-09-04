@@ -31,7 +31,7 @@ export const LiveMapScreen = ({ navigation, route }: { navigation: any; route: {
         return;
       }
       try {
-        subscription = await Location.watchPositionAsync(
+        const sub = await Location.watchPositionAsync(
           { accuracy: Location.Accuracy.Balanced, timeInterval: 5000, distanceInterval: 10 },
           (loc) => {
             if (!cancelled) {
@@ -39,6 +39,11 @@ export const LiveMapScreen = ({ navigation, route }: { navigation: any; route: {
             }
           }
         );
+        if (cancelled) {
+          sub.remove();
+        } else {
+          subscription = sub;
+        }
       } catch {
         // GPS unavailable — leave liveMarker null, route/stops still render.
       }

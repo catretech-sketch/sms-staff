@@ -25,6 +25,7 @@ export const LiveMapView: React.FC<LiveMapViewProps> = ({ stops, liveMarker }) =
   return (
     <MapView
       testID="live-map"
+      provider="google"
       style={styles.map}
       googleMapsApiKey={apiKey}
       initialRegion={{ ...initial, latitudeDelta: 0.05, longitudeDelta: 0.05 }}

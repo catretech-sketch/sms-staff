@@ -3,9 +3,15 @@ import { render } from '@testing-library/react-native';
 import { LiveMapView } from '@/features/map/LiveMapView.web';
 import type { Stop } from '@/data/domain';
 
+const mockMapViewProps: any[] = [];
+
 jest.mock('@teovilla/react-native-web-maps', () => {
   const { View } = require('react-native');
-  const MockMapView = ({ children, testID }: any) => <View testID={testID}>{children}</View>;
+  const MockMapView = (props: any) => {
+    // eslint-disable-next-line react/prop-types
+    mockMapViewProps.push(props);
+    return <View testID={props.testID}>{props.children}</View>;
+  };
   const MockMarker = ({ testID }: any) => <View testID={testID} />;
   const MockPolyline = ({ testID }: any) => <View testID={testID} />;
   return {
@@ -23,13 +29,25 @@ const stops: Stop[] = [
 
 describe('LiveMapView (web)', () => {
   const OLD_ENV = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY;
-  afterEach(() => { process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY = OLD_ENV; });
+  afterEach(() => {
+    process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY = OLD_ENV;
+    mockMapViewProps.length = 0;
+  });
 
   it('renders the map with markers and a polyline when an API key is present', () => {
     process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY = 'test-key';
     const { getAllByTestId, getByTestId } = render(<LiveMapView stops={stops} liveMarker={null} />);
     expect(getAllByTestId(/^map-stop-/)).toHaveLength(2);
     expect(getByTestId('map-polyline')).toBeTruthy();
+  });
+
+  it('passes provider="google" to the underlying MapView so it actually renders on web', () => {
+    // @teovilla/react-native-web-maps' MapView returns null unless
+    // provider === 'google' — omitting this prop silently blanks the map.
+    process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY = 'test-key';
+    render(<LiveMapView stops={stops} liveMarker={null} />);
+    expect(mockMapViewProps).toHaveLength(1);
+    expect(mockMapViewProps[0].provider).toBe('google');
   });
 
   it('renders a fallback card instead of the map when the API key is missing', () => {

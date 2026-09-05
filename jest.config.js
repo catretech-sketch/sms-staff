@@ -1,6 +1,9 @@
 module.exports = {
   preset: 'jest-expo',
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+  // Default 5s is too tight for waitFor-heavy screen tests once the full
+  // suite runs across parallel workers and CPU contention slows them down.
+  testTimeout: 20000,
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
   },

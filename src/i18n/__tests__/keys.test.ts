@@ -5,7 +5,7 @@ import mr from '@/i18n/resources/mr.json';
 import ta from '@/i18n/resources/ta.json';
 
 // Use array form so Jest treats the key literally (no dot-path traversal)
-const REQUIRED = ['login.sendOtp','home.tapCheckIn','attendance.checkIn','nav.home','role.conductor.onBoard','trip.viewMap','trip.locationDenied'];
+const REQUIRED = ['login.sendOtp','home.tapCheckIn','attendance.checkIn','nav.home','role.conductor.onBoard','trip.viewMap','trip.locationDenied','trip.live','trip.nextStop','trip.viewStudents','trip.studentsExpected','trip.lastUpdate','trip.delayed','trip.offline','trip.recenter','trip.etaMin','trip.distanceKm','trip.distanceM','trip.routeSegment','trip.routeSegmentDistance'];
 
 describe('i18n key parity', () => {
   it('every language has the required new keys', () => {

@@ -9,11 +9,12 @@ export interface PillProps {
   color: string;
   bg: string;
   icon?: IconName;
+  testID?: string;
 }
 
-export const Pill: React.FC<PillProps> = ({ label, color, bg, icon }) => {
+export const Pill: React.FC<PillProps> = ({ label, color, bg, icon, testID }) => {
   return (
-    <View style={[styles.pill, { backgroundColor: bg }]}>
+    <View testID={testID} style={[styles.pill, { backgroundColor: bg }]}>
       {icon && (
         <View style={styles.iconWrap}>
           <Icon name={icon} size={12} color={color} strokeWidth={2} />

@@ -1,23 +1,55 @@
-import React, { useEffect, useState } from 'react';
-import { View, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import * as Location from 'expo-location';
 import { useTheme } from '@/theme';
-import { IconBtn, Skeleton, useToast } from '@/components/ui';
+import { IconBtn, Pill, Skeleton, useToast } from '@/components/ui';
 import { ErrorState } from '@/components/state';
 import { TextScale } from '@/theme/typography';
-import { Text } from 'react-native';
-import { useTripAssignment, useCurrentTrip } from '@/features/trip/hooks';
+import { useTripAssignment, useCurrentTrip, useRoster, useBoarding } from '@/features/trip/hooks';
 import { LiveMapView } from '@/features/map/LiveMapView';
+import { toMapCoords } from '@/features/map/toMapCoords';
+import { stopRoles } from '@/features/map/stopRoles';
+import { distanceMeters } from '@/lib/geo';
+import type { LiveMapHandle } from '@/features/map/liveMapTypes';
+import type { BoardingState } from '@/data/domain';
+
+type LiveMarker = { latitude: number; longitude: number; headingDeg?: number; speedKmh?: number; accuracyM?: number };
+type GpsStatus = 'live' | 'delayed' | 'offline';
+
+const NEXT: Record<BoardingState, BoardingState> = { boarded: 'dropped', dropped: 'absent', absent: 'boarded' };
+
+function gpsStatusFor(secondsSinceUpdate: number | null): GpsStatus {
+  if (secondsSinceUpdate == null) return 'offline';
+  if (secondsSinceUpdate <= 15) return 'live';
+  if (secondsSinceUpdate <= 60) return 'delayed';
+  return 'offline';
+}
 
 export const LiveMapScreen = ({ navigation, route }: { navigation: any; route: { params: { tripId: string } } }) => {
   const { t } = useTranslation();
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const toast = useToast();
   const assignment = useTripAssignment();
   const current = useCurrentTrip();
-  const [liveMarker, setLiveMarker] = useState<{ latitude: number; longitude: number } | null>(null);
+  const tripId = route.params.tripId;
+  const roster = useRoster(tripId);
+  const boarding = useBoarding(tripId);
+  const mapRef = useRef<LiveMapHandle>(null);
+  const hasFitRef = useRef(false);
+  const [liveMarker, setLiveMarker] = useState<LiveMarker | null>(null);
+  const [lastPingAt, setLastPingAt] = useState<number | null>(null);
+  const [now, setNow] = useState(() => Date.now());
+  const [showStudents, setShowStudents] = useState(false);
+  const [bottomCardHeight, setBottomCardHeight] = useState(0);
+  const [mapReady, setMapReady] = useState(false);
+
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
 
   useEffect(() => {
     let subscription: { remove: () => void } | null = null;
@@ -35,7 +67,14 @@ export const LiveMapScreen = ({ navigation, route }: { navigation: any; route: {
           { accuracy: Location.Accuracy.Balanced, timeInterval: 5000, distanceInterval: 10 },
           (loc) => {
             if (!cancelled) {
-              setLiveMarker({ latitude: loc.coords.latitude, longitude: loc.coords.longitude });
+              setLiveMarker({
+                latitude: loc.coords.latitude,
+                longitude: loc.coords.longitude,
+                headingDeg: loc.coords.heading != null && loc.coords.heading >= 0 ? loc.coords.heading : undefined,
+                speedKmh: loc.coords.speed != null && loc.coords.speed >= 0 ? Math.round(loc.coords.speed * 3.6) : undefined,
+                accuracyM: loc.coords.accuracy != null ? Math.round(loc.coords.accuracy) : undefined,
+              });
+              setLastPingAt(Date.now());
             }
           }
         );
@@ -56,29 +95,205 @@ export const LiveMapScreen = ({ navigation, route }: { navigation: any; route: {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const secondsSinceUpdate = lastPingAt != null ? Math.max(0, Math.floor((now - lastPingAt) / 1000)) : null;
+  const gpsStatus = gpsStatusFor(secondsSinceUpdate);
+  const statusColor = gpsStatus === 'live' ? colors.success : gpsStatus === 'delayed' ? colors.warn : colors.danger;
+  const statusBg = gpsStatus === 'live' ? colors.successSoft : gpsStatus === 'delayed' ? colors.warnSoft : colors.dangerSoft;
+  const statusLabel = t(`trip.${gpsStatus === 'live' ? 'live' : gpsStatus}`);
+
+  const stops = useMemo(() => assignment.data?.route.stops ?? [], [assignment.data]);
+  const roles = useMemo(() => stopRoles(stops, liveMarker), [stops, liveMarker]);
+  const nextStop = useMemo(() => roles.find((r) => r.role === 'next')?.stop ?? null, [roles]);
+  const stopStudents = useMemo(
+    () => (nextStop ? roster.data?.filter((s) => s.stopId === nextStop.id) ?? [] : []),
+    [nextStop, roster.data]
+  );
+
+  const distanceM = useMemo(
+    () => (nextStop && liveMarker ? distanceMeters({ lat: liveMarker.latitude, lng: liveMarker.longitude }, { lat: nextStop.lat, lng: nextStop.lng }) : null),
+    [nextStop, liveMarker]
+  );
+  const distanceLabel =
+    distanceM == null
+      ? null
+      : distanceM >= 1000
+        ? t('trip.distanceKm', { km: (distanceM / 1000).toFixed(1) })
+        : t('trip.distanceM', { m: Math.round(distanceM) });
+  const etaMin =
+    distanceM != null && liveMarker?.speedKmh ? Math.round(distanceM / 1000 / liveMarker.speedKmh * 60) : null;
+
+  const stateFor = (studentId: string): BoardingState =>
+    boarding.data?.find((b) => b.studentId === studentId)?.state ?? 'absent';
+
+  // Fit the map once it has finished loading (the underlying Google Maps script
+  // resolves asynchronously on web — calling map methods any earlier throws).
+  useEffect(() => {
+    if (hasFitRef.current || !mapReady || stops.length === 0) return;
+    hasFitRef.current = true;
+    const coords = toMapCoords(stops);
+    mapRef.current?.fitToCoordinates(liveMarker ? [...coords, liveMarker] : coords, {
+      edgePadding: { top: 100, right: 60, bottom: bottomCardHeight + 60, left: 60 },
+      animated: false,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stops, mapReady]);
+
+  const onRecenter = () => {
+    if (!liveMarker || !mapReady) return;
+    mapRef.current?.animateToRegion(
+      { latitude: liveMarker.latitude, longitude: liveMarker.longitude, latitudeDelta: 0.01, longitudeDelta: 0.01 },
+      500
+    );
+  };
+
   return (
-    <SafeAreaView style={[styles.fill, { backgroundColor: colors.bg }]}>
-      <View style={styles.header}>
-        <IconBtn icon="back" label={t('common.back')} onPress={() => navigation.goBack()} />
-        <Text style={[TextScale.screenTitle, { color: colors.ink }]}>{t('trip.viewMap')}</Text>
-        <View style={styles.headerSpacer} />
-      </View>
-      <View style={styles.body}>
+    <View style={styles.fill}>
+      <View style={styles.map}>
         {assignment.isLoading || current.isLoading ? (
-          <Skeleton width="100%" radius={16} style={styles.body} />
+          <Skeleton width="100%" radius={0} style={styles.map} />
         ) : assignment.isError ? (
           <ErrorState onRetry={assignment.refetch} />
         ) : (
-          <LiveMapView stops={assignment.data?.route.stops ?? []} liveMarker={liveMarker} />
+          <LiveMapView ref={mapRef} stops={stops} liveMarker={liveMarker} onMapReady={() => setMapReady(true)} />
         )}
       </View>
-    </SafeAreaView>
+
+      <View style={[styles.header, { paddingTop: insets.top + 8, backgroundColor: colors.surface, ...colors.shadow }]}>
+        <View style={styles.headerRow}>
+          <IconBtn icon="back" label={t('common.back')} onPress={() => navigation.goBack()} />
+          <View style={styles.headerTitles}>
+            <View style={styles.headerTitleRow}>
+              <Text style={[TextScale.cardTitle, { color: colors.ink }]} numberOfLines={1}>
+                {current.data?.busNo ?? assignment.data?.busNo}
+              </Text>
+              {current.data?.direction && (
+                <Text style={[TextScale.caption, { color: colors.inkSoft }]}>
+                  {' · '}
+                  {t(`trip.dir.${current.data.direction}`)}
+                </Text>
+              )}
+            </View>
+            {assignment.data && (
+              <Text style={[TextScale.caption, { color: colors.inkSoft }]} numberOfLines={1}>
+                {assignment.data.route.name}
+              </Text>
+            )}
+          </View>
+          <Pill testID="gps-status-pill" label={statusLabel} color={statusColor} bg={statusBg} />
+        </View>
+      </View>
+
+      <View
+        style={[
+          styles.recenterBtn,
+          { bottom: bottomCardHeight + insets.bottom + 16, backgroundColor: colors.surface, ...colors.shadow },
+        ]}
+      >
+        <IconBtn testID="recenter-btn" icon="location" label={t('trip.recenter')} onPress={onRecenter} color={colors.primary} />
+      </View>
+
+      <View
+        style={[styles.bottom, { paddingBottom: insets.bottom + 12, backgroundColor: colors.surface, ...colors.shadowLg }]}
+        onLayout={(e) => setBottomCardHeight(e.nativeEvent.layout.height)}
+      >
+        <View style={styles.statusRow}>
+          <Pill testID="gps-status-pill-bottom" label={statusLabel} color={statusColor} bg={statusBg} />
+          {liveMarker?.speedKmh != null && (
+            <Text testID="live-speed" style={[TextScale.caption, { color: colors.inkSoft }]}>
+              {`${liveMarker.speedKmh} km/h`}
+            </Text>
+          )}
+          {liveMarker?.accuracyM != null && (
+            <Text testID="live-accuracy" style={[TextScale.caption, { color: colors.inkSoft }]}>
+              {`±${liveMarker.accuracyM} m`}
+            </Text>
+          )}
+          {secondsSinceUpdate != null && (
+            <Text testID="live-last-update" style={[TextScale.caption, { color: colors.inkSoft }]}>
+              {t('trip.lastUpdate', { s: secondsSinceUpdate })}
+            </Text>
+          )}
+        </View>
+
+        {nextStop && (
+          <View style={styles.nextStopCard}>
+            <View style={styles.nextStopHead}>
+              <View style={styles.nextStopInfo}>
+                <Text style={[TextScale.caption, { color: colors.inkSoft }]}>{t('trip.nextStop')}</Text>
+                <Text style={[TextScale.cardTitle, { color: colors.ink }]}>{nextStop.name}</Text>
+                <Text style={[TextScale.caption, { color: colors.inkSoft }]}>
+                  {t('trip.studentsExpected', { count: stopStudents.length })}
+                  {distanceLabel ? ` · ${distanceLabel}` : ''}
+                  {etaMin != null ? ` · ${t('trip.etaMin', { min: etaMin })}` : ''}
+                </Text>
+              </View>
+            </View>
+            <Pressable
+              testID="view-students-btn"
+              onPress={() => setShowStudents((v) => !v)}
+              style={[styles.viewStudentsBtn, { borderColor: colors.primary }]}
+            >
+              <Text style={[TextScale.button, { color: colors.primary }]}>{t('trip.viewStudents')}</Text>
+            </Pressable>
+            {showStudents && (
+              <View style={styles.studentList}>
+                {stopStudents.map((s) => {
+                  const st = stateFor(s.id);
+                  const color = st === 'boarded' ? colors.success : st === 'dropped' ? colors.inkSoft : colors.danger;
+                  return (
+                    <Pressable
+                      key={s.id}
+                      testID={`stop-student-${s.id}`}
+                      onPress={() =>
+                        boarding.setBoarding.mutate({ tripId, studentId: s.id, stopId: s.stopId, state: NEXT[st], at: new Date().toISOString() })
+                      }
+                      style={[styles.studentRow, { borderColor: colors.sunken }]}
+                    >
+                      <Text style={[TextScale.body, { color: colors.ink, flex: 1 }]}>{s.name}</Text>
+                      <Text style={[TextScale.caption, { color }]}>{t(`trip.boarding.${st}`)}</Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            )}
+          </View>
+        )}
+      </View>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   fill: { flex: 1 },
-  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, gap: 12 },
-  headerSpacer: { flex: 1 },
-  body: { flex: 1 },
+  map: { ...StyleSheet.absoluteFillObject },
+  header: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 12,
+    paddingBottom: 10,
+  },
+  headerRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  headerTitles: { flex: 1 },
+  headerTitleRow: { flexDirection: 'row', alignItems: 'baseline' },
+  recenterBtn: { position: 'absolute', right: 16, borderRadius: 100 },
+  bottom: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    paddingHorizontal: 16,
+    paddingTop: 14,
+    gap: 10,
+    borderTopLeftRadius: 22,
+    borderTopRightRadius: 22,
+  },
+  statusRow: { flexDirection: 'row', alignItems: 'center', gap: 14, flexWrap: 'wrap' },
+  nextStopCard: {},
+  nextStopHead: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 },
+  nextStopInfo: { flex: 1, gap: 2 },
+  viewStudentsBtn: { marginTop: 10, borderWidth: 1.5, borderRadius: 14, paddingVertical: 12, alignItems: 'center' },
+  studentList: { marginTop: 8 },
+  studentRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, borderTopWidth: 1 },
 });

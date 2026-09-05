@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, waitFor } from '@testing-library/react-native';
+import { render, waitFor, fireEvent } from '@testing-library/react-native';
 import { ThemeProvider } from '@/theme';
 import { ToastProvider } from '@/components/ui';
 import { LiveMapScreen } from '@/screens/LiveMapScreen';
@@ -9,7 +9,9 @@ jest.mock('react-native-reanimated', () => require('react-native-reanimated/mock
 jest.mock('expo-location', () => ({
   requestForegroundPermissionsAsync: jest.fn(async () => ({ status: 'granted' })),
   watchPositionAsync: jest.fn(async (_opts, cb) => {
-    cb({ coords: { latitude: 12.15, longitude: 77.15 } });
+    // Unambiguously nearer to s1 (Gate, 12.1/77.1) than s2 (Market, 12.2/77.2),
+    // so s1 resolves as the current stop and s2 as the next one.
+    cb({ coords: { latitude: 12.11, longitude: 77.11 } });
     return { remove: jest.fn() };
   }),
   Accuracy: { Balanced: 3 },
@@ -31,25 +33,82 @@ const mockAssignment = {
   refetch: jest.fn(),
 };
 const mockCurrent = { data: { id: 't1', routeId: 'r1', busNo: 'KA-01', driverId: 'd1', direction: 'pickup', status: 'live' }, isLoading: false };
+const mockRoster = { data: [] as any[] };
+const mockBoarding = { data: [] as any[], setBoarding: { mutate: jest.fn() } };
 
 jest.mock('@/features/trip/hooks', () => ({
   useTripAssignment: () => mockAssignment,
   useCurrentTrip: () => mockCurrent,
+  useRoster: () => mockRoster,
+  useBoarding: () => mockBoarding,
 }));
 
-jest.mock('@/features/map/LiveMapView', () => ({
-  LiveMapView: ({ stops, liveMarker }: any) => {
-    const { View, Text } = require('react-native');
+const mockMapHandle = { animateToRegion: jest.fn(), fitToCoordinates: jest.fn() };
+
+jest.mock('@/features/map/LiveMapView', () => {
+  const React = require('react');
+  const { View, Text } = require('react-native');
+  const LiveMapView = React.forwardRef(({ stops, liveMarker, onMapReady }: any, ref: any) => {
+    React.useImperativeHandle(ref, () => mockMapHandle);
+    React.useEffect(() => { onMapReady?.(); }, [onMapReady]);
     return (
       <View testID="live-map-view">
         <Text testID="stop-count">{stops.length}</Text>
         {liveMarker && <Text testID="has-live-marker">yes</Text>}
       </View>
     );
-  },
-}));
+  });
+  return { LiveMapView };
+});
 
 describe('LiveMapScreen', () => {
+  beforeEach(() => {
+    mockMapHandle.animateToRegion.mockClear();
+    mockMapHandle.fitToCoordinates.mockClear();
+  });
+
+  it('renders a compact header with the bus number, direction, route name and a LIVE status pill', async () => {
+    const { getByText, getAllByText } = render(
+      <ThemeProvider>
+        <ToastProvider>
+          <LiveMapScreen navigation={{ goBack: jest.fn() }} route={{ params: { tripId: 't1' } }} />
+        </ToastProvider>
+      </ThemeProvider>
+    );
+    await waitFor(() => expect(getAllByText('LIVE').length).toBeGreaterThan(0));
+    expect(getByText('KA-01')).toBeTruthy();
+    expect(getByText('Route 1')).toBeTruthy();
+  });
+
+  it('shows the next stop with a distance to it once GPS resolves', async () => {
+    const { getByTestId, getByText } = render(
+      <ThemeProvider>
+        <ToastProvider>
+          <LiveMapScreen navigation={{ goBack: jest.fn() }} route={{ params: { tripId: 't1' } }} />
+        </ToastProvider>
+      </ThemeProvider>
+    );
+    await waitFor(() => expect(getByTestId('has-live-marker')).toBeTruthy());
+    expect(getByText('Market')).toBeTruthy();
+    expect(getByTestId('view-students-btn')).toBeTruthy();
+  });
+
+  it('recenters the map on the live marker when the recenter button is pressed', async () => {
+    const { getByTestId } = render(
+      <ThemeProvider>
+        <ToastProvider>
+          <LiveMapScreen navigation={{ goBack: jest.fn() }} route={{ params: { tripId: 't1' } }} />
+        </ToastProvider>
+      </ThemeProvider>
+    );
+    await waitFor(() => expect(getByTestId('has-live-marker')).toBeTruthy());
+    fireEvent.press(getByTestId('recenter-btn'));
+    expect(mockMapHandle.animateToRegion).toHaveBeenCalledWith(
+      expect.objectContaining({ latitude: 12.11, longitude: 77.11 }),
+      expect.any(Number)
+    );
+  });
+
   it('renders the map with stops and the live marker once GPS resolves', async () => {
     const { getByTestId } = render(
       <ThemeProvider>

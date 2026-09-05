@@ -82,7 +82,9 @@ export const TripScreen = ({ navigation }: { navigation: any }) => {
     if (!ok) {
       toast.show(t('trip.permissionDenied'), 'error');
       await endTrip.mutateAsync(started.id);
+      return;
     }
+    navigation.navigate('LiveMap', { tripId: started.id });
   };
 
   const onEnd = async () => {

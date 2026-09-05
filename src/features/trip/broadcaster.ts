@@ -39,32 +39,42 @@ export interface BroadcastDeps {
 }
 
 // Returns true if the background stream started (permissions granted), false otherwise.
+// Also returns false — rather than throwing — when the platform doesn't support
+// background location tasks at all (e.g. expo-task-manager has no web implementation),
+// so callers' existing "broadcast failed" fallback runs instead of an unhandled rejection.
 export async function startBroadcast({ tripId, onPing }: BroadcastDeps): Promise<boolean> {
-  const fg = await Location.requestForegroundPermissionsAsync();
-  if (fg.status !== 'granted') return false;
-  const bg = await Location.requestBackgroundPermissionsAsync();
-  if (bg.status !== 'granted') return false;
+  try {
+    const fg = await Location.requestForegroundPermissionsAsync();
+    if (fg.status !== 'granted') return false;
+    const bg = await Location.requestBackgroundPermissionsAsync();
+    if (bg.status !== 'granted') return false;
 
-  activeTripId = tripId;
-  last = null;
-  const buffer = await createPersistedPingBuffer(onPing, PING_QUEUE_KEY);
-  // Flush anything left over from a prior run that was killed before it could send.
-  await buffer.flush();
-  publish = (ping) => buffer.enqueue(ping).then(() => buffer.flush());
+    activeTripId = tripId;
+    last = null;
+    const buffer = await createPersistedPingBuffer(onPing, PING_QUEUE_KEY);
+    // Flush anything left over from a prior run that was killed before it could send.
+    await buffer.flush();
+    publish = (ping) => buffer.enqueue(ping).then(() => buffer.flush());
 
-  await Location.startLocationUpdatesAsync(TRIP_LOCATION_TASK, {
-    accuracy: Location.Accuracy.High,
-    timeInterval: CADENCE_MS,
-    distanceInterval: MIN_METERS,
-    foregroundService: {
-      notificationTitle: 'Trip live',
-      notificationBody: 'Sharing the bus location with the school',
-      notificationColor: '#0E5C4A',
-    },
-    pausesUpdatesAutomatically: false,
-    showsBackgroundLocationIndicator: true,
-  });
-  return true;
+    await Location.startLocationUpdatesAsync(TRIP_LOCATION_TASK, {
+      accuracy: Location.Accuracy.High,
+      timeInterval: CADENCE_MS,
+      distanceInterval: MIN_METERS,
+      foregroundService: {
+        notificationTitle: 'Trip live',
+        notificationBody: 'Sharing the bus location with the school',
+        notificationColor: '#0E5C4A',
+      },
+      pausesUpdatesAutomatically: false,
+      showsBackgroundLocationIndicator: true,
+    });
+    return true;
+  } catch {
+    activeTripId = null;
+    publish = null;
+    last = null;
+    return false;
+  }
 }
 
 export async function stopBroadcast(): Promise<void> {

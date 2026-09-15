@@ -23,10 +23,15 @@ sms-student) found:
   spec creates a new, separate `Issues` concept for staff-reported operational issues.
 - sms-backend's `NotificationService` (in-app + SignalR via `LiveHub`) is fully reusable as-is for
   alerting managers on a new issue — no new notification infra needed.
-- sms-staff already has a working attachment pattern: `useAttachTaskPhoto` /
-  `ImagePicker.launchImageLibraryAsync` with `base64: true`, storing `data:image/jpeg;base64,...`
-  inline (see `src/screens/HomeScreen.tsx`'s `handleAttachPhoto`). This spec reuses that pattern
-  exactly rather than building file-upload infrastructure.
+- sms-staff already has a working **mobile-side** attachment pattern: `useAttachTaskPhoto` /
+  `ImagePicker.launchImageLibraryAsync({ quality: 0.5, base64: true })`, building
+  `data:image/jpeg;base64,...` inline (`src/screens/HomeScreen.tsx:46-51`'s `handleAttachPhoto`).
+  This spec reuses that mobile-side pattern for photo capture. **Note:** the backend half of that
+  specific pattern (`POST /staff/tasks/{id}/photo`) does not actually exist — there is no
+  `TasksController` in sms-backend at all. This is a separate pre-existing gap, out of scope for
+  this project. For server-side validation of the Issue photo field, this spec instead uses the
+  backend's real established convention: the shared `ImageUrlValidation` helper already applied to
+  other stored photo/logo fields (see Data model below).
 
 ## Decisions (from brainstorming)
 
@@ -38,6 +43,8 @@ sms-student) found:
 | Who can view/manage on the manager side? | **SchoolAdmin, Principal, SchoolOwner** — same tenant-wide visibility pattern as the existing Complaints staff-view. Platform Owner gets cross-tenant visibility automatically via the existing RLS `IsPlatform` predicate — no extra code. |
 | CRM UI | **Out of scope.** User is handling sms-admin separately. Backend API must still support a future manager UI (list/filter by status, notes, status transitions) even though no screen is built here. |
 | Status workflow | Open → In Progress → Resolved → Closed, as real constrained values (not a free string like Complaints). |
+| Business-logic ownership | A single shared `IIssueService`/`IssueService` (in `src/Sms.Application/Services/Issues/`) implements create/list/get/update. The staff `IssueController` calls it now; a future CRM manager endpoint calls the **same** service and the **same** `dbo.Issues`/`dbo.IssueNotes` tables — no `CrmIssueService`, no `CrmIssues` table, ever. If a separate manager-facing route is later needed for contract/auth reasons, it still delegates to this one service. |
+| Trip/vehicle/route context trust | The mobile client auto-fills Vehicle/Route/Trip from the reporter's current trip assignment for UX convenience only. **The server never trusts these IDs.** See "Server-side context validation" below. |
 
 ## Data model (sms-backend)
 
@@ -45,8 +52,9 @@ New module `Sms.Modules.Issues`, following the existing module-folder convention
 (`{Name}Module.cs` + `Contracts/` + `Data/{Name}Repository.cs`; service in
 `src/Sms.Application/Services/Issues/`; controller in `src/Sms.Api/Controllers/IssueController.cs`).
 
-Migrations: `M0194_Issue_Tables.cs` (next available number — confirm against the actual latest
-migration at implementation time) + `M0195_Procs_Issues.cs`.
+Migrations: `M0200_Issue_Tables.cs` + `M0201_Procs_Issues.cs` (confirmed next-available numbers —
+highest existing at time of writing is `M0199_FeeStructure_Upsert_Retire_SameIdentity.cs`;
+re-verify at implementation time in case other migrations land first).
 
 ### `dbo.Issues`
 
@@ -63,12 +71,17 @@ migration at implementation time) + `M0195_Procs_Issues.cs`.
 | `VehicleId` | uniqueidentifier, nullable | FK to `Buses`, only when relevant (driver/conductor context) |
 | `RouteId` | uniqueidentifier, nullable | FK to `Routes`-equivalent table, only when relevant |
 | `TripId` | uniqueidentifier, nullable | FK to `Trips`, only when relevant |
-| `PhotoBase64` | nvarchar(max), nullable | inline `data:image/jpeg;base64,...`, same shape as Task photos |
+| `PhotoBase64` | nvarchar(max), nullable | inline `data:image/jpeg;base64,...`; validated server-side by the existing shared `ImageUrlValidation.Validate()`/`.Normalize()` helper (`src/Sms.Application/Common/ImageUrlValidation.cs`) — the same one already used for `Users.PhotoUrl`/`Students.PhotoUrl`/`Tenants.LogoUrl` (max ~300KB, must start with `data:image/` or `http(s)://`) |
 | `CreatedAt` | datetime2 | |
 | `UpdatedAt` | datetime2 | |
 
 Apply the standard `rls.IssuesTenantPolicy` (filter + block predicate, `AFTER INSERT WITH
 (STATE=ON)`) exactly as done for `Complaints`/`Notifications` in `M0031_Tails_Tables.cs:47-52`.
+
+**Indexes:** `TenantId` (RLS predicate lookups), `ReporterUserId` (staff "my issues" list),
+`Status` (manager filtering), `CreatedAt` (default sort, newest-first). `VehicleId`/`RouteId`/
+`TripId` are left unindexed for MVP — nullable, low-cardinality-per-tenant, and no current query
+filters by them alone; add later only if a real CRM query pattern justifies it.
 
 ### `dbo.IssueNotes`
 
@@ -109,6 +122,19 @@ for writes and complex reads, `QueryInlineAsync` for simple parameterised single
   `UpdateIssueRequest(Status?, Note?)` — updates `Status` on `Issues` and/or inserts a row into
   `IssueNotes` when `Note` is provided. Reject invalid status transitions is out of scope for MVP
   (any status can move to any other) — flag as a possible P2 refinement, not required now.
+
+### Server-side context validation (VehicleId/RouteId/TripId)
+
+The client pre-fills these for UX only; the server is authoritative. On `POST
+/v1/staff/issues`, if `TripId` is provided, `IssueService` must verify the trip belongs to the
+reporter (`Trips.DriverId = uid OR` — for conductor — the trip's `BusAssignments` row has
+`TeacherUserId = uid`, same lookup `TripAssignment`/roster endpoints already use) and, if it does,
+derive `VehicleId`/`RouteId` from that trip server-side rather than accepting client-supplied
+values for them at all. If `TripId` doesn't belong to the reporter (or doesn't exist in-tenant —
+RLS already prevents cross-tenant rows), reject the request with 400 rather than silently
+dropping the field. If no `TripId` is provided, `VehicleId`/`RouteId` are simply left null — there
+is no scenario where a client supplies `VehicleId`/`RouteId` directly without a validated `TripId`
+backing them.
 
 ## Mobile (sms-staff)
 
@@ -187,11 +213,17 @@ toast on submit success/failure (existing `useToast()`).
 
 ## Testing
 
-**Backend:** unit tests for `IssueService` (tenant isolation — a reporter from tenant A cannot see
-tenant B's issues; role gating on `PATCH` — a non-manager role gets 403; status enum validation
-rejects an invalid value); integration test for create → notification-created. Follow the
-existing test patterns used for `ComplaintService`/`NotificationService` if present, or the
-general xUnit + Dapper-mock convention used elsewhere in `sms-backend`.
+**Backend:** unit tests for `IssueService` (all 6 roles can create; reporter is always taken from
+the authenticated context, never the request body; tenant isolation — a reporter from tenant A
+cannot see or PATCH tenant B's issues; role gating — a non-manager role gets 403 on `PATCH`;
+status enum validation rejects an invalid value; `TripId` ownership validation rejects a trip that
+doesn't belong to the reporter; issue-detail authorization matches list rules); integration test
+for create → SQL persistence and create → `NotificationService` call (and that a failed/rolled-
+back create does **not** trigger a notification). Duplicate rapid submissions are expected to
+create two distinct issues for MVP (no idempotency key) — add a test asserting this is the actual
+behavior, not an accidental gap. Follow the existing test patterns used for
+`ComplaintService`/`NotificationService` if present, or the general xUnit + Dapper-mock convention
+used elsewhere in `sms-backend`.
 
 **Mobile:** screen test for the Report Issue form (renders, validates required fields, submits,
 attaches a photo — following `AttendanceScreen.test.tsx`'s structure), a hook test for

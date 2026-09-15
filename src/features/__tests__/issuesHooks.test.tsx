@@ -20,11 +20,14 @@ function makeRepos(overrides?: Partial<Repositories['issues']>): Repositories {
 
 function wrapper(repos: Repositories) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  return ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={qc}>
-      <RepositoryProvider repositories={repos}>{children}</RepositoryProvider>
-    </QueryClientProvider>
-  );
+  function Wrapper({ children }: { children: React.ReactNode }) {
+    return (
+      <QueryClientProvider client={qc}>
+        <RepositoryProvider repositories={repos}>{children}</RepositoryProvider>
+      </QueryClientProvider>
+    );
+  }
+  return Wrapper;
 }
 
 describe('useIssues / useReportIssue', () => {

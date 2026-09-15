@@ -3,16 +3,24 @@ import { View, Text, ScrollView, TextInput, Pressable, StyleSheet } from 'react-
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import * as ImagePicker from 'expo-image-picker';
+import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 import { useTheme } from '@/theme';
 import { useIssues, useReportIssue } from '@/features/issues/hooks';
 import { useCurrentTrip } from '@/features/trip/hooks';
-import { Card, Btn, Pill, Skeleton, useToast } from '@/components/ui';
+import { Card, Btn, Pill, Skeleton, IconBtn, useToast } from '@/components/ui';
 import { ErrorState } from '@/components/state';
 import { TextScale } from '@/theme/typography';
 import type { IssueCategory, IssuePriority, IssueStatus } from '@/data/domain';
 
 const CATEGORIES: IssueCategory[] = ['vehicle', 'student', 'route', 'safety', 'other'];
 const PRIORITIES: IssuePriority[] = ['normal', 'high', 'emergency'];
+// Backend caps the photo field at ~400,000 base64 chars (~300KB); leave headroom.
+const MAX_PHOTO_BASE64_LENGTH = 380000;
+const MAX_PHOTO_DIMENSION = 1024;
+
+export interface IssuesScreenProps {
+  navigation: any;
+}
 
 function statusColor(status: IssueStatus, colors: ReturnType<typeof useTheme>['colors']) {
   if (status === 'resolved' || status === 'closed') return colors.success;
@@ -20,7 +28,7 @@ function statusColor(status: IssueStatus, colors: ReturnType<typeof useTheme>['c
   return colors.inkSoft;
 }
 
-export const IssuesScreen = () => {
+export const IssuesScreen: React.FC<IssuesScreenProps> = ({ navigation }) => {
   const { t } = useTranslation();
   const { colors, role } = useTheme();
   const insets = useSafeAreaInsets();
@@ -40,10 +48,23 @@ export const IssuesScreen = () => {
   const attachPhoto = async () => {
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (perm.status !== 'granted') return;
-    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.5, base64: true });
+    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.5 });
     if (result.canceled || !result.assets?.[0]) return;
     const asset = result.assets[0];
-    setPhotoUri(asset.base64 ? `data:image/jpeg;base64,${asset.base64}` : asset.uri);
+    try {
+      const rendered = await ImageManipulator.manipulate(asset.uri)
+        .resize({ width: MAX_PHOTO_DIMENSION })
+        .renderAsync();
+      const resized = await rendered.saveAsync({ base64: true, compress: 0.5, format: SaveFormat.JPEG });
+      if (!resized.base64) return;
+      if (resized.base64.length > MAX_PHOTO_BASE64_LENGTH) {
+        toast.show(t('issues.photoTooLarge'), 'error');
+        return;
+      }
+      setPhotoUri(`data:image/jpeg;base64,${resized.base64}`);
+    } catch {
+      toast.show(t('issues.submitError'), 'error');
+    }
   };
 
   const onSubmit = async () => {
@@ -72,7 +93,11 @@ export const IssuesScreen = () => {
 
   return (
     <SafeAreaView style={[styles.fill, { backgroundColor: colors.bg }]}>
-      <Text style={[TextScale.screenTitle, styles.title, { color: colors.ink }]}>{t('issues.title')}</Text>
+      <View style={styles.header}>
+        <IconBtn icon="back" label={t('common.back')} onPress={() => navigation.goBack()} />
+        <Text style={[TextScale.screenTitle, { color: colors.ink }]}>{t('issues.title')}</Text>
+        <View style={styles.headerSpacer} />
+      </View>
       <ScrollView contentContainerStyle={[styles.body, { paddingBottom: insets.bottom + 120 }]}>
         <Card>
           <Text style={[TextScale.caption, { color: colors.inkSoft }]}>{t('issues.category')}</Text>
@@ -145,7 +170,8 @@ export const IssuesScreen = () => {
 
 const styles = StyleSheet.create({
   fill: { flex: 1 },
-  title: { paddingHorizontal: 16, paddingTop: 12 },
+  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, gap: 12 },
+  headerSpacer: { flex: 1 },
   body: { padding: 16, gap: 12 },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginVertical: 8 },
   chip: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 12, borderWidth: 1.5 },

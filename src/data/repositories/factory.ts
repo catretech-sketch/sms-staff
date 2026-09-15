@@ -6,6 +6,7 @@ import { mockDashboard } from '@/data/mock/dashboard.repo';
 import { mockAttendance } from '@/data/mock/attendance.repo';
 import { mockTrip } from '@/data/mock/trip.repo';
 import { mockTasks } from '@/data/mock/tasks.repo';
+import { mockIssues } from '@/data/mock/issues.repo';
 import { mockLeave } from '@/data/mock/leave.repo';
 import { mockProfile } from '@/data/mock/profile.repo';
 import { httpAuth } from '@/data/http/auth.repo';
@@ -23,6 +24,7 @@ export function createMockRepositories(store: Store): Repositories {
     attendance: mockAttendance(store),
     trip: mockTrip(store),
     tasks: mockTasks(store),
+    issues: mockIssues(store),
     leave: mockLeave(store),
     profile: mockProfile(store),
   };

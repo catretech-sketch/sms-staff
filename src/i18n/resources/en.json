@@ -152,6 +152,7 @@
   "issues.submit": "Submit report",
   "issues.submitted": "Report submitted",
   "issues.submitError": "Something went wrong, please try again",
+  "issues.photoTooLarge": "Photo is too large, please choose a smaller one",
   "issues.invalid": "Please fill in all required fields",
   "issues.myIssues": "My Reports",
   "issues.empty": "No reports yet",

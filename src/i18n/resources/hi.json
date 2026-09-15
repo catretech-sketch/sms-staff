@@ -152,6 +152,7 @@
   "issues.submit": "रिपोर्ट सबमिट करें",
   "issues.submitted": "रिपोर्ट सबमिट की गई",
   "issues.submitError": "कुछ गलत हो गया, फिर से प्रयास करें",
+  "issues.photoTooLarge": "फ़ोटो बहुत बड़ी है, कृपया कोई छोटी फ़ोटो चुनें",
   "issues.invalid": "कृपया सभी आवश्यक फ़ील्ड भरें",
   "issues.myIssues": "मेरी रिपोर्ट्स",
   "issues.empty": "अभी तक कोई रिपोर्ट नहीं",

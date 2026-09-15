@@ -13,7 +13,8 @@
       "infoPlist": {
         "UIBackgroundModes": ["location"],
         "NSLocationAlwaysAndWhenInUseUsageDescription": "SchoolMate Staff shares the live bus position during a trip.",
-        "NSLocationWhenInUseUsageDescription": "SchoolMate Staff shares the live bus position during a trip."
+        "NSLocationWhenInUseUsageDescription": "SchoolMate Staff shares the live bus position during a trip.",
+        "NSPhotoLibraryUsageDescription": "Allows SchoolMate Staff to attach a photo when reporting an issue."
       }
     },
     "android": {
@@ -46,7 +47,8 @@
         "isAndroidForegroundServiceEnabled": true
       }],
       "expo-secure-store",
-      "react-native-maps"
+      "react-native-maps",
+      "expo-image-picker"
     ],
     "extra": {
       "eas": {

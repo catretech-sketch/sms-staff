@@ -152,6 +152,7 @@
   "issues.submit": "अहवाल सबमिट करा",
   "issues.submitted": "अहवाल सबमिट झाला",
   "issues.submitError": "काहीतरी चुकले, पुन्हा प्रयत्न करा",
+  "issues.photoTooLarge": "फोटो खूप मोठा आहे, कृपया लहान फोटो निवडा",
   "issues.invalid": "कृपया सर्व आवश्यक माहिती भरा",
   "issues.myIssues": "माझे अहवाल",
   "issues.empty": "अद्याप कोणताही अहवाल नाही",

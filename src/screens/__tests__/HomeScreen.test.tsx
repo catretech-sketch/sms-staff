@@ -1,6 +1,6 @@
 // HomeScreen.test.tsx
 import React from 'react';
-import { waitFor, render } from '@testing-library/react-native';
+import { waitFor, render, fireEvent } from '@testing-library/react-native';
 import { AppProviders } from '@/providers/AppProviders';
 import { HomeScreen } from '@/screens/HomeScreen';
 
@@ -38,4 +38,12 @@ it('shows the Live Trip CTA for the bus driver role', async () => {
   // (uses the existing harness in this file, which renders Home for the seeded driver)
   const { findByTestId } = renderHome(); // <- use this file's existing render helper
   expect(await findByTestId('home-open-trip')).toBeTruthy();
+});
+
+it('shows a Report Issue quick action for every role and navigates to Issues on press', async () => {
+  const navigate = jest.fn();
+  const { findByTestId } = render(<AppProviders><HomeScreen navigation={{ navigate } as any} /></AppProviders>);
+  const btn = await findByTestId('home-report-issue');
+  fireEvent.press(btn);
+  expect(navigate).toHaveBeenCalledWith('Issues');
 });

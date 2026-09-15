@@ -103,6 +103,15 @@ export const HomeScreen = ({ navigation }: { navigation: any }) => {
             />
           </Animated.View>
         )}
+        <Animated.View entering={FadeInDown.delay(180).duration(300)}>
+          <Btn
+            testID="home-report-issue"
+            label={t('issues.reportIssue')}
+            icon="alert"
+            variant="ghost"
+            onPress={() => navigation.navigate('Issues')}
+          />
+        </Animated.View>
         <Animated.View entering={FadeInDown.delay(195).duration(300)}>
           <TasksPeek
             tasks={d.pendingTasksPeek}

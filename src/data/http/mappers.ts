@@ -3,6 +3,7 @@ import type { Session, Staff, Tenant, Dashboard, RoleCard, Attendance, Attendanc
   TripDirection, TripStatus, BoardingState,
   Task, LeaveSummary, LeaveBalance, LeaveRequest, NewLeaveRequest,
   Profile, StaffDocument,
+  Issue, IssueCategory, IssuePriority, IssueStatus, NewIssue,
 } from '@/data/domain';
 import type { Role } from '@/theme/roles';
 
@@ -154,6 +155,44 @@ export function toTask(d: TaskDTO): Task {
   if (d.due_label !== undefined) t.dueLabel = d.due_label;
   return t;
 }
+
+export interface IssueDTO {
+  id: string;
+  category: string;
+  title: string;
+  description: string;
+  priority: string;
+  status: string;
+  vehicle_id?: string;
+  route_id?: string;
+  trip_id?: string;
+  photo_url?: string;
+  created_at: string;
+}
+export function toIssue(d: IssueDTO): Issue {
+  const i: Issue = {
+    id: d.id,
+    category: d.category as IssueCategory,
+    title: d.title,
+    description: d.description,
+    priority: d.priority as IssuePriority,
+    status: d.status as IssueStatus,
+    createdAt: d.created_at,
+  };
+  if (d.vehicle_id !== undefined) i.vehicleId = d.vehicle_id;
+  if (d.route_id !== undefined) i.routeId = d.route_id;
+  if (d.trip_id !== undefined) i.tripId = d.trip_id;
+  if (d.photo_url !== undefined) i.photoUrl = d.photo_url;
+  return i;
+}
+export const fromNewIssue = (r: NewIssue) => ({
+  category: r.category,
+  title: r.title,
+  description: r.description,
+  priority: r.priority,
+  trip_id: r.tripId,
+  photo_url: r.photoUri,
+});
 
 export type CanonicalLeaveType =
   | 'casual' | 'sick' | 'earned' | 'medical' | 'maternity' | 'emergency' | 'other';

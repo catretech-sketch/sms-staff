@@ -14,6 +14,7 @@ import { httpDashboard } from '@/data/http/dashboard.repo';
 import { httpAttendance } from '@/data/http/attendance.repo';
 import { httpTrip } from '@/data/http/trip.repo';
 import { httpTasks } from '@/data/http/tasks.repo';
+import { httpIssues } from '@/data/http/issues.repo';
 import { httpLeave } from '@/data/http/leave.repo';
 import { httpProfile } from '@/data/http/profile.repo';
 
@@ -37,6 +38,7 @@ export function createHttpRepositories(http: HttpClient): Repositories {
     attendance: httpAttendance(http),
     trip: httpTrip(http),
     tasks: httpTasks(http),
+    issues: httpIssues(http),
     leave: httpLeave(http),
     profile: httpProfile(http),
   };

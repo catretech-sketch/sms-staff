@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, ScrollView, TextInput, Pressable, StyleSheet } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import * as ImagePicker from 'expo-image-picker';
 import { useTheme } from '@/theme';
 import { useIssues, useReportIssue } from '@/features/issues/hooks';
 import { useCurrentTrip } from '@/features/trip/hooks';
@@ -32,8 +33,18 @@ export const IssuesScreen = () => {
   const [priority, setPriority] = useState<IssuePriority>('normal');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [photoUri, setPhotoUri] = useState<string | undefined>(undefined);
   const [error, setError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
+
+  const attachPhoto = async () => {
+    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (perm.status !== 'granted') return;
+    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.5, base64: true });
+    if (result.canceled || !result.assets?.[0]) return;
+    const asset = result.assets[0];
+    setPhotoUri(asset.base64 ? `data:image/jpeg;base64,${asset.base64}` : asset.uri);
+  };
 
   const onSubmit = async () => {
     if (!title.trim() || !description.trim()) {
@@ -48,10 +59,12 @@ export const IssuesScreen = () => {
         description,
         priority,
         tripId: currentTrip.data?.id,
+        photoUri,
       });
       setSubmitted(true);
       setTitle('');
       setDescription('');
+      setPhotoUri(undefined);
     } catch {
       toast.show(t('issues.submitError'), 'error');
     }
@@ -108,6 +121,7 @@ export const IssuesScreen = () => {
             ))}
           </View>
 
+          <Btn testID="issue-attach-photo" label={t('issues.attachPhoto')} variant="ghost" icon="camera" onPress={attachPhoto} style={styles.spacer} />
           {error ? <Text style={[TextScale.caption, { color: colors.danger }]}>{error}</Text> : null}
           <Btn testID="issue-submit" label={t('issues.submit')} onPress={onSubmit} accent={role.accent} loading={report.isPending} style={styles.cta} />
           {submitted ? <View testID="issue-submitted"><Pill label={t('issues.submitted')} color={colors.success} bg={colors.successSoft} icon="check" /></View> : null}
@@ -137,6 +151,7 @@ const styles = StyleSheet.create({
   chip: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 12, borderWidth: 1.5 },
   input: { borderWidth: 1.5, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, marginBottom: 10 },
   multiline: { minHeight: 80, textAlignVertical: 'top' },
+  spacer: { marginTop: 4, marginBottom: 8 },
   cta: { marginTop: 4 },
   issueRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
 });

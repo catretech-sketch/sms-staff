@@ -195,6 +195,10 @@ const _ICONS = {
     { d: 'M14.12 14.12a3 3 0 1 1-4.24-4.24' },
     { d: 'M1 1l22 22' },
   ] },
+  camera: { viewBox: '0 0 24 24', paths: [
+    { d: 'M9 4l-1.7 2H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-3.3L15 4H9Z' },
+    { d: 'M12 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z' },
+  ] },
 } satisfies Record<string, IconDef>;
 
 export const ICONS = _ICONS;

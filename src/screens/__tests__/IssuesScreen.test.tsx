@@ -5,6 +5,16 @@ import { IssuesScreen } from '@/screens/IssuesScreen';
 
 jest.mock('react-native-reanimated', () => require('react-native-reanimated/mock'));
 
+const mockRequestMediaLibraryPermissionsAsync = jest.fn(async () => ({ status: 'granted' }));
+const mockLaunchImageLibraryAsync = jest.fn(async () => ({
+  canceled: false,
+  assets: [{ uri: 'file:///photo.jpg', base64: 'abc123' }],
+}));
+jest.mock('expo-image-picker', () => ({
+  requestMediaLibraryPermissionsAsync: () => mockRequestMediaLibraryPermissionsAsync(),
+  launchImageLibraryAsync: (..._args: unknown[]) => mockLaunchImageLibraryAsync(),
+}));
+
 jest.mock('@/features/trip/hooks', () => ({
   ...jest.requireActual('@/features/trip/hooks'),
   useCurrentTrip: () => ({ data: null, isLoading: false }),
@@ -22,6 +32,8 @@ function renderIssues() {
 
 beforeEach(() => {
   mockCreate.mockClear();
+  mockRequestMediaLibraryPermissionsAsync.mockClear();
+  mockLaunchImageLibraryAsync.mockClear();
 });
 
 it('submits a report with the entered fields', async () => {
@@ -47,6 +59,19 @@ it('shows a validation message when required fields are empty', async () => {
   fireEvent.press(getByTestId('issue-submit'));
   await waitFor(() => expect(getByText('Please fill in all required fields')).toBeTruthy());
   expect(mockCreate).not.toHaveBeenCalled();
+});
+
+it('attaches a photo and submits it with the report', async () => {
+  const { getByTestId, findByTestId } = renderIssues();
+  await findByTestId('issue-title');
+  fireEvent.changeText(getByTestId('issue-title'), 'Loose seatbelt');
+  fireEvent.changeText(getByTestId('issue-description'), 'Row 3 seatbelt is broken.');
+  fireEvent.press(getByTestId('issue-attach-photo'));
+  await waitFor(() => expect(mockLaunchImageLibraryAsync).toHaveBeenCalled());
+  fireEvent.press(getByTestId('issue-submit'));
+  await waitFor(() => expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({
+    photoUri: 'data:image/jpeg;base64,abc123',
+  })));
 });
 
 it('shows an empty state when there are no past reports', async () => {

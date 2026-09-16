@@ -17,5 +17,11 @@ export function mockTasks(store: Store): TasksRepository {
       if (task) task.done = true;
       return clone(store.tasks);
     },
+    async attachPhoto(id: string, photoUri: string): Promise<Task[]> {
+      await simulateLatency();
+      const task = store.tasks.find((t) => t.id === id);
+      if (task) task.photoUrl = photoUri;
+      return clone(store.tasks);
+    },
   };
 }

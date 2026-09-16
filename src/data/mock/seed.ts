@@ -1,5 +1,5 @@
 import type { Role } from '@/theme/roles';
-import type { Staff, Tenant, RoleCard, TaskPeek, Attendance, SchoolLocation, Route, StudentLite, Boarding, Trip, Task, LeaveSummary, Profile } from '@/data/domain';
+import type { Staff, Tenant, RoleCard, Attendance, SchoolLocation, Route, StudentLite, Boarding, Trip, Task, LeaveSummary, Profile } from '@/data/domain';
 
 export const dutyPostByRole: Record<Role, string> = {
   driver: 'Bus / Route',
@@ -37,11 +37,6 @@ const roleCards: Record<Role, RoleCard> = {
   guard: { kind: 'guard', gate: 'Main Gate', roundsDone: 3, roundsTotal: 6, visitorsToday: 14 },
   peon: { kind: 'peon', errands: 4, bellDuty: true },
 };
-
-const tasksPeek: TaskPeek[] = [
-  { id: 'task_1', title: 'Pre-trip bus inspection', priority: 'urgent', done: false },
-  { id: 'task_2', title: 'Submit trip log sheet', priority: 'normal', done: false },
-];
 
 const dashboardBase = {
   hoursThisWeek: 34,
@@ -126,7 +121,6 @@ export interface SeedShape {
   staff: Staff;
   tenant: Tenant;
   roleCards: Record<Role, RoleCard>;
-  tasksPeek: TaskPeek[];
   dashboardBase: typeof dashboardBase;
   attendance: Attendance;
   schoolLocation: SchoolLocation;
@@ -141,6 +135,6 @@ export interface SeedShape {
 }
 
 export const seed: SeedShape = {
-  staff, tenant, roleCards, tasksPeek, dashboardBase, attendance, schoolLocation,
+  staff, tenant, roleCards, dashboardBase, attendance, schoolLocation,
   route, students, conductorName, currentTrip, boarding, tasks, leaveSummary, profile,
 };

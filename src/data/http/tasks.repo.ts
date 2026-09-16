@@ -6,5 +6,7 @@ export function httpTasks(http: HttpClient): TasksRepository {
   return {
     list: () => http.get<TaskDTO[]>('/staff/tasks').then((a) => a.map(toTask)),
     complete: (id) => http.post<TaskDTO[]>(`/staff/tasks/${id}/complete`, {}).then((a) => a.map(toTask)),
+    attachPhoto: (id, photoUri) =>
+      http.post<TaskDTO[]>(`/staff/tasks/${id}/photo`, { photo_base64: photoUri }).then((a) => a.map(toTask)),
   };
 }

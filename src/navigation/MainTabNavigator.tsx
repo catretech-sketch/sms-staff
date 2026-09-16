@@ -1,7 +1,6 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { useNavigation } from '@react-navigation/native';
 import { HomeScreen } from '@/screens/HomeScreen';
 import { LeaveScreen } from '@/screens/LeaveScreen';
 import { TasksScreen } from '@/screens/TasksScreen';
@@ -16,27 +15,20 @@ const Stack = createNativeStackNavigator<MainStackParamList>();
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
 // Inner bottom-tab navigator using the custom floating TabBar.
-// The FAB navigates to 'Attendance' which is a sibling route in the parent
-// native-stack — React Navigation v7 bubbles the navigate call up automatically.
-const TabsNavigator = () => {
-  const navigation = useNavigation();
-  return (
-    <Tab.Navigator
-      screenOptions={{ headerShown: false }}
-      tabBar={(props) => (
-        <TabBar
-          {...props}
-          onPressFab={() => navigation.navigate('Attendance' as never)}
-        />
-      )}
-    >
-      <Tab.Screen name="Home" component={HomeScreen} />
-      <Tab.Screen name="Leave" component={LeaveScreen} />
-      <Tab.Screen name="Tasks" component={TasksScreen} />
-      <Tab.Screen name="Me" component={ProfileScreen} />
-    </Tab.Navigator>
-  );
-};
+// Attendance is reached from Home's "Tap to check in" card and Profile's
+// "My attendance" button — both navigate to the 'Attendance' sibling route
+// in the parent native-stack.
+const TabsNavigator = () => (
+  <Tab.Navigator
+    screenOptions={{ headerShown: false }}
+    tabBar={(props) => <TabBar {...props} />}
+  >
+    <Tab.Screen name="Home" component={HomeScreen} />
+    <Tab.Screen name="Leave" component={LeaveScreen} />
+    <Tab.Screen name="Tasks" component={TasksScreen} />
+    <Tab.Screen name="Me" component={ProfileScreen} />
+  </Tab.Navigator>
+);
 
 // Exported navigator: a native-stack wrapping the tabs + the Attendance overlay.
 export const MainTabNavigator = () => (

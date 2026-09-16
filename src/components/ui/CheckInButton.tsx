@@ -19,7 +19,7 @@ import { useTheme } from '@/theme';
 import { TextScale } from '@/theme/typography';
 import { useTranslation } from 'react-i18next';
 
-export type CheckInState = 'locating' | 'out' | 'ready' | 'checkedIn';
+export type CheckInState = 'locating' | 'out' | 'ready' | 'checkedIn' | 'doneForToday';
 
 export interface CheckInButtonProps {
   state: CheckInState;
@@ -40,7 +40,7 @@ export const CheckInButton: React.FC<CheckInButtonProps> = ({
   const { colors } = useTheme();
   const { t } = useTranslation();
 
-  const disabled = state === 'locating' || state === 'out' || busy;
+  const disabled = state === 'locating' || state === 'out' || state === 'doneForToday' || busy;
 
   // Pulse ring animation for ready state
   const pulseScale = useSharedValue(1);
@@ -87,7 +87,9 @@ export const CheckInButton: React.FC<CheckInButtonProps> = ({
         ? t('attendance.checkIn')
         : state === 'locating'
           ? t('attendance.locating')
-          : t('attendance.outRange');
+          : state === 'doneForToday'
+            ? t('attendance.doneForToday')
+            : t('attendance.outRange');
 
   const labelColor =
     disabled && state !== 'checkedIn' ? colors.inkSoft : colors.onPrimary;

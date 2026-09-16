@@ -11,6 +11,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useTheme } from '@/theme';
 import { TextScale } from '@/theme/typography';
+import { formatDistance } from '@/lib/geo';
 
 export interface GeoRadarProps {
   state: 'locating' | 'in' | 'out';
@@ -108,12 +109,12 @@ export const GeoRadar: React.FC<GeoRadarProps> = ({ state, distanceM, accuracyM,
         <View style={styles.textRow}>
           {distanceM !== undefined && (
             <Text style={[TextScale.micro, { color: colors.inkSoft }]}>
-              {Math.round(distanceM)} m
+              {formatDistance(distanceM)}
             </Text>
           )}
           {accuracyM !== undefined && (
             <Text style={[TextScale.micro, { color: colors.inkFaint }]}>
-              {' '}±{Math.round(accuracyM)} m
+              {' '}±{formatDistance(accuracyM)}
             </Text>
           )}
         </View>

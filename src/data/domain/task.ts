@@ -5,4 +5,5 @@ export interface Task {
   priority: 'urgent' | 'normal';
   done: boolean;
   dueLabel?: string;
+  photoUrl?: string;
 }

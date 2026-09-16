@@ -2,6 +2,7 @@ import { createStore } from '@/data/mock/store';
 import { mockAuth } from '@/data/mock/auth.repo';
 import { mockDashboard } from '@/data/mock/dashboard.repo';
 import { mockAttendance } from '@/data/mock/attendance.repo';
+import { mockTasks } from '@/data/mock/tasks.repo';
 import { AppError } from '@/lib/errors';
 
 jest.mock('@react-native-async-storage/async-storage', () => {
@@ -83,6 +84,17 @@ describe('mock repositories', () => {
     expect(dash.roleCard?.kind).toBe('guard');
     expect(dash.hoursThisWeek).toBe(34);
     expect(dash.pendingTasksPeek.length).toBeGreaterThan(0);
+  });
+
+  it('dashboard pendingTasksPeek derives from the tasks store — excludes done tasks and carries photoUrl', async () => {
+    const store = await createStore();
+    await mockAuth(store).verifyOtp('98765 43210', '123456', 'driver');
+    await mockTasks(store).attachPhoto('task_1', 'data:image/jpeg;base64,abc123');
+    const dash = await mockDashboard(store).get();
+    const peek = dash.pendingTasksPeek.find((t) => t.id === 'task_1');
+    expect(peek?.photoUrl).toBe('data:image/jpeg;base64,abc123');
+    // task_3 is seeded done:true — it must not appear in the pending preview.
+    expect(dash.pendingTasksPeek.find((t) => t.id === 'task_3')).toBeUndefined();
   });
 
   it('dashboard result does not alias store-internal arrays', async () => {

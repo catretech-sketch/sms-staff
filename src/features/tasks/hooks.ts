@@ -24,6 +24,32 @@ export function useCompleteTask() {
       return { prev };
     },
     onError: (_e, _id, ctx) => { if (ctx) qc.setQueryData(key, ctx.prev); },
-    onSettled: () => qc.invalidateQueries({ queryKey: key }),
+    // Home's pending-tasks preview is derived from this same task list server-side,
+    // so it needs invalidating too or it goes stale after a completion.
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: key });
+      qc.invalidateQueries({ queryKey: queryKeys.dashboard(tenantId) });
+    },
+  });
+}
+
+export function useAttachTaskPhoto() {
+  const repos = useRepositories();
+  const qc = useQueryClient();
+  const tenantId = useTenantId();
+  const key = queryKeys.tasks(tenantId);
+  return useMutation({
+    mutationFn: ({ id, photoUri }: { id: string; photoUri: string }) => repos.tasks.attachPhoto(id, photoUri),
+    onMutate: async ({ id, photoUri }) => {
+      await qc.cancelQueries({ queryKey: key });
+      const prev = qc.getQueryData<Task[]>(key) ?? [];
+      qc.setQueryData<Task[]>(key, prev.map((t) => (t.id === id ? { ...t, photoUrl: photoUri } : t)));
+      return { prev };
+    },
+    onError: (_e, _v, ctx) => { if (ctx) qc.setQueryData(key, ctx.prev); },
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: key });
+      qc.invalidateQueries({ queryKey: queryKeys.dashboard(tenantId) });
+    },
   });
 }

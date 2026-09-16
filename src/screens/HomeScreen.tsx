@@ -1,13 +1,16 @@
 // src/screens/HomeScreen.tsx
-import React from 'react';
+import React, { useCallback } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
+import * as ImagePicker from 'expo-image-picker';
 import { useTheme } from '@/theme';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { useDashboard } from '@/features/dashboard/hooks';
 import { useAttendanceStatus } from '@/features/attendance/hooks';
+import { useAttachTaskPhoto } from '@/features/tasks/hooks';
+import { useToast } from '@/components/ui';
 import {
   Header,
   HeroTodayCard,
@@ -27,8 +30,31 @@ export const HomeScreen = ({ navigation }: { navigation: any }) => {
   const { session } = useAuth();
   const { data: d, isLoading, isError, refetch } = useDashboard();
   const att = useAttendanceStatus();
+  const attachTaskPhoto = useAttachTaskPhoto();
+  const toast = useToast();
 
   const openAttendance = () => navigation.navigate('Attendance');
+
+  const handleAttachPhoto = useCallback(async (taskId: string) => {
+    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (perm.status !== 'granted') {
+      toast.show(t('home.photoPermissionDenied'), 'error');
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      quality: 0.5,
+      base64: true,
+    });
+    if (result.canceled || !result.assets?.[0]) return;
+    const asset = result.assets[0];
+    const photoUri = asset.base64 ? `data:image/jpeg;base64,${asset.base64}` : asset.uri;
+    try {
+      await attachTaskPhoto.mutateAsync({ id: taskId, photoUri });
+    } catch {
+      toast.show(t('common.somethingWrong'), 'error');
+    }
+  }, [attachTaskPhoto, t, toast]);
 
   if (isLoading) {
     return (
@@ -107,6 +133,7 @@ export const HomeScreen = ({ navigation }: { navigation: any }) => {
           <TasksPeek
             tasks={d.pendingTasksPeek}
             onViewAll={() => navigation.navigate('Tasks')}
+            onAttachPhoto={handleAttachPhoto}
           />
         </Animated.View>
         {d.alert && (

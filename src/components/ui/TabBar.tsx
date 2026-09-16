@@ -10,7 +10,6 @@ export interface TabBarProps {
   state: any;
   navigation: any;
   descriptors: any;
-  onPressFab: () => void;
 }
 
 // Icon names for the 4 tabs
@@ -21,22 +20,17 @@ const TAB_ICONS: Record<string, IconName> = {
   Me: 'user',
 };
 
-const FAB_SIZE = 60;
 const BAR_HEIGHT = 64;
 const BAR_MARGIN_BOTTOM = 26;
 const BAR_SIDE_INSET = 14;
 const BAR_RADIUS = 26;
 
-export const TabBar: React.FC<TabBarProps> = ({ state, navigation, descriptors, onPressFab }) => {
+export const TabBar: React.FC<TabBarProps> = ({ state, navigation, descriptors }) => {
   const { colors, role } = useTheme();
   const insets = useSafeAreaInsets();
 
   const routes: { key: string; name: string }[] = state.routes;
   const activeIndex: number = state.index;
-
-  // Split routes into left and right halves around the center FAB
-  const leftRoutes = routes.slice(0, 2);
-  const rightRoutes = routes.slice(2);
 
   const handleTabPress = (route: { key: string; name: string }, index: number) => {
     const event = navigation.emit({
@@ -93,36 +87,10 @@ export const TabBar: React.FC<TabBarProps> = ({ state, navigation, descriptors, 
           },
         ]}
       >
-        {/* Left tabs */}
         <View style={styles.tabSection}>
-          {leftRoutes.map((route, i) => renderTab(route, i))}
-        </View>
-
-        {/* Center FAB spacer */}
-        <View style={styles.fabSpacer} />
-
-        {/* Right tabs */}
-        <View style={styles.tabSection}>
-          {rightRoutes.map((route, i) => renderTab(route, i + 2))}
+          {routes.map((route, i) => renderTab(route, i))}
         </View>
       </View>
-
-      {/* Center FAB — floats above the bar, centered on bar's top edge */}
-      <Pressable
-        testID="tab-fab"
-        onPress={onPressFab}
-        style={[
-          styles.fab,
-          {
-            backgroundColor: role.accent,
-            bottom: insets.bottom + BAR_MARGIN_BOTTOM + BAR_HEIGHT - FAB_SIZE / 2,
-          },
-        ]}
-        accessibilityRole="button"
-        accessibilityLabel="Check in"
-      >
-        <Icon name="plus" size={28} color="#FFFFFF" strokeWidth={2.5} />
-      </Pressable>
     </View>
   );
 };
@@ -162,22 +130,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     height: BAR_HEIGHT,
     minWidth: 44,
-  },
-  fabSpacer: {
-    width: FAB_SIZE + 16,
-  },
-  fab: {
-    position: 'absolute',
-    width: FAB_SIZE,
-    height: FAB_SIZE,
-    borderRadius: FAB_SIZE / 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-    // Elevation (Android)
-    elevation: 16,
-    // Shadow (iOS)
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
   },
 });

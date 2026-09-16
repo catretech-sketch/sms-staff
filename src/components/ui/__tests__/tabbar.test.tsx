@@ -6,12 +6,14 @@ import { TabBar } from '@/components/ui';
 const state = { index: 0, routes: [{ key: 'Home', name: 'Home' }, { key: 'Leave', name: 'Leave' }, { key: 'Tasks', name: 'Tasks' }, { key: 'Me', name: 'Me' }] };
 const descriptors = Object.fromEntries(state.routes.map(r => [r.key, { options: {} }]));
 
-it('fires the center FAB', () => {
-  const onPressFab = jest.fn();
+it('renders all 4 tabs with no center FAB', () => {
   const navigation = { navigate: jest.fn(), emit: () => ({ defaultPrevented: false }) };
-  const { getByTestId } = renderWithTheme(<TabBar state={state as any} navigation={navigation as any} descriptors={descriptors as any} onPressFab={onPressFab} />);
-  fireEvent.press(getByTestId('tab-fab'));
-  expect(onPressFab).toHaveBeenCalled();
+  const { getByTestId, queryByTestId } = renderWithTheme(
+    <TabBar state={state as any} navigation={navigation as any} descriptors={descriptors as any} />,
+  );
+  expect(getByTestId('tab-Home')).toBeTruthy();
+  expect(getByTestId('tab-Me')).toBeTruthy();
+  expect(queryByTestId('tab-fab')).toBeNull();
 });
 
 it('pressing a non-focused tab emits tabPress and navigates', () => {
@@ -19,7 +21,7 @@ it('pressing a non-focused tab emits tabPress and navigates', () => {
   const emit = jest.fn(() => ({ defaultPrevented: false }));
   const navigation = { navigate, emit };
   const { getByTestId } = renderWithTheme(
-    <TabBar state={state as any} navigation={navigation as any} descriptors={descriptors as any} onPressFab={jest.fn()} />,
+    <TabBar state={state as any} navigation={navigation as any} descriptors={descriptors as any} />,
   );
   fireEvent.press(getByTestId('tab-Leave'));
   expect(emit).toHaveBeenCalledWith(expect.objectContaining({ type: 'tabPress', target: 'Leave' }));

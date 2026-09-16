@@ -1,4 +1,4 @@
-import { distanceMeters } from '@/lib/geo';
+import { distanceMeters, formatDistance } from '@/lib/geo';
 
 describe('distanceMeters', () => {
   it('returns 0 for identical coordinates', () => {
@@ -27,5 +27,17 @@ describe('distanceMeters', () => {
     const a = { lat: 28.4595, lng: 77.0266 };
     const b = { lat: 28.4850, lng: 77.0770 };
     expect(distanceMeters(a, b)).toBeCloseTo(distanceMeters(b, a), 6);
+  });
+});
+
+describe('formatDistance', () => {
+  it('shows whole meters under 1km', () => {
+    expect(formatDistance(104)).toBe('104 m');
+    expect(formatDistance(999)).toBe('999 m');
+  });
+
+  it('shows one-decimal km at or above 1km', () => {
+    expect(formatDistance(1000)).toBe('1.0 km');
+    expect(formatDistance(37678)).toBe('37.7 km');
   });
 });

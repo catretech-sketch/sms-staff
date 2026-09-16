@@ -11,7 +11,9 @@ export function mockDashboard(store: Store): DashboardRepository {
       const dashboard: Dashboard = {
         ...store.dashboardBase,
         roleCard: store.roleCards[role],
-        pendingTasksPeek: store.tasksPeek,
+        pendingTasksPeek: store.tasks
+          .filter((t) => !t.done)
+          .map(({ id, title, priority, done, photoUrl }) => ({ id, title, priority, done, photoUrl })),
       };
       // Deep clone so callers can't mutate store-internal arrays (roleCard.menu, etc.).
       return JSON.parse(JSON.stringify(dashboard)) as Dashboard;

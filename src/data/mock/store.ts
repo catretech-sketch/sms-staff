@@ -11,7 +11,6 @@ export interface Store {
   schoolLocation: SchoolLocation;
   dashboardBase: typeof seed.dashboardBase;
   roleCards: typeof seed.roleCards;
-  tasksPeek: typeof seed.tasksPeek;
   route: typeof seed.route;
   students: typeof seed.students;
   conductorName: string;
@@ -54,7 +53,6 @@ export async function createStore(): Promise<Store> {
     schoolLocation: clone(seed.schoolLocation),
     dashboardBase: clone(seed.dashboardBase),
     roleCards: clone(seed.roleCards),
-    tasksPeek: clone(seed.tasksPeek),
     route: clone(seed.route),
     students: clone(seed.students),
     conductorName: seed.conductorName,

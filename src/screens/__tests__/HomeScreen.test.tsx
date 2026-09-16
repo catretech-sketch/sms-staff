@@ -1,10 +1,20 @@
 // HomeScreen.test.tsx
 import React from 'react';
-import { waitFor, render } from '@testing-library/react-native';
+import { waitFor, render, fireEvent } from '@testing-library/react-native';
 import { AppProviders } from '@/providers/AppProviders';
 import { HomeScreen } from '@/screens/HomeScreen';
 
 jest.mock('react-native-reanimated', () => require('react-native-reanimated/mock'));
+
+const mockRequestMediaLibraryPermissionsAsync = jest.fn(async () => ({ status: 'granted' }));
+const mockLaunchImageLibraryAsync = jest.fn(async () => ({
+  canceled: false,
+  assets: [{ uri: 'file:///photo.jpg', base64: 'abc123' }],
+}));
+jest.mock('expo-image-picker', () => ({
+  requestMediaLibraryPermissionsAsync: () => mockRequestMediaLibraryPermissionsAsync(),
+  launchImageLibraryAsync: (..._args: unknown[]) => mockLaunchImageLibraryAsync(),
+}));
 
 // Render under providers; AuthProvider starts unauthenticated, so this test
 // signs in through the mock first via a small harness, OR mock useDashboard/useAuth.
@@ -38,4 +48,12 @@ it('shows the Live Trip CTA for the bus driver role', async () => {
   // (uses the existing harness in this file, which renders Home for the seeded driver)
   const { findByTestId } = renderHome(); // <- use this file's existing render helper
   expect(await findByTestId('home-open-trip')).toBeTruthy();
+});
+
+it('tapping a pending task\'s camera button opens the photo picker and uploads the selection', async () => {
+  const { findByTestId } = renderHome();
+  const camBtn = await findByTestId('task-photo-btn-t1');
+  fireEvent.press(camBtn);
+  await waitFor(() => expect(mockLaunchImageLibraryAsync).toHaveBeenCalled());
+  expect(mockRequestMediaLibraryPermissionsAsync).toHaveBeenCalled();
 });

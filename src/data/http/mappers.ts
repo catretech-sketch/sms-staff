@@ -147,11 +147,12 @@ export const toStudentLite = (d: StudentLiteDTO): StudentLite => ({ id: d.id, na
 export const toBoarding = (d: BoardingDTO): Boarding => ({ tripId: d.trip_id, studentId: d.student_id, stopId: d.stop_id, state: d.state, at: d.at });
 export const toTripAssignment = (d: TripAssignmentDTO): TripAssignment => ({ route: toRoute(d.route), busNo: d.bus_no, conductorName: d.conductor_name ?? null });
 
-export interface TaskDTO { id: string; title: string; detail?: string; priority: 'urgent' | 'normal'; done: boolean; due_label?: string; }
+export interface TaskDTO { id: string; title: string; detail?: string; priority: 'urgent' | 'normal'; done: boolean; due_label?: string; photo_url?: string; }
 export function toTask(d: TaskDTO): Task {
   const t: Task = { id: d.id, title: d.title, priority: d.priority, done: d.done };
   if (d.detail !== undefined) t.detail = d.detail;
   if (d.due_label !== undefined) t.dueLabel = d.due_label;
+  if (d.photo_url !== undefined) t.photoUrl = d.photo_url;
   return t;
 }
 

@@ -26,4 +26,10 @@ describe('mock tasks repo', () => {
     const list = await repo.complete('task_1');
     expect(list.find((t) => t.id === 'task_1')?.done).toBe(true);
   });
+
+  it('attachPhoto sets photoUrl on the task and returns the updated list', async () => {
+    const repo = mockTasks(await createStore());
+    const list = await repo.attachPhoto('task_1', 'data:image/jpeg;base64,abc123');
+    expect(list.find((t) => t.id === 'task_1')?.photoUrl).toBe('data:image/jpeg;base64,abc123');
+  });
 });

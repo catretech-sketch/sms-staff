@@ -21,6 +21,33 @@ describe('TasksPeek', () => {
     fireEvent.press(getByText('View all'));
     expect(onViewAll).toHaveBeenCalled();
   });
+
+  it('shows a camera button per task and fires onAttachPhoto with that task id', () => {
+    const onAttachPhoto = jest.fn();
+    const { getByTestId } = renderWithTheme(
+      <TasksPeek tasks={tasks} onViewAll={jest.fn()} onAttachPhoto={onAttachPhoto} />,
+    );
+    fireEvent.press(getByTestId('task-photo-btn-t1'));
+    expect(onAttachPhoto).toHaveBeenCalledWith('t1');
+  });
+
+  it('shows a thumbnail instead of the camera button once a task has a photo', () => {
+    const withPhoto: TaskPeek[] = [
+      { id: 't1', title: 'Pre-trip bus inspection', priority: 'urgent', done: false, photoUrl: 'data:image/jpeg;base64,abc' },
+    ];
+    const { getByTestId, queryByTestId } = renderWithTheme(
+      <TasksPeek tasks={withPhoto} onViewAll={jest.fn()} onAttachPhoto={jest.fn()} />,
+    );
+    expect(getByTestId('task-photo-thumb-t1')).toBeTruthy();
+    expect(queryByTestId('task-photo-btn-t1')).toBeNull();
+  });
+
+  it('does not render camera buttons when onAttachPhoto is not provided', () => {
+    const { queryByTestId } = renderWithTheme(
+      <TasksPeek tasks={tasks} onViewAll={jest.fn()} />,
+    );
+    expect(queryByTestId('task-photo-btn-t1')).toBeNull();
+  });
 });
 
 describe('AlertCard', () => {

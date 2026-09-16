@@ -47,6 +47,7 @@ export interface TripRepository {
 export interface TasksRepository {
   list(): Promise<Task[]>;
   complete(id: string): Promise<Task[]>;
+  attachPhoto(id: string, photoUri: string): Promise<Task[]>;
 }
 
 export interface LeaveRepository {

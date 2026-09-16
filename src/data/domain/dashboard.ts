@@ -3,6 +3,7 @@ export interface TaskPeek {
   title: string;
   priority: 'urgent' | 'normal';
   done: boolean;
+  photoUrl?: string;
 }
 
 export type RoleCard =

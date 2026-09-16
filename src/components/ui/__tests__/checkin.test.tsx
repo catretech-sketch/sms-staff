@@ -24,4 +24,17 @@ it('is pressable only when ready or checkedIn', () => {
   expect(getByTestId('checkin-btn').props.accessibilityState?.disabled).toBe(true);
   fireEvent.press(getByTestId('checkin-btn'));
   expect(onPress).toHaveBeenCalledTimes(2);         // count unchanged
+
+  // doneForToday state: already completed today's cycle, must stay disabled
+  rerender(<CheckInButton state="doneForToday" onPress={onPress} accent="#E08A3C" />);
+  expect(getByTestId('checkin-btn').props.accessibilityState?.disabled).toBe(true);
+  fireEvent.press(getByTestId('checkin-btn'));
+  expect(onPress).toHaveBeenCalledTimes(2);         // count unchanged
+});
+
+it('shows the "Done for today" label when doneForToday', () => {
+  const { getByText } = renderWithTheme(
+    <CheckInButton state="doneForToday" onPress={jest.fn()} accent="#E08A3C" />,
+  );
+  expect(getByText('Done for today')).toBeTruthy();
 });

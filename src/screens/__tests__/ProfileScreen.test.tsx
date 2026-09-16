@@ -64,3 +64,8 @@ it('shows a document and the language switcher', async () => {
   await findByText('Driving licence');
   expect(getByTestId('lang-hi')).toBeTruthy();
 });
+
+it('shows a My Attendance entry point to view check-in/check-out history', async () => {
+  const { findByTestId } = await renderScreen();
+  expect(await findByTestId('my-attendance')).toBeTruthy();
+});

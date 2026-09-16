@@ -5,7 +5,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 import { useTheme } from '@/theme';
-import { ROLES, type Role } from '@/theme/roles';
 import { TextScale } from '@/theme/typography';
 import { SUPPORTED_LANGUAGES, setLanguage, i18n, type LanguageCode } from '@/i18n';
 import { useRequestOtp, useVerifyOtp, useLogin, useSetPassword } from '@/features/auth/hooks';
@@ -14,10 +13,8 @@ import { authErrorMessage } from '@/features/auth/authErrors';
 import { isAppError } from '@/lib/errors';
 import {
   Btn,
-  SectionLabel,
   BrandCap,
   LanguagePicker,
-  RoleGrid,
   PhoneField,
   TextField,
 } from '@/components/ui';
@@ -44,14 +41,13 @@ function isValidEmail(raw: string): boolean {
 
 export const LoginScreen = () => {
   const { t } = useTranslation();
-  const { colors, roleKey, setRole } = useTheme();
+  const { colors, roleKey } = useTheme();
   const { pendingPasswordSetup, cancelPasswordSetup } = useAuth();
   const login = useLogin();
   const requestOtp = useRequestOtp();
   const verifyOtp = useVerifyOtp();
   const setPassword = useSetPassword();
 
-  const [selected, setSelected] = useState<Role>(roleKey);
   const [channel, setChannel] = useState<Channel>('mobile');
   const [mode, setMode] = useState<Mode>('password');
   const [phone, setPhone] = useState('98765 43210');
@@ -78,11 +74,6 @@ export const LoginScreen = () => {
   const currentLang = i18n.language as LanguageCode;
   const languageNative =
     SUPPORTED_LANGUAGES.find((l) => l.code === currentLang)?.native ?? 'English';
-
-  function handleSelectRole(r: Role) {
-    setSelected(r);
-    setRole(r);
-  }
 
   function handleSelectLanguage(code: LanguageCode) {
     void setLanguage(code);
@@ -115,7 +106,7 @@ export const LoginScreen = () => {
   }
 
   function handleLogin() {
-    login.mutate({ identifier, password, roleKey: selected }, {
+    login.mutate({ identifier, password, roleKey }, {
       onError: (err) => {
         if (isAppError(err) && err.code === 'password_not_set') {
           enterOtpSetup();
@@ -136,7 +127,7 @@ export const LoginScreen = () => {
   }
 
   function handleVerifyOtp() {
-    verifyOtp.mutate({ identifier, code, roleKey: selected });
+    verifyOtp.mutate({ identifier, code, roleKey });
   }
 
   function handleChangeIdentifierInSetup() {
@@ -158,7 +149,7 @@ export const LoginScreen = () => {
     setPassword.mutate(newPassword);
   }
 
-  const accent = ROLES[selected].accent;
+  const accent = colors.primary;
 
   function handleCancelPasswordSetup() {
     backToPasswordLogin();
@@ -270,9 +261,6 @@ export const LoginScreen = () => {
                 : t('login.subtitle')}
           </Text>
         </View>
-
-        <SectionLabel title={t('login.selectRole')} />
-        <RoleGrid selected={selected} onSelect={handleSelectRole} />
 
         <View style={[styles.tabRow, { backgroundColor: colors.surface, borderColor: colors.sunken }]}>
           <Pressable

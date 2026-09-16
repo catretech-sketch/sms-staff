@@ -50,12 +50,13 @@ async function renderLoginWithAuthoritativeRole(backendRoleKey: string) {
   );
 }
 
-it('a session role_key of "guard" overrides the "Driver" tile tapped before login', async () => {
-  const { getByTestId } = await renderLoginWithAuthoritativeRole('guard');
-  await waitFor(() => getByTestId('role-driver'));
+it('the session\'s role_key becomes the app\'s role after login, with no role picker on screen', async () => {
+  const { getByTestId, queryByTestId } = await renderLoginWithAuthoritativeRole('guard');
+  await waitFor(() => getByTestId('phone-input'));
 
-  fireEvent.press(getByTestId('role-driver'));
-  await waitFor(() => expect(getByTestId('probe-role')).toHaveTextContent('driver'));
+  // The login screen no longer offers a role choice — identity comes from the
+  // backend-authoritative session only.
+  expect(queryByTestId('role-driver')).toBeNull();
 
   fireEvent.changeText(getByTestId('phone-input'), '98765 43210');
   fireEvent.changeText(getByTestId('password-input'), 'hunter2222');

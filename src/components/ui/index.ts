@@ -19,8 +19,6 @@ export { BrandCap } from './BrandCap';
 export type { BrandCapProps } from './BrandCap';
 export { LanguagePicker } from './LanguagePicker';
 export type { LanguagePickerProps } from './LanguagePicker';
-export { RoleGrid } from './RoleGrid';
-export type { RoleGridProps } from './RoleGrid';
 export { PhoneField } from './PhoneField';
 export type { PhoneFieldProps } from './PhoneField';
 export { TextField } from './TextField';

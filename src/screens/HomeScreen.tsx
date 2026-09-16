@@ -131,6 +131,7 @@ export const HomeScreen = ({ navigation }: { navigation: any }) => {
           <RoleSpecializedCard
             roleCard={d.roleCard}
             accent={role.accent}
+            onViewDetails={() => navigation.navigate('Trip')}
           />
         </Animated.View>
         <Animated.View entering={FadeInDown.delay(160).duration(300)}>

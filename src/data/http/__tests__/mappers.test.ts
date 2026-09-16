@@ -1,4 +1,4 @@
-import { toSession, toStaff, toTenant, toDashboard, toAttendance, toSchoolLocation } from '@/data/http/mappers';
+import { toSession, toStaff, toTenant, toDashboard, toAttendance, toSchoolLocation, toTripAssignment } from '@/data/http/mappers';
 
 describe('http mappers', () => {
   it('toStaff maps snake_case to domain', () => {
@@ -33,7 +33,7 @@ describe('http mappers', () => {
   it('toDashboard maps stats and passes nested structures through', () => {
     const d = toDashboard({
       hours_this_week: 34, hours_target: 44, streak_days: 21, leave_left: 12,
-      role_card: { kind: 'driver', busNo: 'X', routeName: 'R7', licenseExpiresInDays: 24, fitnessOk: true },
+      role_card: { kind: 'driver', bus_no: 'X', route_name: 'R7', shift: '7:00 AM - 4:00 PM', students_assigned: 24 },
       pending_tasks_peek: [{ id: 't1', title: 'A', priority: 'urgent', done: false }],
       alert: 'Meeting',
     });
@@ -42,6 +42,29 @@ describe('http mappers', () => {
     expect(d.roleCard?.kind).toBe('driver');
     expect(d.pendingTasksPeek[0].id).toBe('t1');
     expect(d.alert).toBe('Meeting');
+  });
+
+  it('toDashboard maps the real backend\'s flattened snake_case role_card into the domain union', () => {
+    const d = toDashboard({
+      hours_this_week: 10,
+      role_card: { kind: 'driver', bus_no: 'KA-01-F-3301', route_name: 'Route 7', shift: '7:00 AM - 4:00 PM', students_assigned: 24 },
+    });
+    expect(d.roleCard).toEqual({
+      kind: 'driver', busNo: 'KA-01-F-3301', routeName: 'Route 7', shift: '7:00 AM - 4:00 PM', studentsAssigned: 24,
+    });
+  });
+
+  it('toTripAssignment maps busId/shift/studentsAssigned from the real backend', () => {
+    const a = toTripAssignment({
+      route: { id: 'r1', name: 'North Route', bus_no: 'KA-01-F-3301', stops: [] },
+      bus_id: 'bus_1', bus_no: 'KA-01-F-3301', conductor_name: null,
+      shift: '7:00 AM - 4:00 PM', students_assigned: 24,
+    });
+    expect(a).toEqual({
+      route: { id: 'r1', name: 'North Route', assignedBusNo: 'KA-01-F-3301', stops: [] },
+      busId: 'bus_1', busNo: 'KA-01-F-3301', conductorName: null,
+      shift: '7:00 AM - 4:00 PM', studentsAssigned: 24,
+    });
   });
 
   it('toAttendance maps snake_case fields', () => {

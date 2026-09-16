@@ -11,11 +11,14 @@ export function mockTrip(store: Store): TripRepository {
   return {
     async myAssignment(): Promise<TripAssignment> {
       await simulateLatency();
+      const driverCard = store.roleCards.driver;
       return clone({
         route: store.route,
         busId: store.busId,
         busNo: store.route.assignedBusNo,
         conductorName: store.conductorName,
+        shift: driverCard.kind === 'driver' ? driverCard.shift : undefined,
+        studentsAssigned: driverCard.kind === 'driver' ? driverCard.studentsAssigned : 0,
       });
     },
 

@@ -5,11 +5,13 @@ import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/theme';
 import { useRepositories } from '@/data/repositories/RepositoryContext';
 import { IconBtn, Btn, Card, Pill, RouteStrip, Skeleton, useToast } from '@/components/ui';
+import { Icon } from '@/components/icons';
 import { ErrorState } from '@/components/state';
 import { TextScale } from '@/theme/typography';
 import { useTripAssignment, useCurrentTrip, useStartTrip, useEndTrip, useRoster, useBoarding } from '@/features/trip/hooks';
 import { startBroadcast, stopBroadcast } from '@/features/trip/broadcaster';
 import { simulateBusPosition } from '@/features/trip/simulateBus';
+import { isAppError } from '@/lib/errors';
 import type { TripDirection, TripSummary, BoardingState } from '@/data/domain';
 
 const NEXT: Record<BoardingState, BoardingState> = { boarded: 'dropped', dropped: 'absent', absent: 'boarded' };
@@ -121,6 +123,14 @@ export const TripScreen = ({ navigation }: { navigation: any }) => {
       <ScrollView contentContainerStyle={styles.body}>
         {assignment.isLoading || current.isLoading ? (
           <Skeleton width="100%" height={160} radius={16} />
+        ) : assignment.isError && isAppError(assignment.error) && assignment.error.code === 'not_found' ? (
+          <Card>
+            <View style={styles.noRoute}>
+              <Icon name="route" size={32} color={colors.inkFaint} />
+              <Text style={[TextScale.cardTitle, { color: colors.ink, textAlign: 'center' }]}>{t('trip.noRouteAssigned')}</Text>
+              <Text style={[TextScale.caption, { color: colors.inkSoft, textAlign: 'center' }]}>{t('trip.noRouteAssignedHint')}</Text>
+            </View>
+          </Card>
         ) : assignment.isError ? (
           <ErrorState onRetry={assignment.refetch} />
         ) : summary ? (
@@ -174,6 +184,42 @@ export const TripScreen = ({ navigation }: { navigation: any }) => {
                     <Pill label={`${t('role.conductor')} · ${assignment.data.conductorName}`} color={colors.primary} bg={colors.primaryDim} icon="visitor" />
                   ) : null}
                 </View>
+                <View style={[styles.dutyGrid, { borderTopColor: colors.line }]}>
+                  <View style={styles.dutyCell}>
+                    <Text style={[TextScale.caption, { color: colors.inkSoft }]}>{t('home.shift')}</Text>
+                    <Text style={[TextScale.bodyStrong, { color: colors.ink }]}>{assignment.data.shift ?? '—'}</Text>
+                  </View>
+                  <View style={styles.dutyCell}>
+                    <Text style={[TextScale.caption, { color: colors.inkSoft }]}>{t('home.students')}</Text>
+                    <Text style={[TextScale.bodyStrong, { color: colors.ink }]}>{t('home.studentsAssigned', { n: assignment.data.studentsAssigned })}</Text>
+                  </View>
+                </View>
+              </Card>
+            )}
+            {assignment.data && assignment.data.route.stops.length > 0 && (
+              <Card>
+                <Text style={[TextScale.cardTitle, { color: colors.ink }]}>{t('trip.todaysRoute')}</Text>
+                {assignment.data.route.stops.map((stop, i) => (
+                  <View key={stop.id} style={styles.stopRow}>
+                    <View style={[styles.stopNum, { backgroundColor: accent }]}>
+                      <Text style={[TextScale.caption, { color: '#FFFFFF' }]}>{i + 1}</Text>
+                    </View>
+                    <Text style={[TextScale.body, { color: colors.ink, flex: 1 }]}>{stop.name}</Text>
+                  </View>
+                ))}
+              </Card>
+            )}
+            {(role.key === 'driver' || role.key === 'conductor') && (
+              <Card>
+                <Text style={[TextScale.cardTitle, { color: colors.ink }]}>{t('trip.safety')}</Text>
+                <Text style={[TextScale.caption, { color: colors.inkSoft, marginTop: 4, marginBottom: 10 }]}>{t('trip.safetyHint')}</Text>
+                <Btn
+                  testID="trip-vehicle-check"
+                  label={t('home.vehicleCheck')}
+                  icon="check"
+                  variant="ghost"
+                  onPress={() => navigation.navigate('VehicleCheck')}
+                />
               </Card>
             )}
             <View style={styles.segment}>
@@ -208,4 +254,9 @@ const styles = StyleSheet.create({
   cta: { marginTop: 4 },
   rosterHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
   rosterRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, borderTopWidth: 1 },
+  noRoute: { alignItems: 'center', gap: 8, paddingVertical: 24 },
+  dutyGrid: { flexDirection: 'row', gap: 20, marginTop: 12, paddingTop: 12, borderTopWidth: StyleSheet.hairlineWidth },
+  dutyCell: { gap: 2 },
+  stopRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10 },
+  stopNum: { width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
 });

@@ -68,4 +68,6 @@ export interface TripAssignment {
   busId: string;
   busNo: string;
   conductorName?: string | null;
+  shift?: string;
+  studentsAssigned: number;
 }

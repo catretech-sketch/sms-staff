@@ -30,8 +30,8 @@ const staff: Staff = {
 };
 
 const roleCards: Record<Role, RoleCard> = {
-  driver: { kind: 'driver', busNo: 'HR-26-BX-4412', routeName: 'Route 7', licenseExpiresInDays: 24, fitnessOk: true },
-  conductor: { kind: 'conductor', routeName: 'Route 7', onBoard: 18, capacity: 24, nextStop: 'Sector 12' },
+  driver: { kind: 'driver', busNo: 'HR-26-BX-4412', routeName: 'Route 7', shift: '7:00 AM - 4:00 PM', studentsAssigned: 24 },
+  conductor: { kind: 'conductor', busNo: 'HR-26-BX-4412', routeName: 'Route 7', shift: '7:00 AM - 4:00 PM', studentsAssigned: 24 },
   sweeper: { kind: 'sweeper', blocks: ['Block A', 'Block B'], suppliesLow: ['Phenyl'] },
   gardener: { kind: 'gardener', zones: ['Front lawn', 'Playground'], wateringDue: 2 },
   guard: { kind: 'guard', gate: 'Main Gate', roundsDone: 3, roundsTotal: 6, visitorsToday: 14 },

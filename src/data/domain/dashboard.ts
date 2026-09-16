@@ -7,8 +7,8 @@ export interface TaskPeek {
 }
 
 export type RoleCard =
-  | { kind: 'driver'; busNo: string; routeName: string; licenseExpiresInDays: number; fitnessOk: boolean }
-  | { kind: 'conductor'; routeName: string; onBoard: number; capacity: number; nextStop: string }
+  | { kind: 'driver'; busNo: string; routeName: string; shift?: string; studentsAssigned: number }
+  | { kind: 'conductor'; busNo: string; routeName: string; shift?: string; studentsAssigned: number }
   | { kind: 'guard'; gate: string; roundsDone: number; roundsTotal: number; visitorsToday: number }
   | { kind: 'gardener'; zones: string[]; wateringDue: number }
   | { kind: 'sweeper'; blocks: string[]; suppliesLow: string[] }

@@ -4,8 +4,8 @@ import { RoleSpecializedCard } from '@/components/ui';
 import type { RoleCard } from '@/data/domain';
 
 const cases: [RoleCard, RegExp][] = [
-  [{ kind: 'driver', busNo: 'HR-26-BX-4412', routeName: 'Route 7', licenseExpiresInDays: 24, fitnessOk: true }, /HR-26-BX-4412/],
-  [{ kind: 'conductor', routeName: 'Route 7', onBoard: 18, capacity: 24, nextStop: 'Sector 12' }, /Sector 12/],
+  [{ kind: 'driver', busNo: 'HR-26-BX-4412', routeName: 'Route 7', shift: '7:00 AM - 4:00 PM', studentsAssigned: 24 }, /HR-26-BX-4412/],
+  [{ kind: 'conductor', busNo: 'HR-26-BX-4412', routeName: 'Route 7', shift: '7:00 AM - 4:00 PM', studentsAssigned: 24 }, /Route 7/],
   [{ kind: 'guard', gate: 'Main Gate', roundsDone: 3, roundsTotal: 6, visitorsToday: 14 }, /Main Gate/],
   [{ kind: 'gardener', zones: ['Front lawn'], wateringDue: 2 }, /Front lawn/],
   [{ kind: 'sweeper', blocks: ['Block A'], suppliesLow: ['Phenyl'] }, /Block A/],

@@ -1,27 +1,28 @@
 // src/components/ui/roleCards/ConductorCard.tsx
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/theme';
 import { TextScale } from '@/theme/typography';
 import { Card } from '@/components/ui/Card';
-import { Pill } from '@/components/ui/Pill';
 import { Icon } from '@/components/icons';
 
 interface ConductorCardProps {
+  busNo: string;
   routeName: string;
-  onBoard: number;
-  capacity: number;
-  nextStop: string;
+  shift?: string;
+  studentsAssigned: number;
   accent: string;
+  onViewDetails: () => void;
 }
 
 export const ConductorCard: React.FC<ConductorCardProps> = ({
+  busNo,
   routeName,
-  onBoard,
-  capacity,
-  nextStop,
+  shift,
+  studentsAssigned,
   accent,
+  onViewDetails,
 }) => {
   const { colors } = useTheme();
   const { t } = useTranslation();
@@ -31,32 +32,30 @@ export const ConductorCard: React.FC<ConductorCardProps> = ({
       <View style={styles.header}>
         <Icon name="visitor" size={20} color={accent} strokeWidth={2} />
         <Text style={[TextScale.cardTitle, styles.headerText, { color: accent }]}>
-          {t('role.conductor')}
+          {t('home.todaysDuty')}
         </Text>
+        <Pressable testID="conductor-card-view-details" onPress={onViewDetails}>
+          <Text style={[TextScale.caption, { color: accent }]}>{t('common.viewDetails')}</Text>
+        </Pressable>
       </View>
 
-      <View style={styles.row}>
-        <Text style={[TextScale.caption, { color: colors.inkSoft }]}>
-          {t('role.conductor.route')}
-        </Text>
-        <Text style={[TextScale.body, { color: colors.ink }]}>
-          {routeName}
-        </Text>
-      </View>
-
-      <View style={styles.pillRow}>
-        <Pill
-          label={`${t('role.conductor.onBoard')} · ${onBoard}/${capacity}`}
-          color={accent}
-          bg={colors.surface2}
-          icon="visitor"
-        />
-        <Pill
-          label={`${t('role.conductor.nextStop')} · ${nextStop}`}
-          color={accent}
-          bg={colors.surface2}
-          icon="mapPin"
-        />
+      <View style={styles.grid}>
+        <View style={styles.cell}>
+          <Text style={[TextScale.caption, { color: colors.inkSoft }]}>{t('home.assignedBus')}</Text>
+          <Text style={[TextScale.bodyStrong, { color: colors.ink }]}>{busNo}</Text>
+        </View>
+        <View style={styles.cell}>
+          <Text style={[TextScale.caption, { color: colors.inkSoft }]}>{t('home.route')}</Text>
+          <Text style={[TextScale.bodyStrong, { color: colors.ink }]}>{routeName}</Text>
+        </View>
+        <View style={styles.cell}>
+          <Text style={[TextScale.caption, { color: colors.inkSoft }]}>{t('home.shift')}</Text>
+          <Text style={[TextScale.bodyStrong, { color: colors.ink }]}>{shift ?? '—'}</Text>
+        </View>
+        <View style={styles.cell}>
+          <Text style={[TextScale.caption, { color: colors.inkSoft }]}>{t('home.students')}</Text>
+          <Text style={[TextScale.bodyStrong, { color: colors.ink }]}>{t('home.studentsAssigned', { n: studentsAssigned })}</Text>
+        </View>
       </View>
     </Card>
   );
@@ -67,18 +66,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginBottom: 12,
+    marginBottom: 14,
   },
   headerText: {
     flex: 1,
   },
-  row: {
-    gap: 2,
-    marginBottom: 12,
-  },
-  pillRow: {
+  grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: 14,
+  },
+  cell: {
+    width: '45%',
+    gap: 2,
   },
 });

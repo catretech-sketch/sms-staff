@@ -11,9 +11,10 @@ import { PeonCard } from './PeonCard';
 export interface RoleSpecializedCardProps {
   roleCard: RoleCard | null;
   accent: string;
+  onViewDetails?: () => void;
 }
 
-export const RoleSpecializedCard: React.FC<RoleSpecializedCardProps> = ({ roleCard, accent }) => {
+export const RoleSpecializedCard: React.FC<RoleSpecializedCardProps> = ({ roleCard, accent, onViewDetails }) => {
   if (roleCard === null) return null;
   switch (roleCard.kind) {
     case 'driver':
@@ -21,19 +22,21 @@ export const RoleSpecializedCard: React.FC<RoleSpecializedCardProps> = ({ roleCa
         <DriverCard
           busNo={roleCard.busNo}
           routeName={roleCard.routeName}
-          licenseExpiresInDays={roleCard.licenseExpiresInDays}
-          fitnessOk={roleCard.fitnessOk}
+          shift={roleCard.shift}
+          studentsAssigned={roleCard.studentsAssigned}
           accent={accent}
+          onViewDetails={onViewDetails ?? (() => {})}
         />
       );
     case 'conductor':
       return (
         <ConductorCard
+          busNo={roleCard.busNo}
           routeName={roleCard.routeName}
-          onBoard={roleCard.onBoard}
-          capacity={roleCard.capacity}
-          nextStop={roleCard.nextStop}
+          shift={roleCard.shift}
+          studentsAssigned={roleCard.studentsAssigned}
           accent={accent}
+          onViewDetails={onViewDetails ?? (() => {})}
         />
       );
     case 'guard':

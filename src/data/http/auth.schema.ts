@@ -9,9 +9,13 @@ export const tokenSchema = z.object({
 });
 export type TokenWire = z.infer<typeof tokenSchema>;
 
-// GET /auth/me. id/tenant_id always present; display fields are optional —
-// sms-backend's generic AuthService has no concept of driver/conductor/etc,
-// so role-derived fields (dutyPost/rating/shift/timing) are never on the wire.
+// GET /auth/me. id/tenant_id always present; display fields are optional.
+// role_key/duty_post are populated only for users with a linked dbo.Staff row
+// (driver/conductor/sweeper/gardener/guard/peon) — null for teachers/admins/
+// parents/students, and for staff whose Staff.Role text isn't a recognized
+// duty role. rating/shift/timing still aren't on the wire anywhere.
+const roleKeyWire = z.enum(['driver', 'conductor', 'sweeper', 'gardener', 'guard', 'peon']);
+
 export const meSchema = z.object({
   id: z.string(),
   tenant_id: z.string(),
@@ -21,27 +25,30 @@ export const meSchema = z.object({
   employee: z.string().nullable().optional(),
   joined: z.string().nullable().optional(),
   tenant_name: z.string().nullable().optional(),
+  role_key: roleKeyWire.nullable().optional(),
+  duty_post: z.string().nullable().optional(),
 });
 export type MeWire = z.infer<typeof meSchema>;
 
 /**
- * Builds a Staff from the real /auth/me payload. `roleKey` is always chosen
- * client-side (the backend has no granular staff role), and fields the
- * backend never returns (dutyPost/rating/shift/timing) fall back to
- * `previous` (rehydrating an existing session) or a role-derived default
- * (a fresh login has no prior session to carry them from, and no plain-text
- * duty-post label exists outside i18n resources this data layer can't read).
+ * Builds a Staff from the real /auth/me payload. The backend's `role_key` is
+ * authoritative (sourced server-side from the caller's own Staff row) and
+ * always wins when present; `roleKey` (the login-screen tile tap, or a prior
+ * session's role) is only a fallback for accounts with no linked Staff row
+ * (backend returns role_key: null there — teachers/admins/parents/students).
+ * `duty_post` follows the same precedence; other fields the backend never
+ * returns (rating/shift/timing) still fall back to `previous`.
  */
 export function toStaffFromMe(me: MeWire, roleKey: Role, previous?: Staff): Staff {
   return {
     id: me.id,
     name: me.name ?? previous?.name ?? '',
     firstName: previous?.firstName ?? (me.name ?? '').split(' ')[0] ?? '',
-    roleKey,
+    roleKey: me.role_key ?? roleKey,
     empId: me.employee ?? previous?.empId ?? '',
     joined: me.joined ?? previous?.joined ?? '',
     rating: previous?.rating ?? 0,
-    dutyPost: previous?.dutyPost ?? '',
+    dutyPost: me.duty_post ?? previous?.dutyPost ?? '',
     shift: previous?.shift ?? '',
     timing: previous?.timing ?? '',
     phone: me.phone ?? previous?.phone ?? '',

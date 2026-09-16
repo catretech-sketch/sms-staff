@@ -13,6 +13,7 @@ const MIN_METERS = 50;
 let activeTripId: string | null = null;
 let publish: ((ping: TripPing) => Promise<void>) | null = null;
 let last: Sample | null = null;
+let foregroundWatcher: { remove: () => void } | null = null;
 
 TaskManager.defineTask(TRIP_LOCATION_TASK, async ({ data, error }) => {
   if (error || !data || !activeTripId || !publish) return;
@@ -38,16 +39,32 @@ export interface BroadcastDeps {
   onPing: (ping: TripPing) => Promise<void>;
 }
 
-// Returns true if the background stream started (permissions granted), false otherwise.
-// Also returns false — rather than throwing — when the platform doesn't support
-// background location tasks at all (e.g. expo-task-manager has no web implementation),
-// so callers' existing "broadcast failed" fallback runs instead of an unhandled rejection.
+function publishFromLocation(loc: Location.LocationObject): void {
+  if (!activeTripId || !publish) return;
+  const sample: Sample = { lat: loc.coords.latitude, lng: loc.coords.longitude, at: loc.timestamp };
+  if (!shouldPublish(last, sample, CADENCE_MS, MIN_METERS)) return;
+  last = sample;
+  const ping: TripPing = {
+    tripId: activeTripId,
+    lat: loc.coords.latitude,
+    lng: loc.coords.longitude,
+    speedKmh: Math.max(0, Math.round((loc.coords.speed ?? 0) * 3.6)),
+    heading: loc.coords.heading ?? 0,
+    at: new Date(loc.timestamp).toISOString(),
+  };
+  publish(ping).catch(() => { /* offline — buffer retries on next event */ });
+}
+
+// Returns true if broadcasting started (permissions granted), false otherwise.
+// Background location tasks aren't supported on every platform (e.g. expo-task-manager
+// has no web implementation) — when starting the background stream fails for that reason,
+// fall back to a foreground watcher instead of failing outright. The foreground fallback
+// only reports positions while the tab/app stays open, which is acceptable for web since
+// real drivers use the native app.
 export async function startBroadcast({ tripId, onPing }: BroadcastDeps): Promise<boolean> {
   try {
     const fg = await Location.requestForegroundPermissionsAsync();
     if (fg.status !== 'granted') return false;
-    const bg = await Location.requestBackgroundPermissionsAsync();
-    if (bg.status !== 'granted') return false;
 
     activeTripId = tripId;
     last = null;
@@ -56,18 +73,31 @@ export async function startBroadcast({ tripId, onPing }: BroadcastDeps): Promise
     await buffer.flush();
     publish = (ping) => buffer.enqueue(ping).then(() => buffer.flush());
 
-    await Location.startLocationUpdatesAsync(TRIP_LOCATION_TASK, {
-      accuracy: Location.Accuracy.High,
-      timeInterval: CADENCE_MS,
-      distanceInterval: MIN_METERS,
-      foregroundService: {
-        notificationTitle: 'Trip live',
-        notificationBody: 'Sharing the bus location with the school',
-        notificationColor: '#0E5C4A',
-      },
-      pausesUpdatesAutomatically: false,
-      showsBackgroundLocationIndicator: true,
-    });
+    const bg = await Location.requestBackgroundPermissionsAsync();
+    if (bg.status === 'granted') {
+      try {
+        await Location.startLocationUpdatesAsync(TRIP_LOCATION_TASK, {
+          accuracy: Location.Accuracy.High,
+          timeInterval: CADENCE_MS,
+          distanceInterval: MIN_METERS,
+          foregroundService: {
+            notificationTitle: 'Trip live',
+            notificationBody: 'Sharing the bus location with the school',
+            notificationColor: '#0E5C4A',
+          },
+          pausesUpdatesAutomatically: false,
+          showsBackgroundLocationIndicator: true,
+        });
+        return true;
+      } catch {
+        // Background task registration unsupported on this platform — fall through to foreground.
+      }
+    }
+
+    foregroundWatcher = await Location.watchPositionAsync(
+      { accuracy: Location.Accuracy.High, timeInterval: CADENCE_MS, distanceInterval: MIN_METERS },
+      publishFromLocation
+    );
     return true;
   } catch {
     activeTripId = null;
@@ -79,11 +109,17 @@ export async function startBroadcast({ tripId, onPing }: BroadcastDeps): Promise
 
 export async function stopBroadcast(): Promise<void> {
   try {
+    if (foregroundWatcher) {
+      foregroundWatcher.remove();
+      foregroundWatcher = null;
+      return;
+    }
     const running = await Location.hasStartedLocationUpdatesAsync(TRIP_LOCATION_TASK);
     if (running) await Location.stopLocationUpdatesAsync(TRIP_LOCATION_TASK);
   } finally {
     activeTripId = null;
     publish = null;
     last = null;
+    foregroundWatcher = null;
   }
 }

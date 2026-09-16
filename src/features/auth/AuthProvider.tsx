@@ -1,12 +1,13 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import type { Session } from '@/data/domain';
-import type { Role } from '@/theme/roles';
+import { ROLES, type Role } from '@/theme/roles';
 import type { OtpChallenge } from '@/data/repositories/types';
 import { tokenStore } from '@/lib/tokenStore';
 import { asyncStore } from '@/lib/asyncStore';
 import { authSnapshot } from '@/lib/authSnapshot';
 import { queryClient } from '@/lib/queryClient';
 import { useRepositories } from '@/data/repositories/RepositoryContext';
+import { useTheme } from '@/theme';
 
 const SESSION_KEY = 'sms.session';
 
@@ -29,9 +30,21 @@ const AuthContext = createContext<AuthValue | null>(null);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const repos = useRepositories();
+  const { setRole } = useTheme();
   const [status, setStatus] = useState<Status>('loading');
   const [session, setSession] = useState<Session | null>(null);
   const [pendingPasswordSetup, setPendingPasswordSetup] = useState<Session | null>(null);
+
+  // The client-tapped role tile on the login screen is only a preview/hint —
+  // the session's roleKey (ultimately sourced from Staff.Role on the backend)
+  // is the authoritative session identity and must always win once a session
+  // is actually established. A session with no roleKey (e.g. a non-staff test
+  // account) leaves the theme's current role untouched rather than crashing
+  // or guessing.
+  const applyRoleFromSession = useCallback((s: Session) => {
+    const roleKey = s.user.roleKey;
+    if (roleKey && ROLES[roleKey]) setRole(roleKey);
+  }, [setRole]);
 
   useEffect(() => {
     (async () => {
@@ -56,6 +69,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const user = await repos.auth.me(stored.user);
           const rehydrated: Session = { ...stored, ...tokens, user };
           authSnapshot.set({ accessToken: rehydrated.accessToken, tenantId: rehydrated.tenant.id });
+          applyRoleFromSession(rehydrated);
           setSession(rehydrated);
           setStatus('authenticated');
         } catch {
@@ -69,15 +83,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setStatus('unauthenticated');
       }
     })();
-  }, [repos]);
+  }, [repos, applyRoleFromSession]);
 
   const establishSession = useCallback(async (s: Session) => {
     await tokenStore.save({ accessToken: s.accessToken, refreshToken: s.refreshToken });
     await asyncStore.set(SESSION_KEY, s);
     authSnapshot.set({ accessToken: s.accessToken, tenantId: s.tenant.id });
+    applyRoleFromSession(s);
     setSession(s);
     setStatus('authenticated');
-  }, []);
+  }, [applyRoleFromSession]);
 
   const requestOtp = useCallback(
     (identifier: string) => repos.auth.requestOtp(identifier),

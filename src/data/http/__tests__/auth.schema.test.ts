@@ -22,6 +22,22 @@ describe('meSchema', () => {
     expect(me.name).toBe('R K');
     expect(me.tenant_name).toBe('School');
   });
+
+  it('accepts a real role_key/duty_post payload for a linked Staff row', () => {
+    const me = meSchema.parse({ id: 's1', tenant_id: 't1', role_key: 'guard', duty_post: 'Main Gate' });
+    expect(me.role_key).toBe('guard');
+    expect(me.duty_post).toBe('Main Gate');
+  });
+
+  it('accepts role_key/duty_post as explicit null (no linked Staff row)', () => {
+    const me = meSchema.parse({ id: 's1', tenant_id: 't1', role_key: null, duty_post: null });
+    expect(me.role_key).toBeNull();
+    expect(me.duty_post).toBeNull();
+  });
+
+  it('rejects an unrecognized role_key value', () => {
+    expect(() => meSchema.parse({ id: 's1', tenant_id: 't1', role_key: 'storekeeper' })).toThrow();
+  });
 });
 
 describe('maskIdentifier', () => {
@@ -56,9 +72,24 @@ describe('toStaffFromMe', () => {
     expect(staff.name).toBe('Ramesh K.');
   });
 
-  it('always uses the caller-supplied roleKey, even over a different previous role', () => {
-    const staff = toStaffFromMe({ id: 's1', tenant_id: 't1' }, 'conductor', previous);
+  it('falls back to the caller-supplied roleKey when the backend has no linked Staff row', () => {
+    const staff = toStaffFromMe({ id: 's1', tenant_id: 't1', role_key: null }, 'conductor', previous);
     expect(staff.roleKey).toBe('conductor');
+  });
+
+  it('prefers the backend role_key over the caller-supplied roleKey and over previous', () => {
+    const staff = toStaffFromMe({ id: 's1', tenant_id: 't1', role_key: 'gardener' }, 'conductor', previous);
+    expect(staff.roleKey).toBe('gardener');
+  });
+
+  it('prefers the backend duty_post over previous', () => {
+    const staff = toStaffFromMe({ id: 's1', tenant_id: 't1', duty_post: 'Block C' }, 'driver', previous);
+    expect(staff.dutyPost).toBe('Block C');
+  });
+
+  it('falls back to previous dutyPost when the backend omits duty_post', () => {
+    const staff = toStaffFromMe({ id: 's1', tenant_id: 't1' }, 'driver', previous);
+    expect(staff.dutyPost).toBe('Bus / Route');
   });
 });
 

@@ -2,9 +2,14 @@ import React from 'react';
 import { Text, Pressable } from 'react-native';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react-native';
 import { AuthProvider, useAuth } from '@/features/auth/AuthProvider';
+import { ThemeProvider, useTheme } from '@/theme';
 import { RepositoryProvider } from '@/data/repositories/RepositoryContext';
 import { createMockRepositories } from '@/data/repositories/factory';
 import { createStore } from '@/data/mock/store';
+import { tokenStore } from '@/lib/tokenStore';
+import { asyncStore } from '@/lib/asyncStore';
+import type { Repositories } from '@/data/repositories/types';
+import type { Session } from '@/data/domain';
 
 jest.mock('@react-native-async-storage/async-storage', () => {
   let mem: Record<string, string> = {};
@@ -33,12 +38,15 @@ function Harness() {
     status, session, pendingPasswordSetup,
     signInWithOtp, signInWithPassword, completePasswordSetup, cancelPasswordSetup, signOut,
   } = useAuth();
+  const { roleKey: themeRole, setRole } = useTheme();
   return (
     <>
       <Text testID="status">{status}</Text>
       <Text testID="pending">{pendingPasswordSetup ? 'yes' : 'no'}</Text>
       <Text testID="school">{session?.tenant.name ?? ''}</Text>
       <Text testID="role">{session?.user.roleKey ?? ''}</Text>
+      <Text testID="themeRole">{themeRole}</Text>
+      <Pressable testID="preset-driver" onPress={() => setRole('driver')}><Text>preset-driver</Text></Pressable>
       <Pressable testID="otp-in" onPress={() => signInWithOtp('98765 43210', '123456', 'conductor')}><Text>otp-in</Text></Pressable>
       <Pressable testID="pw-in" onPress={() => signInWithPassword('98765 43210', 'hunter2222', 'peon')}><Text>pw-in</Text></Pressable>
       <Pressable testID="complete" onPress={() => completePasswordSetup('hunter2222')}><Text>complete</Text></Pressable>
@@ -48,12 +56,14 @@ function Harness() {
   );
 }
 
-async function renderWithProviders() {
-  const repos = createMockRepositories(await createStore());
+async function renderWithProviders(repos?: Repositories) {
+  const resolvedRepos = repos ?? createMockRepositories(await createStore());
   return render(
-    <RepositoryProvider repositories={repos}>
-      <AuthProvider><Harness /></AuthProvider>
-    </RepositoryProvider>,
+    <ThemeProvider>
+      <RepositoryProvider repositories={resolvedRepos}>
+        <AuthProvider><Harness /></AuthProvider>
+      </RepositoryProvider>
+    </ThemeProvider>,
   );
 }
 
@@ -117,5 +127,59 @@ describe('AuthProvider', () => {
     await waitFor(() => expect(screen.getByTestId('status')).toHaveTextContent('authenticated'));
     fireEvent.press(screen.getByTestId('out'));
     await waitFor(() => expect(screen.getByTestId('status')).toHaveTextContent('unauthenticated'));
+  });
+
+  it('login applies the session roleKey to the theme, overriding a pre-login role tap', async () => {
+    await renderWithProviders();
+    await waitFor(() => expect(screen.getByTestId('status')).toHaveTextContent('unauthenticated'));
+    // Simulate tapping the "Driver" tile on the login screen before logging in.
+    fireEvent.press(screen.getByTestId('preset-driver'));
+    await waitFor(() => expect(screen.getByTestId('themeRole')).toHaveTextContent('driver'));
+    // pw-in logs in and the backend-authoritative session comes back as 'peon'.
+    fireEvent.press(screen.getByTestId('pw-in'));
+    await waitFor(() => expect(screen.getByTestId('status')).toHaveTextContent('authenticated'));
+    expect(screen.getByTestId('themeRole')).toHaveTextContent('peon');
+  });
+
+  it('session restore applies the stored session roleKey to the theme', async () => {
+    const store = await createStore();
+    const baseRepos = createMockRepositories(store);
+    // Mirror the real /auth/me contract: it has no concept of duty roles, so it
+    // preserves whatever roleKey the stored session already carried.
+    const repos: Repositories = {
+      ...baseRepos,
+      auth: { ...baseRepos.auth, me: async (previous) => ({ ...previous! }) },
+    };
+    const storedSession: Session = { ...store.session, user: { ...store.session.user, roleKey: 'guard' } };
+    await tokenStore.save({ accessToken: storedSession.accessToken, refreshToken: storedSession.refreshToken });
+    await asyncStore.set('sms.session', storedSession);
+
+    await renderWithProviders(repos);
+
+    await waitFor(() => expect(screen.getByTestId('status')).toHaveTextContent('authenticated'));
+    expect(screen.getByTestId('themeRole')).toHaveTextContent('guard');
+  });
+
+  it('a session with no roleKey leaves the theme role unchanged', async () => {
+    const store = await createStore();
+    const baseRepos = createMockRepositories(store);
+    const repos: Repositories = {
+      ...baseRepos,
+      auth: {
+        ...baseRepos.auth,
+        login: async (identifier, password, roleKey) => {
+          const s = await baseRepos.auth.login(identifier, password, roleKey);
+          return { ...s, user: { ...s.user, roleKey: undefined as unknown as Session['user']['roleKey'] } };
+        },
+      },
+    };
+    await renderWithProviders(repos);
+    await waitFor(() => expect(screen.getByTestId('status')).toHaveTextContent('unauthenticated'));
+    expect(screen.getByTestId('themeRole')).toHaveTextContent('driver');
+    fireEvent.press(screen.getByTestId('pw-in'));
+    await waitFor(() => expect(screen.getByTestId('status')).toHaveTextContent('authenticated'));
+    // No roleKey came back from the backend, so the theme's role must not change
+    // (and the app must not crash).
+    expect(screen.getByTestId('themeRole')).toHaveTextContent('driver');
   });
 });

@@ -7,6 +7,7 @@ export type MainStackParamList = {
   Tabs: undefined;
   Attendance: undefined;
   Trip: undefined;
+  Issues: undefined;
   LiveMap: { tripId: string };
 };
 

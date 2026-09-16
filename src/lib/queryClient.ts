@@ -23,6 +23,7 @@ export const queryKeys = {
   tripRoster: (tripId: string) => ['trip', 'roster', tripId] as const,
   tripBoarding: (tripId: string) => ['trip', 'boarding', tripId] as const,
   tasks: (tenantId: string) => ['tasks', tenantId] as const,
+  issues: (tenantId: string) => ['issues', tenantId] as const,
   leave: (tenantId: string) => ['leave', tenantId] as const,
   profile: (tenantId: string) => ['profile', tenantId] as const,
 };

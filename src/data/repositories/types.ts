@@ -4,6 +4,7 @@ import type {
   Task,
   LeaveSummary, LeaveRequest, NewLeaveRequest,
   Profile,
+  Issue, NewIssue,
 } from '@/data/domain';
 import type { Role } from '@/theme/roles';
 
@@ -50,6 +51,11 @@ export interface TasksRepository {
   attachPhoto(id: string, photoUri: string): Promise<Task[]>;
 }
 
+export interface IssuesRepository {
+  list(): Promise<Issue[]>;
+  create(req: NewIssue): Promise<Issue>;
+}
+
 export interface LeaveRepository {
   summary(): Promise<LeaveSummary>;
   submit(req: NewLeaveRequest): Promise<LeaveRequest>;
@@ -63,6 +69,7 @@ export interface Repositories {
   attendance: AttendanceRepository;
   trip: TripRepository;
   tasks: TasksRepository;
+  issues: IssuesRepository;
   leave: LeaveRepository;
   profile: ProfileRepository;
 }

@@ -57,3 +57,11 @@ it('tapping a pending task\'s camera button opens the photo picker and uploads t
   await waitFor(() => expect(mockLaunchImageLibraryAsync).toHaveBeenCalled());
   expect(mockRequestMediaLibraryPermissionsAsync).toHaveBeenCalled();
 });
+
+it('shows a Report Issue quick action for every role and navigates to Issues on press', async () => {
+  const navigate = jest.fn();
+  const { findByTestId } = render(<AppProviders><HomeScreen navigation={{ navigate } as any} /></AppProviders>);
+  const btn = await findByTestId('home-report-issue');
+  fireEvent.press(btn);
+  expect(navigate).toHaveBeenCalledWith('Issues');
+});

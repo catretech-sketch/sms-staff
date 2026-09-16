@@ -159,7 +159,7 @@ export const TripScreen = ({ navigation }: { navigation: any }) => {
               accent={accent}
               style={styles.cta}
             />
-            {role.key === 'conductor' && <RosterPanel tripId={trip.id} accent={accent} />}
+            {(role.key === 'driver' || role.key === 'conductor') && <RosterPanel tripId={trip.id} accent={accent} />}
             <Btn testID="trip-end" label={t('trip.end')} onPress={onEnd} accent={colors.danger} loading={endTrip.isPending} style={styles.cta} />
           </>
         ) : (

@@ -19,7 +19,8 @@ import {
   TasksPeek,
   AlertCard,
   Skeleton,
-  Btn,
+  QuickActionsGrid,
+  type QuickAction,
 } from '@/components/ui';
 import { ErrorState } from '@/components/state';
 
@@ -55,6 +56,19 @@ export const HomeScreen = ({ navigation }: { navigation: any }) => {
       toast.show(t('common.somethingWrong'), 'error');
     }
   }, [attachTaskPhoto, t, toast]);
+
+  const quickActions: QuickAction[] = role.key === 'driver' || role.key === 'conductor'
+    ? [
+        { testID: 'home-open-trip', label: t('home.myRoute'), icon: 'bus', onPress: () => navigation.navigate('Trip') },
+        { testID: 'home-my-tasks', label: t('home.myTasks'), icon: 'tasks', onPress: () => navigation.navigate('Tasks') },
+        { testID: 'home-report-issue', label: t('issues.reportIssue'), icon: 'alert', onPress: () => navigation.navigate('Issues') },
+      ]
+    : [
+        { testID: 'home-attendance', label: t('attendance.title'), icon: 'clock', onPress: openAttendance },
+        { testID: 'home-my-tasks', label: t('home.myTasks'), icon: 'tasks', onPress: () => navigation.navigate('Tasks') },
+        { testID: 'home-report-issue', label: t('issues.reportIssue'), icon: 'alert', onPress: () => navigation.navigate('Issues') },
+        { testID: 'home-leave', label: t('leave.title'), icon: 'gift', onPress: () => navigation.navigate('Leave') },
+      ];
 
   if (isLoading) {
     return (
@@ -118,25 +132,8 @@ export const HomeScreen = ({ navigation }: { navigation: any }) => {
             accent={role.accent}
           />
         </Animated.View>
-        {(role.key === 'driver' || role.key === 'conductor') && (
-          <Animated.View entering={FadeInDown.delay(160).duration(300)}>
-            <Btn
-              testID="home-open-trip"
-              label={t('trip.open')}
-              icon="bus"
-              accent={role.accent}
-              onPress={() => navigation.navigate('Trip')}
-            />
-          </Animated.View>
-        )}
-        <Animated.View entering={FadeInDown.delay(180).duration(300)}>
-          <Btn
-            testID="home-report-issue"
-            label={t('issues.reportIssue')}
-            icon="alert"
-            variant="ghost"
-            onPress={() => navigation.navigate('Issues')}
-          />
+        <Animated.View entering={FadeInDown.delay(160).duration(300)}>
+          <QuickActionsGrid title={t('home.quickActions')} actions={quickActions} />
         </Animated.View>
         <Animated.View entering={FadeInDown.delay(195).duration(300)}>
           <TasksPeek

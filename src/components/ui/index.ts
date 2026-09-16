@@ -31,6 +31,8 @@ export { StatTrio } from './StatTrio';
 export type { StatTrioProps } from './StatTrio';
 export { TasksPeek } from './TasksPeek';
 export type { TasksPeekProps } from './TasksPeek';
+export { QuickActionsGrid } from './QuickActionsGrid';
+export type { QuickActionsGridProps, QuickAction } from './QuickActionsGrid';
 export { AlertCard } from './AlertCard';
 export type { AlertCardProps } from './AlertCard';
 export { RoleSpecializedCard } from './roleCards/RoleSpecializedCard';

@@ -60,6 +60,14 @@ it('shows the assignment then starts a trip on Start', async () => {
   await waitFor(() => expect(getByTestId('trip-end')).toBeTruthy());
 });
 
+it('shows the roster panel to a driver once a trip is started', async () => {
+  const { getByTestId, findByText } = await renderScreen();
+  await findByText(/Route 7/);
+  fireEvent.press(getByTestId('trip-start'));
+  await waitFor(() => expect(getByTestId('trip-end')).toBeTruthy());
+  expect(getByTestId('headcount')).toBeTruthy();
+});
+
 it('navigates to LiveMap with the current tripId when "View Live Map" is pressed', async () => {
   const { getByTestId, findByText, nav, repos } = await renderScreen();
   await findByText(/Route 7/);

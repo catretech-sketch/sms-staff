@@ -3,6 +3,17 @@ import React from 'react';
 import { waitFor, render, fireEvent } from '@testing-library/react-native';
 import { AppProviders } from '@/providers/AppProviders';
 import { HomeScreen } from '@/screens/HomeScreen';
+import { useTheme } from '@/theme';
+
+// HomeScreen's role-dependent branching reads role from ThemeProvider, not
+// from the (mocked, in these tests) AuthProvider session directly — this
+// mirrors the theme role production code sets after a real login/session
+// restore, without needing the real AuthProvider's sync effect to run.
+function SetThemeRole({ role }: { role: 'driver' | 'conductor' | 'sweeper' | 'gardener' | 'guard' | 'peon' }) {
+  const { setRole } = useTheme();
+  React.useEffect(() => { setRole(role); }, [role, setRole]);
+  return null;
+}
 
 jest.mock('react-native-reanimated', () => require('react-native-reanimated/mock'));
 
@@ -31,7 +42,7 @@ jest.mock('@/features/dashboard/hooks', () => ({
 }));
 jest.mock('@/features/auth/AuthProvider', () => ({
   ...jest.requireActual('@/features/auth/AuthProvider'),
-  useAuth: () => ({ status: 'authenticated', session: { user: { firstName: 'Ramesh', name: 'Ramesh Kumar', roleKey: 'driver', timing: '7:30–3:30', dutyPost: 'Bus / Route' }, tenant: { id: 'school_greenfield', name: 'Greenfield Public School' } }, signIn: jest.fn(), signOut: jest.fn() }),
+  useAuth: jest.fn(() => ({ status: 'authenticated', session: { user: { firstName: 'Ramesh', name: 'Ramesh Kumar', roleKey: 'driver', timing: '7:30–3:30', dutyPost: 'Bus / Route' }, tenant: { id: 'school_greenfield', name: 'Greenfield Public School' } }, signIn: jest.fn(), signOut: jest.fn() })),
 }));
 
 function renderHome() {
@@ -64,4 +75,38 @@ it('shows a Report Issue quick action for every role and navigates to Issues on 
   const btn = await findByTestId('home-report-issue');
   fireEvent.press(btn);
   expect(navigate).toHaveBeenCalledWith('Issues');
+});
+
+describe('for a non-transport duty role (e.g. guard)', () => {
+  const useAuthMock = jest.requireMock('@/features/auth/AuthProvider').useAuth as jest.Mock;
+  const originalImpl = useAuthMock.getMockImplementation();
+  beforeEach(() => {
+    useAuthMock.mockImplementation(() => ({
+      status: 'authenticated',
+      session: { user: { firstName: 'Amit', name: 'Amit Singh', roleKey: 'guard', timing: '9:00–5:00', dutyPost: 'Main Gate' }, tenant: { id: 'school_greenfield', name: 'Greenfield Public School' } },
+      signIn: jest.fn(),
+      signOut: jest.fn(),
+    }));
+  });
+  afterEach(() => {
+    if (originalImpl) useAuthMock.mockImplementation(originalImpl);
+  });
+
+  it('shows Attendance and Leave quick actions instead of My Route, and no Live Trip CTA', async () => {
+    const navigate = jest.fn();
+    const { findByTestId, queryByTestId } = render(
+      <AppProviders>
+        <SetThemeRole role="guard" />
+        <HomeScreen navigation={{ navigate } as any} />
+      </AppProviders>,
+    );
+    expect(await findByTestId('home-attendance')).toBeTruthy();
+    expect(await findByTestId('home-leave')).toBeTruthy();
+    expect(await findByTestId('home-my-tasks')).toBeTruthy();
+    expect(await findByTestId('home-report-issue')).toBeTruthy();
+    expect(queryByTestId('home-open-trip')).toBeNull();
+
+    fireEvent.press(await findByTestId('home-leave'));
+    expect(navigate).toHaveBeenCalledWith('Leave');
+  });
 });

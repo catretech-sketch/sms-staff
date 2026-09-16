@@ -9,3 +9,4 @@ export * from './task';
 export * from './leave';
 export * from './profile';
 export * from './issue';
+export * from './vehicleCheck';

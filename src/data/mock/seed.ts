@@ -61,6 +61,8 @@ const schoolLocation: SchoolLocation = {
   name: 'Greenfield Public School',
 };
 
+const busId = 'bus_hr26bx4412';
+
 const route: Route = {
   id: 'route_7',
   name: 'Route 7',
@@ -125,6 +127,7 @@ export interface SeedShape {
   attendance: Attendance;
   schoolLocation: SchoolLocation;
   route: Route;
+  busId: string;
   students: StudentLite[];
   conductorName: string;
   currentTrip: Trip | null;
@@ -136,5 +139,5 @@ export interface SeedShape {
 
 export const seed: SeedShape = {
   staff, tenant, roleCards, dashboardBase, attendance, schoolLocation,
-  route, students, conductorName, currentTrip, boarding, tasks, leaveSummary, profile,
+  route, busId, students, conductorName, currentTrip, boarding, tasks, leaveSummary, profile,
 };

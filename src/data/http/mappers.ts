@@ -4,6 +4,7 @@ import type { Session, Staff, Tenant, Dashboard, RoleCard, Attendance, Attendanc
   Task, LeaveSummary, LeaveBalance, LeaveRequest, NewLeaveRequest,
   Profile, StaffDocument,
   Issue, IssueCategory, IssuePriority, IssueStatus, NewIssue,
+  VehicleInspection, NewVehicleInspection, FuelLogEntry, NewFuelLogEntry,
 } from '@/data/domain';
 import type { Role } from '@/theme/roles';
 
@@ -133,7 +134,7 @@ export interface TripDTO {
 export interface TripSummaryDTO { trip_id: string; duration_min: number; distance_km: number; stops_covered: number; boarded_count: number; }
 export interface StudentLiteDTO { id: string; name: string; stop_id: string; photo_url?: string; }
 export interface BoardingDTO { trip_id: string; student_id: string; stop_id: string; state: BoardingState; at: string; }
-export interface TripAssignmentDTO { route: RouteDTO; bus_no: string; conductor_name?: string | null; }
+export interface TripAssignmentDTO { route: RouteDTO; bus_id: string; bus_no: string; conductor_name?: string | null; }
 
 export const toStop = (d: StopDTO): Stop => ({ id: d.id, name: d.name, lat: d.lat, lng: d.lng, seq: d.seq, etaMin: d.eta_min });
 export const toRoute = (d: RouteDTO): Route => ({ id: d.id, name: d.name, assignedBusNo: d.bus_no, stops: d.stops.map(toStop) });
@@ -146,7 +147,7 @@ export const toTripSummary = (d: TripSummaryDTO): TripSummary => ({
 });
 export const toStudentLite = (d: StudentLiteDTO): StudentLite => ({ id: d.id, name: d.name, stopId: d.stop_id, photoUrl: d.photo_url });
 export const toBoarding = (d: BoardingDTO): Boarding => ({ tripId: d.trip_id, studentId: d.student_id, stopId: d.stop_id, state: d.state, at: d.at });
-export const toTripAssignment = (d: TripAssignmentDTO): TripAssignment => ({ route: toRoute(d.route), busNo: d.bus_no, conductorName: d.conductor_name ?? null });
+export const toTripAssignment = (d: TripAssignmentDTO): TripAssignment => ({ route: toRoute(d.route), busId: d.bus_id, busNo: d.bus_no, conductorName: d.conductor_name ?? null });
 
 export interface TaskDTO { id: string; title: string; detail?: string; priority: 'urgent' | 'normal'; done: boolean; due_label?: string; photo_url?: string; }
 export function toTask(d: TaskDTO): Task {
@@ -240,4 +241,67 @@ export const toProfile = (d: ProfileDTO): Profile => ({
   licenseExpiry: d.license_expiry ?? undefined,
   emergencyContactName: d.emergency_contact_name ?? undefined,
   emergencyContactPhone: d.emergency_contact_phone ?? undefined,
+});
+
+export interface VehicleInspectionDTO {
+  id: string;
+  bus_id: string;
+  brakes: boolean;
+  tyres: boolean;
+  lights: boolean;
+  horn: boolean;
+  first_aid_kit: boolean;
+  fire_extinguisher: boolean;
+  emergency_exit: boolean;
+  fuel_level: boolean;
+  all_ok: boolean;
+  remarks?: string | null;
+  inspection_date: string;
+  created_at: string;
+}
+export function toVehicleInspection(d: VehicleInspectionDTO): VehicleInspection {
+  const i: VehicleInspection = {
+    id: d.id,
+    busId: d.bus_id,
+    brakes: d.brakes,
+    tyres: d.tyres,
+    lights: d.lights,
+    horn: d.horn,
+    firstAidKit: d.first_aid_kit,
+    fireExtinguisher: d.fire_extinguisher,
+    emergencyExit: d.emergency_exit,
+    fuelLevel: d.fuel_level,
+    allOk: d.all_ok,
+    inspectionDate: d.inspection_date,
+    createdAt: d.created_at,
+  };
+  if (d.remarks !== undefined && d.remarks !== null) i.remarks = d.remarks;
+  return i;
+}
+export const fromNewVehicleInspection = (r: NewVehicleInspection) => ({
+  bus_id: r.busId,
+  brakes: r.brakes,
+  tyres: r.tyres,
+  lights: r.lights,
+  horn: r.horn,
+  first_aid_kit: r.firstAidKit,
+  fire_extinguisher: r.fireExtinguisher,
+  emergency_exit: r.emergencyExit,
+  fuel_level: r.fuelLevel,
+  all_ok: r.brakes && r.tyres && r.lights && r.horn && r.firstAidKit && r.fireExtinguisher && r.emergencyExit && r.fuelLevel,
+  remarks: r.remarks,
+});
+
+export interface FuelLogDTO {
+  id: string;
+  bus_id: string;
+  odometer_km: number;
+  fuel_added_liters: number;
+  recorded_at: string;
+}
+export const toFuelLog = (d: FuelLogDTO): FuelLogEntry => ({
+  id: d.id, busId: d.bus_id, odometerKm: d.odometer_km, fuelAddedLiters: d.fuel_added_liters, recordedAt: d.recorded_at,
+});
+export const fromNewFuelLog = (r: NewFuelLogEntry) => ({
+  bus_id: r.busId, odometer_km: r.odometerKm, fuel_added_liters: r.fuelAddedLiters,
 });

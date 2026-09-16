@@ -5,6 +5,7 @@ import type {
   LeaveSummary, LeaveRequest, NewLeaveRequest,
   Profile,
   Issue, NewIssue,
+  VehicleInspection, NewVehicleInspection, FuelLogEntry, NewFuelLogEntry,
 } from '@/data/domain';
 import type { Role } from '@/theme/roles';
 
@@ -63,6 +64,13 @@ export interface LeaveRepository {
 
 export interface ProfileRepository { get(): Promise<Profile>; }
 
+export interface VehicleChecksRepository {
+  listInspections(busId: string): Promise<VehicleInspection[]>;
+  submitInspection(req: NewVehicleInspection): Promise<VehicleInspection>;
+  listFuelLogs(busId: string): Promise<FuelLogEntry[]>;
+  submitFuelLog(req: NewFuelLogEntry): Promise<FuelLogEntry>;
+}
+
 export interface Repositories {
   auth: AuthRepository;
   dashboard: DashboardRepository;
@@ -72,4 +80,5 @@ export interface Repositories {
   issues: IssuesRepository;
   leave: LeaveRepository;
   profile: ProfileRepository;
+  vehicleChecks: VehicleChecksRepository;
 }

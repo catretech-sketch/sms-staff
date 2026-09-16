@@ -13,6 +13,7 @@ export function mockTrip(store: Store): TripRepository {
       await simulateLatency();
       return clone({
         route: store.route,
+        busId: store.busId,
         busNo: store.route.assignedBusNo,
         conductorName: store.conductorName,
       });

@@ -9,6 +9,7 @@ import { mockTasks } from '@/data/mock/tasks.repo';
 import { mockIssues } from '@/data/mock/issues.repo';
 import { mockLeave } from '@/data/mock/leave.repo';
 import { mockProfile } from '@/data/mock/profile.repo';
+import { mockVehicleChecks } from '@/data/mock/vehicleChecks.repo';
 import { httpAuth } from '@/data/http/auth.repo';
 import { httpDashboard } from '@/data/http/dashboard.repo';
 import { httpAttendance } from '@/data/http/attendance.repo';
@@ -17,6 +18,7 @@ import { httpTasks } from '@/data/http/tasks.repo';
 import { httpIssues } from '@/data/http/issues.repo';
 import { httpLeave } from '@/data/http/leave.repo';
 import { httpProfile } from '@/data/http/profile.repo';
+import { httpVehicleChecks } from '@/data/http/vehicleChecks.repo';
 
 export function createMockRepositories(store: Store): Repositories {
   return {
@@ -28,6 +30,7 @@ export function createMockRepositories(store: Store): Repositories {
     issues: mockIssues(store),
     leave: mockLeave(store),
     profile: mockProfile(store),
+    vehicleChecks: mockVehicleChecks(store),
   };
 }
 
@@ -41,5 +44,6 @@ export function createHttpRepositories(http: HttpClient): Repositories {
     issues: httpIssues(http),
     leave: httpLeave(http),
     profile: httpProfile(http),
+    vehicleChecks: httpVehicleChecks(http),
   };
 }

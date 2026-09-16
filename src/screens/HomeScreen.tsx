@@ -60,6 +60,7 @@ export const HomeScreen = ({ navigation }: { navigation: any }) => {
   const quickActions: QuickAction[] = role.key === 'driver' || role.key === 'conductor'
     ? [
         { testID: 'home-open-trip', label: t('home.myRoute'), icon: 'bus', onPress: () => navigation.navigate('Trip') },
+        { testID: 'home-vehicle-check', label: t('home.vehicleCheck'), icon: 'check', onPress: () => navigation.navigate('VehicleCheck') },
         { testID: 'home-my-tasks', label: t('home.myTasks'), icon: 'tasks', onPress: () => navigation.navigate('Tasks') },
         { testID: 'home-report-issue', label: t('issues.reportIssue'), icon: 'alert', onPress: () => navigation.navigate('Issues') },
       ]

@@ -1,6 +1,6 @@
 import { asyncStore } from '@/lib/asyncStore';
 import { seed, dutyPostByRole } from './seed';
-import type { Session, Attendance, SchoolLocation, Boarding, Trip, TripPing, Task, LeaveSummary, Profile, Issue } from '@/data/domain';
+import type { Session, Attendance, SchoolLocation, Boarding, Trip, TripPing, Task, LeaveSummary, Profile, Issue, VehicleInspection, FuelLogEntry } from '@/data/domain';
 import type { Role } from '@/theme/roles';
 
 const KEY = 'sms.mock.';
@@ -12,6 +12,7 @@ export interface Store {
   dashboardBase: typeof seed.dashboardBase;
   roleCards: typeof seed.roleCards;
   route: typeof seed.route;
+  busId: string;
   students: typeof seed.students;
   conductorName: string;
   currentTrip: Trip | null;
@@ -19,6 +20,8 @@ export interface Store {
   pings: TripPing[];
   tasks: Task[];
   issues: Issue[];
+  vehicleInspections: VehicleInspection[];
+  fuelLogs: FuelLogEntry[];
   leave: LeaveSummary;
   profile: Profile;
   persistAttendance(): Promise<void>;
@@ -55,6 +58,7 @@ export async function createStore(): Promise<Store> {
     dashboardBase: clone(seed.dashboardBase),
     roleCards: clone(seed.roleCards),
     route: clone(seed.route),
+    busId: seed.busId,
     students: clone(seed.students),
     conductorName: seed.conductorName,
     currentTrip,
@@ -62,6 +66,8 @@ export async function createStore(): Promise<Store> {
     pings: [],
     tasks: clone(seed.tasks),
     issues: [],
+    vehicleInspections: [],
+    fuelLogs: [],
     leave,
     profile: clone(seed.profile),
     async persistTrip() {

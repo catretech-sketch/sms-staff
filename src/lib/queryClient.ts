@@ -26,4 +26,6 @@ export const queryKeys = {
   issues: (tenantId: string) => ['issues', tenantId] as const,
   leave: (tenantId: string) => ['leave', tenantId] as const,
   profile: (tenantId: string) => ['profile', tenantId] as const,
+  vehicleInspections: (busId: string) => ['vehicleChecks', 'inspections', busId] as const,
+  fuelLogs: (busId: string) => ['vehicleChecks', 'fuelLogs', busId] as const,
 };

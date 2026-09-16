@@ -65,6 +65,7 @@ export interface TripSummary {
 
 export interface TripAssignment {
   route: Route;
+  busId: string;
   busNo: string;
   conductorName?: string | null;
 }

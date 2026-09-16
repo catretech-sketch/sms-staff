@@ -8,6 +8,7 @@ import { ProfileScreen } from '@/screens/ProfileScreen';
 import { AttendanceScreen } from '@/screens/AttendanceScreen';
 import { TripScreen } from '@/screens/TripScreen';
 import { IssuesScreen } from '@/screens/IssuesScreen';
+import { VehicleCheckScreen } from '@/screens/VehicleCheckScreen';
 import { LiveMapScreen } from '@/screens/LiveMapScreen';
 import { TabBar } from '@/components/ui';
 import type { MainStackParamList, MainTabParamList } from './types';
@@ -48,6 +49,11 @@ export const MainTabNavigator = () => (
     <Stack.Screen
       name="Issues"
       component={IssuesScreen}
+      options={{ presentation: 'card', animation: 'slide_from_right' }}
+    />
+    <Stack.Screen
+      name="VehicleCheck"
+      component={VehicleCheckScreen}
       options={{ presentation: 'card', animation: 'slide_from_right' }}
     />
     <Stack.Screen

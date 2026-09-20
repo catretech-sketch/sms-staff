@@ -165,6 +165,7 @@
   "trip.viewStudents": "மாணவர்களைப் பார்",
   "trip.stopArrived": "வந்துவிட்டேன்",
   "trip.markPickedUp": "மாணவர்களை ஏற்றியதாக குறிக்கவும்",
+  "trip.arrivedManualFallback": "நான் வந்துவிட்டேன்",
   "trip.pickedUpCount": "{{n}} ஏற்றப்பட்டனர்",
   "trip.remainingCount": "{{n}} மீதம்",
   "trip.stopCompletedConfirm": "{{name}} — அனைவரும் ஏற்றப்பட்டனர்",

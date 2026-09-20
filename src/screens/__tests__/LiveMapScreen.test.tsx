@@ -228,4 +228,31 @@ describe('LiveMapScreen', () => {
     expect(await findByTestId('stop-completed-confirm')).toHaveTextContent('Market', { exact: false });
     await waitFor(() => expect(queryByTestId('stop-completed-confirm')).toBeNull(), { timeout: 5000 });
   });
+
+  it('shows a manual "I\'ve arrived" fallback button and advances pickup state when GPS is unavailable', async () => {
+    const Location = require('expo-location');
+    Location.requestForegroundPermissionsAsync.mockResolvedValueOnce({ status: 'denied' });
+    const { getByTestId } = render(
+      <ThemeProvider>
+        <ToastProvider>
+          <LiveMapScreen navigation={{ goBack: jest.fn() }} route={{ params: { tripId: 't1' } }} />
+        </ToastProvider>
+      </ThemeProvider>
+    );
+    const arrivedBtn = await waitFor(() => getByTestId('manual-arrived-btn'));
+    fireEvent.press(arrivedBtn);
+    expect(await waitFor(() => getByTestId('mark-picked-up-btn'))).toBeTruthy();
+  });
+
+  it('does not show the manual "I\'ve arrived" fallback button when GPS is available', async () => {
+    const { getByTestId, queryByTestId } = render(
+      <ThemeProvider>
+        <ToastProvider>
+          <LiveMapScreen navigation={{ goBack: jest.fn() }} route={{ params: { tripId: 't1' } }} />
+        </ToastProvider>
+      </ThemeProvider>
+    );
+    await waitFor(() => expect(getByTestId('has-live-marker')).toBeTruthy());
+    expect(queryByTestId('manual-arrived-btn')).toBeNull();
+  });
 });

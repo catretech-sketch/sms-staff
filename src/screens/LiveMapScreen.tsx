@@ -49,6 +49,7 @@ export const LiveMapScreen = ({ navigation, route }: { navigation: any; route: {
   const [justCompletedStopName, setJustCompletedStopName] = useState<string | null>(null);
   const [bottomCardHeight, setBottomCardHeight] = useState(0);
   const [mapReady, setMapReady] = useState(false);
+  const [gpsUnavailable, setGpsUnavailable] = useState(false);
 
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 1000);
@@ -64,6 +65,7 @@ export const LiveMapScreen = ({ navigation, route }: { navigation: any; route: {
       if (cancelled) return;
       if (status !== 'granted') {
         toast.show(t('trip.locationDenied'), 'error');
+        if (!cancelled) setGpsUnavailable(true);
         return;
       }
       try {
@@ -89,6 +91,7 @@ export const LiveMapScreen = ({ navigation, route }: { navigation: any; route: {
         }
       } catch {
         // GPS unavailable — leave liveMarker null, route/stops still render.
+        if (!cancelled) setGpsUnavailable(true);
       }
     })();
 
@@ -253,6 +256,16 @@ export const LiveMapScreen = ({ navigation, route }: { navigation: any; route: {
                 </Text>
               </View>
             </View>
+            {gpsUnavailable && progress.state === 'EN_ROUTE' && (
+              <Btn
+                testID="manual-arrived-btn"
+                label={t('trip.arrivedManualFallback')}
+                icon="location"
+                variant="ghost"
+                onPress={progress.markArrivedManually}
+                style={styles.markPickedUpBtn}
+              />
+            )}
             {progress.state === 'PICKUP_IN_PROGRESS' && (
               <>
                 <Text testID="pickup-progress-summary" style={[TextScale.caption, { color: colors.inkSoft, marginTop: 8 }]}>

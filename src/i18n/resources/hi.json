@@ -165,6 +165,7 @@
   "trip.viewStudents": "छात्र देखें",
   "trip.stopArrived": "पहुंच गए",
   "trip.markPickedUp": "छात्रों को पिकअप किया गया चिह्नित करें",
+  "trip.arrivedManualFallback": "मैं पहुंच गया हूं",
   "trip.pickedUpCount": "{{n}} पिकअप हुए",
   "trip.remainingCount": "{{n}} शेष",
   "trip.stopCompletedConfirm": "{{name}} — सभी पिकअप हो गए",

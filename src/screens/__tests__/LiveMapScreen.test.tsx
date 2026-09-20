@@ -213,20 +213,28 @@ describe('LiveMapScreen', () => {
       { id: 's1', name: 'Gate', lat: 12.1, lng: 77.1, seq: 1 },
       { id: 's2', name: 'Market', lat: 12.11, lng: 77.11, seq: 2 },
     ];
-    const { findByTestId, queryByTestId } = render(
-      <ThemeProvider>
-        <ToastProvider>
-          <LiveMapScreen navigation={{ goBack: jest.fn() }} route={{ params: { tripId: 't1' } }} />
-        </ToastProvider>
-      </ThemeProvider>
-    );
-    const markBtn = await findByTestId('mark-picked-up-btn');
-    fireEvent.press(markBtn);
-    expect(mockBoarding.setBoarding.mutate).toHaveBeenCalledWith(
-      expect.objectContaining({ tripId: 't1', studentId: 'st1', stopId: 's2', state: 'boarded' })
-    );
-    expect(await findByTestId('stop-completed-confirm')).toHaveTextContent('Market', { exact: false });
-    await waitFor(() => expect(queryByTestId('stop-completed-confirm')).toBeNull(), { timeout: 5000 });
+    jest.useFakeTimers();
+    try {
+      const { findByTestId, queryByTestId } = render(
+        <ThemeProvider>
+          <ToastProvider>
+            <LiveMapScreen navigation={{ goBack: jest.fn() }} route={{ params: { tripId: 't1' } }} />
+          </ToastProvider>
+        </ThemeProvider>
+      );
+      const markBtn = await findByTestId('mark-picked-up-btn');
+      fireEvent.press(markBtn);
+      expect(mockBoarding.setBoarding.mutate).toHaveBeenCalledWith(
+        expect.objectContaining({ tripId: 't1', studentId: 'st1', stopId: 's2', state: 'boarded' })
+      );
+      expect(await findByTestId('stop-completed-confirm')).toHaveTextContent('Market', { exact: false });
+      await act(async () => {
+        jest.advanceTimersByTime(1200);
+      });
+      expect(queryByTestId('stop-completed-confirm')).toBeNull();
+    } finally {
+      jest.useRealTimers();
+    }
   });
 
   it('does not overwrite a student already marked "absent" when "Mark Students Picked Up" is pressed, but still boards a student with no record', async () => {

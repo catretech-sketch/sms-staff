@@ -32,6 +32,14 @@ const RosterPanel: React.FC<{ tripId: string; accent: string }> = ({ tripId, acc
         <Text style={[TextScale.cardTitle, { color: accent }]}>{t('trip.roster')}</Text>
         <Text testID="headcount" style={[TextScale.bodyStrong, { color: colors.ink }]}>{`${onBoard} / ${total}`}</Text>
       </View>
+      <View
+        testID="roster-progress"
+        accessibilityRole="progressbar"
+        accessibilityValue={{ min: 0, max: total, now: onBoard }}
+        style={[styles.progressTrack, { backgroundColor: colors.sunken }]}
+      >
+        <View style={[styles.progressFill, { backgroundColor: accent, width: total > 0 ? `${(onBoard / total) * 100}%` : '0%' }]} />
+      </View>
       {roster.data?.map((s) => {
         const st = stateFor(s.id);
         const color = st === 'boarded' ? colors.success : st === 'dropped' ? colors.inkSoft : colors.danger;
@@ -253,6 +261,8 @@ const styles = StyleSheet.create({
   segBtn: { flex: 1, alignItems: 'center', paddingVertical: 14, borderRadius: 14, borderWidth: 1.5 },
   cta: { marginTop: 4 },
   rosterHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+  progressTrack: { height: 8, borderRadius: 8, overflow: 'hidden', marginBottom: 10 },
+  progressFill: { height: '100%', borderRadius: 8 },
   rosterRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, borderTopWidth: 1 },
   noRoute: { alignItems: 'center', gap: 8, paddingVertical: 24 },
   dutyGrid: { flexDirection: 'row', gap: 20, marginTop: 12, paddingTop: 12, borderTopWidth: StyleSheet.hairlineWidth },

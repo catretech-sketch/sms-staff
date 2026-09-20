@@ -68,6 +68,24 @@ it('shows the roster panel to a driver once a trip is started', async () => {
   expect(getByTestId('headcount')).toBeTruthy();
 });
 
+it('shows a pickup progress bar that tracks boarded students', async () => {
+  const { getByTestId, findByText, repos } = await renderScreen();
+  await findByText(/Route 7/);
+  fireEvent.press(getByTestId('trip-start'));
+  await waitFor(() => expect(getByTestId('trip-end')).toBeTruthy());
+
+  const trip = await repos.trip.current();
+  const roster = await repos.trip.roster(trip!.id);
+  await waitFor(() =>
+    expect(getByTestId('roster-progress').props.accessibilityValue).toEqual({ min: 0, max: roster.length, now: 0 }),
+  );
+
+  fireEvent.press(getByTestId(`roster-${roster[0].id}`));
+  await waitFor(() =>
+    expect(getByTestId('roster-progress').props.accessibilityValue).toEqual({ min: 0, max: roster.length, now: 1 }),
+  );
+});
+
 it('navigates to LiveMap with the current tripId when "View Live Map" is pressed', async () => {
   const { getByTestId, findByText, nav, repos } = await renderScreen();
   await findByText(/Route 7/);

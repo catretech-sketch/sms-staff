@@ -33,7 +33,10 @@ const mockAssignment = {
   refetch: jest.fn(),
 };
 const mockCurrent = { data: { id: 't1', routeId: 'r1', busNo: 'KA-01', driverId: 'd1', direction: 'pickup', status: 'live' }, isLoading: false };
-const mockRoster = { data: [] as any[] };
+// s2 (Market) has one assigned student, unresolved — that's what makes it
+// the "active" stop under findActiveStop's derivation (s1/Gate has none,
+// so it's vacuously resolved and skipped).
+const mockRoster = { data: [{ id: 'st1', name: 'Riya', stopId: 's2' }] as any[] };
 const mockBoarding = { data: [] as any[], setBoarding: { mutate: jest.fn() } };
 
 jest.mock('@/features/trip/hooks', () => ({
@@ -179,5 +182,21 @@ describe('LiveMapScreen', () => {
     // Now let watchPositionAsync resolve with a live subscription.
     resolveWatch!({ remove: removeMock });
     await waitFor(() => expect(removeMock).toHaveBeenCalledTimes(1));
+  });
+
+  it('shows the active stop (s2) rather than the GPS-nearest stop (s1)', async () => {
+    // The GPS mock resolves near s1 (Gate), but s1 has no assigned students
+    // (vacuously resolved), so s2 (Market) — which has an unresolved
+    // student — must be the one shown, not s1.
+    const { getByTestId, getByText, queryByText } = render(
+      <ThemeProvider>
+        <ToastProvider>
+          <LiveMapScreen navigation={{ goBack: jest.fn() }} route={{ params: { tripId: 't1' } }} />
+        </ToastProvider>
+      </ThemeProvider>
+    );
+    await waitFor(() => expect(getByTestId('has-live-marker')).toBeTruthy());
+    expect(getByText('Market')).toBeTruthy();
+    expect(queryByText('Gate')).toBeNull();
   });
 });

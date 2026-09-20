@@ -9,6 +9,7 @@ import { ErrorState } from '@/components/state';
 import { TextScale } from '@/theme/typography';
 import { useTripAssignment, useCurrentTrip, useRoster, useBoarding } from '@/features/trip/hooks';
 import { useRouteGeometry } from '@/features/trip/useRouteGeometry';
+import { useStopProgress } from '@/features/trip/useStopProgress';
 import { LiveMapView } from '@/features/map/LiveMapView';
 import { toMapCoords } from '@/features/map/toMapCoords';
 import { stopRoles } from '@/features/map/stopRoles';
@@ -105,15 +106,16 @@ export const LiveMapScreen = ({ navigation, route }: { navigation: any; route: {
 
   const stops = useMemo(() => assignment.data?.route.stops ?? [], [assignment.data]);
   const roles = useMemo(() => stopRoles(stops, liveMarker), [stops, liveMarker]);
-  const nextStop = useMemo(() => roles.find((r) => r.role === 'next')?.stop ?? null, [roles]);
+  const progress = useStopProgress(stops, roster.data ?? [], boarding.data ?? [], liveMarker);
+  const activeStop = progress.activeStop;
   const stopStudents = useMemo(
-    () => (nextStop ? roster.data?.filter((s) => s.stopId === nextStop.id) ?? [] : []),
-    [nextStop, roster.data]
+    () => (activeStop ? roster.data?.filter((s) => s.stopId === activeStop.id) ?? [] : []),
+    [activeStop, roster.data]
   );
 
   const distanceM = useMemo(
-    () => (nextStop && liveMarker ? distanceMeters({ lat: liveMarker.latitude, lng: liveMarker.longitude }, { lat: nextStop.lat, lng: nextStop.lng }) : null),
-    [nextStop, liveMarker]
+    () => (activeStop && liveMarker ? distanceMeters({ lat: liveMarker.latitude, lng: liveMarker.longitude }, { lat: activeStop.lat, lng: activeStop.lng }) : null),
+    [activeStop, liveMarker]
   );
   const distanceLabel =
     distanceM == null
@@ -217,12 +219,12 @@ export const LiveMapScreen = ({ navigation, route }: { navigation: any; route: {
           )}
         </View>
 
-        {nextStop && (
+        {activeStop && (
           <View style={styles.nextStopCard}>
             <View style={styles.nextStopHead}>
               <View style={styles.nextStopInfo}>
                 <Text style={[TextScale.caption, { color: colors.inkSoft }]}>{t('trip.nextStop')}</Text>
-                <Text style={[TextScale.cardTitle, { color: colors.ink }]}>{nextStop.name}</Text>
+                <Text style={[TextScale.cardTitle, { color: colors.ink }]}>{activeStop.name}</Text>
                 <Text style={[TextScale.caption, { color: colors.inkSoft }]}>
                   {t('trip.studentsExpected', { count: stopStudents.length })}
                   {distanceLabel ? ` · ${distanceLabel}` : ''}

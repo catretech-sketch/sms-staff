@@ -71,3 +71,14 @@ export interface TripAssignment {
   shift?: string;
   studentsAssigned: number;
 }
+
+export interface RouteGeometry {
+  routeId: string;
+  status: 'available' | 'unavailable';
+  format: string | null;
+  geometry: string | null;
+  distanceMeters: number | null;
+  durationSeconds: number | null;
+  stopSequenceHash: string;
+  generatedAt: string | null;
+}

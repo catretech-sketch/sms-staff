@@ -1,6 +1,6 @@
 import type {
   Session, Staff, Dashboard, Attendance, SchoolLocation,
-  TripAssignment, Trip, TripPing, TripSummary, StudentLite, Boarding, TripDirection,
+  TripAssignment, Trip, TripPing, TripSummary, StudentLite, Boarding, TripDirection, RouteGeometry,
   Task,
   LeaveSummary, LeaveRequest, NewLeaveRequest,
   Profile,
@@ -81,4 +81,9 @@ export interface Repositories {
   leave: LeaveRepository;
   profile: ProfileRepository;
   vehicleChecks: VehicleChecksRepository;
+  routeGeometry: RouteGeometryRepository;
+}
+
+export interface RouteGeometryRepository {
+  get(routeId: string): Promise<RouteGeometry>;
 }

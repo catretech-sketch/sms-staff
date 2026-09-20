@@ -69,9 +69,14 @@ jest.mock('@/features/map/LiveMapView', () => {
 });
 
 describe('LiveMapScreen', () => {
+  const originalStops = mockAssignment.data.route.stops;
+
   beforeEach(() => {
     mockMapHandle.animateToRegion.mockClear();
     mockMapHandle.fitToCoordinates.mockClear();
+    mockAssignment.data.route.stops = originalStops;
+    mockRoster.data = [{ id: 'st1', name: 'Riya', stopId: 's2' }];
+    mockBoarding.data = [];
   });
 
   it('renders a compact header with the bus number, direction, route name and a LIVE status pill', async () => {
@@ -198,5 +203,29 @@ describe('LiveMapScreen', () => {
     await waitFor(() => expect(getByTestId('has-live-marker')).toBeTruthy());
     expect(getByText('Market')).toBeTruthy();
     expect(queryByText('Gate')).toBeNull();
+  });
+
+  it('marks every unresolved student at the active stop as boarded and shows a brief confirmation when "Mark Students Picked Up" is pressed', async () => {
+    // GPS mock resolves at (12.11, 77.11) — within 50m of s2's own coordinates
+    // in this test's fixture, so override mockAssignment's s2 to sit right there.
+    // beforeEach restores the original stops array before the next test runs.
+    mockAssignment.data.route.stops = [
+      { id: 's1', name: 'Gate', lat: 12.1, lng: 77.1, seq: 1 },
+      { id: 's2', name: 'Market', lat: 12.11, lng: 77.11, seq: 2 },
+    ];
+    const { findByTestId, queryByTestId } = render(
+      <ThemeProvider>
+        <ToastProvider>
+          <LiveMapScreen navigation={{ goBack: jest.fn() }} route={{ params: { tripId: 't1' } }} />
+        </ToastProvider>
+      </ThemeProvider>
+    );
+    const markBtn = await findByTestId('mark-picked-up-btn');
+    fireEvent.press(markBtn);
+    expect(mockBoarding.setBoarding.mutate).toHaveBeenCalledWith(
+      expect.objectContaining({ tripId: 't1', studentId: 'st1', stopId: 's2', state: 'boarded' })
+    );
+    expect(await findByTestId('stop-completed-confirm')).toHaveTextContent('Market', { exact: false });
+    await waitFor(() => expect(queryByTestId('stop-completed-confirm')).toBeNull(), { timeout: 5000 });
   });
 });

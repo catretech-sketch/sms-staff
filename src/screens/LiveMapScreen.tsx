@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import * as Location from 'expo-location';
 import { useTheme } from '@/theme';
-import { IconBtn, Pill, Skeleton, useToast } from '@/components/ui';
+import { IconBtn, Btn, Pill, Skeleton, useToast } from '@/components/ui';
 import { ErrorState } from '@/components/state';
 import { TextScale } from '@/theme/typography';
 import { useTripAssignment, useCurrentTrip, useRoster, useBoarding } from '@/features/trip/hooks';
@@ -46,6 +46,7 @@ export const LiveMapScreen = ({ navigation, route }: { navigation: any; route: {
   const [lastPingAt, setLastPingAt] = useState<number | null>(null);
   const [now, setNow] = useState(() => Date.now());
   const [showStudents, setShowStudents] = useState(false);
+  const [justCompletedStopName, setJustCompletedStopName] = useState<string | null>(null);
   const [bottomCardHeight, setBottomCardHeight] = useState(0);
   const [mapReady, setMapReady] = useState(false);
 
@@ -150,6 +151,19 @@ export const LiveMapScreen = ({ navigation, route }: { navigation: any; route: {
     );
   };
 
+  const onMarkPickedUp = () => {
+    if (!activeStop) return;
+    const completedName = activeStop.name;
+    stopStudents.forEach((s) => {
+      const current = boarding.data?.find((b) => b.studentId === s.id)?.state ?? 'absent';
+      if (current !== 'boarded') {
+        boarding.setBoarding.mutate({ tripId, studentId: s.id, stopId: s.stopId, state: 'boarded', at: new Date().toISOString() });
+      }
+    });
+    setJustCompletedStopName(completedName);
+    setTimeout(() => setJustCompletedStopName(null), 1200);
+  };
+
   return (
     <View style={styles.fill}>
       <View style={styles.map}>
@@ -200,6 +214,11 @@ export const LiveMapScreen = ({ navigation, route }: { navigation: any; route: {
         style={[styles.bottom, { paddingBottom: insets.bottom + 12, backgroundColor: colors.surface, ...colors.shadowLg }]}
         onLayout={(e) => setBottomCardHeight(e.nativeEvent.layout.height)}
       >
+        {justCompletedStopName && (
+          <Text testID="stop-completed-confirm" style={[TextScale.caption, { color: colors.success }]}>
+            {t('trip.stopCompletedConfirm', { name: justCompletedStopName })}
+          </Text>
+        )}
         <View style={styles.statusRow}>
           <Pill testID="gps-status-pill-bottom" label={statusLabel} color={statusColor} bg={statusBg} />
           {liveMarker?.speedKmh != null && (
@@ -223,7 +242,9 @@ export const LiveMapScreen = ({ navigation, route }: { navigation: any; route: {
           <View style={styles.nextStopCard}>
             <View style={styles.nextStopHead}>
               <View style={styles.nextStopInfo}>
-                <Text style={[TextScale.caption, { color: colors.inkSoft }]}>{t('trip.nextStop')}</Text>
+                <Text style={[TextScale.caption, { color: colors.inkSoft }]}>
+                  {progress.state === 'PICKUP_IN_PROGRESS' ? t('trip.stopArrived') : t('trip.nextStop')}
+                </Text>
                 <Text style={[TextScale.cardTitle, { color: colors.ink }]}>{activeStop.name}</Text>
                 <Text style={[TextScale.caption, { color: colors.inkSoft }]}>
                   {t('trip.studentsExpected', { count: stopStudents.length })}
@@ -232,6 +253,24 @@ export const LiveMapScreen = ({ navigation, route }: { navigation: any; route: {
                 </Text>
               </View>
             </View>
+            {progress.state === 'PICKUP_IN_PROGRESS' && (
+              <>
+                <Text testID="pickup-progress-summary" style={[TextScale.caption, { color: colors.inkSoft, marginTop: 8 }]}>
+                  {t('home.studentsAssigned', { n: progress.assignedCount })}
+                  {' · '}
+                  {t('trip.pickedUpCount', { n: progress.pickedUpCount })}
+                  {' · '}
+                  {t('trip.remainingCount', { n: progress.remainingCount })}
+                </Text>
+                <Btn
+                  testID="mark-picked-up-btn"
+                  label={t('trip.markPickedUp')}
+                  icon="check"
+                  onPress={onMarkPickedUp}
+                  style={styles.markPickedUpBtn}
+                />
+              </>
+            )}
             <Pressable
               testID="view-students-btn"
               onPress={() => setShowStudents((v) => !v)}
@@ -298,6 +337,7 @@ const styles = StyleSheet.create({
   nextStopHead: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 },
   nextStopInfo: { flex: 1, gap: 2 },
   viewStudentsBtn: { marginTop: 10, borderWidth: 1.5, borderRadius: 14, paddingVertical: 12, alignItems: 'center' },
+  markPickedUpBtn: { marginTop: 10 },
   studentList: { marginTop: 8 },
   studentRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, borderTopWidth: 1 },
 });

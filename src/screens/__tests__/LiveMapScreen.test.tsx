@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, waitFor, fireEvent } from '@testing-library/react-native';
+import { render, waitFor, fireEvent, act } from '@testing-library/react-native';
 import { ThemeProvider } from '@/theme';
 import { ToastProvider } from '@/components/ui';
 import { LiveMapScreen } from '@/screens/LiveMapScreen';
@@ -229,6 +229,35 @@ describe('LiveMapScreen', () => {
     await waitFor(() => expect(queryByTestId('stop-completed-confirm')).toBeNull(), { timeout: 5000 });
   });
 
+  it('does not overwrite a student already marked "absent" when "Mark Students Picked Up" is pressed, but still boards a student with no record', async () => {
+    mockAssignment.data.route.stops = [
+      { id: 's1', name: 'Gate', lat: 12.1, lng: 77.1, seq: 1 },
+      { id: 's2', name: 'Market', lat: 12.11, lng: 77.11, seq: 2 },
+    ];
+    mockRoster.data = [
+      { id: 'st1', name: 'Riya', stopId: 's2' },
+      { id: 'st2', name: 'Kabir', stopId: 's2' },
+    ];
+    mockBoarding.data = [
+      { tripId: 't1', studentId: 'st2', stopId: 's2', state: 'absent', at: '2026-09-20T00:00:00Z' },
+    ];
+    const { findByTestId } = render(
+      <ThemeProvider>
+        <ToastProvider>
+          <LiveMapScreen navigation={{ goBack: jest.fn() }} route={{ params: { tripId: 't1' } }} />
+        </ToastProvider>
+      </ThemeProvider>
+    );
+    const markBtn = await findByTestId('mark-picked-up-btn');
+    fireEvent.press(markBtn);
+    expect(mockBoarding.setBoarding.mutate).toHaveBeenCalledWith(
+      expect.objectContaining({ tripId: 't1', studentId: 'st1', stopId: 's2', state: 'boarded' })
+    );
+    expect(mockBoarding.setBoarding.mutate).not.toHaveBeenCalledWith(
+      expect.objectContaining({ studentId: 'st2' })
+    );
+  });
+
   it('shows a manual "I\'ve arrived" fallback button and advances pickup state when GPS is unavailable', async () => {
     const Location = require('expo-location');
     Location.requestForegroundPermissionsAsync.mockResolvedValueOnce({ status: 'denied' });
@@ -254,6 +283,40 @@ describe('LiveMapScreen', () => {
     );
     await waitFor(() => expect(getByTestId('has-live-marker')).toBeTruthy());
     expect(queryByTestId('manual-arrived-btn')).toBeNull();
+  });
+
+  it('shows the manual "I\'ve arrived" fallback after a timeout when GPS permission is granted but no fix ever arrives', async () => {
+    jest.useFakeTimers();
+    try {
+      const Location = require('expo-location');
+      Location.watchPositionAsync.mockImplementationOnce(async (_opts: any, _cb: any) => {
+        // Resolves successfully but never invokes the position callback —
+        // simulates a subscription that never delivers a fix.
+        return { remove: jest.fn() };
+      });
+      const { queryByTestId } = render(
+        <ThemeProvider>
+          <ToastProvider>
+            <LiveMapScreen navigation={{ goBack: jest.fn() }} route={{ params: { tripId: 't1' } }} />
+          </ToastProvider>
+        </ThemeProvider>
+      );
+
+      // Let the permission/subscribe promise chain resolve before advancing timers.
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      expect(queryByTestId('manual-arrived-btn')).toBeNull();
+
+      await act(async () => {
+        jest.advanceTimersByTime(15000);
+      });
+
+      expect(queryByTestId('manual-arrived-btn')).toBeTruthy();
+    } finally {
+      jest.useRealTimers();
+    }
   });
 
   it('opens the device maps app with the active stop\'s coordinates when Navigate is pressed', async () => {

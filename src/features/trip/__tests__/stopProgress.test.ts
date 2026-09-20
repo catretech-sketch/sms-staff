@@ -48,6 +48,15 @@ describe('findActiveStop', () => {
   it('returns null for an empty stop list', () => {
     expect(findActiveStop([], [], [])).toBeNull();
   });
+
+  it('treats an explicit "absent" record as resolved, so the route can still complete', () => {
+    const boarding: Boarding[] = [
+      { tripId: 't1', studentId: 'st1', stopId: 's1', state: 'absent', at: '2026-09-20T00:00:00Z' },
+      { tripId: 't1', studentId: 'st2', stopId: 's2', state: 'boarded', at: '2026-09-20T00:00:00Z' },
+      { tripId: 't1', studentId: 'st3', stopId: 's2', state: 'absent', at: '2026-09-20T00:00:00Z' },
+    ];
+    expect(findActiveStop(stops, roster, boarding)).toBeNull();
+  });
 });
 
 describe('countPickup', () => {

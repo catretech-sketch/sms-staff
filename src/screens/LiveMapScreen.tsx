@@ -12,7 +12,6 @@ import { useRouteGeometry } from '@/features/trip/useRouteGeometry';
 import { useStopProgress } from '@/features/trip/useStopProgress';
 import { LiveMapView } from '@/features/map/LiveMapView';
 import { toMapCoords } from '@/features/map/toMapCoords';
-import { stopRoles } from '@/features/map/stopRoles';
 import { distanceMeters } from '@/lib/geo';
 import type { LiveMapHandle } from '@/features/map/liveMapTypes';
 import type { BoardingState } from '@/data/domain';
@@ -50,6 +49,11 @@ export const LiveMapScreen = ({ navigation, route }: { navigation: any; route: {
   const [bottomCardHeight, setBottomCardHeight] = useState(0);
   const [mapReady, setMapReady] = useState(false);
   const [gpsUnavailable, setGpsUnavailable] = useState(false);
+  const liveMarkerRef = useRef<LiveMarker | null>(null);
+
+  useEffect(() => {
+    liveMarkerRef.current = liveMarker;
+  }, [liveMarker]);
 
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 1000);
@@ -59,6 +63,15 @@ export const LiveMapScreen = ({ navigation, route }: { navigation: any; route: {
   useEffect(() => {
     let subscription: { remove: () => void } | null = null;
     let cancelled = false;
+
+    // Permission granted and the subscription started fine, but no fix ever
+    // arrives (indoors, cold start, airplane mode toggled after subscribing).
+    // Fall back to the manual "I've arrived" flow after a reasonable wait.
+    const noFixTimeout = setTimeout(() => {
+      if (!cancelled && liveMarkerRef.current == null) {
+        setGpsUnavailable(true);
+      }
+    }, 15000);
 
     (async () => {
       const { status } = await Location.requestForegroundPermissionsAsync();
@@ -97,6 +110,7 @@ export const LiveMapScreen = ({ navigation, route }: { navigation: any; route: {
 
     return () => {
       cancelled = true;
+      clearTimeout(noFixTimeout);
       subscription?.remove();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -109,7 +123,6 @@ export const LiveMapScreen = ({ navigation, route }: { navigation: any; route: {
   const statusLabel = t(`trip.${gpsStatus === 'live' ? 'live' : gpsStatus}`);
 
   const stops = useMemo(() => assignment.data?.route.stops ?? [], [assignment.data]);
-  const roles = useMemo(() => stopRoles(stops, liveMarker), [stops, liveMarker]);
   const progress = useStopProgress(stops, roster.data ?? [], boarding.data ?? [], liveMarker);
   const activeStop = progress.activeStop;
   const stopStudents = useMemo(
@@ -158,8 +171,8 @@ export const LiveMapScreen = ({ navigation, route }: { navigation: any; route: {
     if (!activeStop) return;
     const completedName = activeStop.name;
     stopStudents.forEach((s) => {
-      const current = boarding.data?.find((b) => b.studentId === s.id)?.state ?? 'absent';
-      if (current !== 'boarded') {
+      const hasRecord = boarding.data?.some((b) => b.studentId === s.id);
+      if (!hasRecord) {
         boarding.setBoarding.mutate({ tripId, studentId: s.id, stopId: s.stopId, state: 'boarded', at: new Date().toISOString() });
       }
     });

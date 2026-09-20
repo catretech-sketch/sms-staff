@@ -6,7 +6,7 @@ export interface StopPickupCounts {
   remainingCount: number;
 }
 
-const RESOLVED_STATES = ['boarded', 'dropped'] as const;
+const RESOLVED_STATES = ['boarded', 'dropped', 'absent'] as const;
 
 function isStopResolved(stop: Stop, roster: StudentLite[], boarding: Boarding[]): boolean {
   const assigned = roster.filter((s) => s.stopId === stop.id);

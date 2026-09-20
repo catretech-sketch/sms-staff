@@ -103,6 +103,12 @@ describe('http repositories', () => {
     expect(calls[0]).toEqual({ method: 'POST', path: '/auth/set-password', body: { password: 'hunter2222' } });
   });
 
+  it('auth.logout posts the refresh_token in the body (backend requires it)', async () => {
+    const { http, calls } = fakeHttp({ 'POST /auth/logout': {} });
+    await httpAuth(http).logout('r-token');
+    expect(calls[0]).toEqual({ method: 'POST', path: '/auth/logout', body: { refresh_token: 'r-token' } });
+  });
+
   it('dashboard.get fetches and maps', async () => {
     const { http } = fakeHttp({
       'GET /staff/dashboard': {

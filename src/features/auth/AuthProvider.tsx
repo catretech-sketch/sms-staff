@@ -137,14 +137,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // sitting valid for their full TTL — don't await it (a cancel action must
     // not block on the network) and swallow any failure (cancelling must
     // always succeed locally regardless of network state).
-    void repos.auth.logout().catch(() => {});
+    void repos.auth.logout(pendingPasswordSetup?.refreshToken ?? null).catch(() => {});
     authSnapshot.clear();
     setPendingPasswordSetup(null);
-  }, [repos]);
+  }, [repos, pendingPasswordSetup]);
 
   const signOut = useCallback(async () => {
     try {
-      await repos.auth.logout();
+      await repos.auth.logout(session?.refreshToken ?? null);
     } finally {
       await tokenStore.clear();
       await asyncStore.remove(SESSION_KEY);
@@ -154,7 +154,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setPendingPasswordSetup(null);
       setStatus('unauthenticated');
     }
-  }, [repos]);
+  }, [repos, session]);
 
   const value = useMemo<AuthValue>(
     () => ({

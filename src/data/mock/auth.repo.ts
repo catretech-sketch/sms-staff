@@ -51,7 +51,7 @@ export function mockAuth(store: Store): AuthRepository {
       await simulateLatency();
       return { ...store.session.user };
     },
-    async logout() {
+    async logout(_refreshToken) {
       await simulateLatency();
     },
   };

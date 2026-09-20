@@ -50,6 +50,9 @@ export function httpAuth(http: HttpClient): AuthRepository {
       const me = meSchema.parse(await http.get('/auth/me'));
       return toStaffFromMe(me, previous?.roleKey ?? 'driver', previous);
     },
-    logout: () => http.post<void>('/auth/logout'),
+    // The backend's [FromBody] RefreshRequest is required — posting with no
+    // body 415s. Without a refresh token there's nothing to revoke server-side.
+    logout: (refreshToken) =>
+      refreshToken ? http.post<void>('/auth/logout', { refresh_token: refreshToken }) : Promise.resolve(),
   };
 }

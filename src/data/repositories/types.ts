@@ -21,7 +21,7 @@ export interface AuthRepository {
   setPassword(password: string): Promise<void>;
   refresh(refreshToken: string): Promise<Session>;
   me(previous?: Staff): Promise<Staff>;
-  logout(): Promise<void>;
+  logout(refreshToken: string | null): Promise<void>;
 }
 
 export interface DashboardRepository {

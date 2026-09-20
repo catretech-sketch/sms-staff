@@ -37,3 +37,6 @@ yarn-error.*
 
 # git worktrees (scratch)
 .worktrees/
+
+# superpowers scratch workspaces (SDD ledgers, brainstorm server state/tokens)
+.superpowers/

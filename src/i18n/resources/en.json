@@ -137,6 +137,7 @@
   "trip.lastFuelEntry": "Last fuel entry: {{date}}",
   "trip.noneYet": "None yet",
   "trip.vehicleDetails": "Vehicle Details",
+  "trip.viewRouteMap": "View Route Map",
   "trip.safetyHint": "Daily inspection required before starting your route.",
   "trip.dir.pickup": "Pickup",
   "trip.dir.drop": "Drop",

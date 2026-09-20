@@ -10,6 +10,7 @@ export type MainStackParamList = {
   Issues: undefined;
   VehicleCheck: undefined;
   LiveMap: { tripId: string };
+  RoutePreview: undefined;
 };
 
 export type MainTabParamList = {

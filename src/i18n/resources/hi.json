@@ -137,6 +137,7 @@
   "trip.lastFuelEntry": "अंतिम ईंधन प्रविष्टि: {{date}}",
   "trip.noneYet": "अभी तक कोई नहीं",
   "trip.vehicleDetails": "वाहन विवरण",
+  "trip.viewRouteMap": "रूट मैप देखें",
   "trip.safetyHint": "रूट शुरू करने से पहले दैनिक निरीक्षण आवश्यक है।",
   "trip.dir.pickup": "पिकअप",
   "trip.dir.drop": "ड्रॉप",

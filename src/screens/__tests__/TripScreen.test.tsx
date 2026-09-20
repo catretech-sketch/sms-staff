@@ -86,6 +86,13 @@ it('shows a pickup progress bar that tracks boarded students', async () => {
   );
 });
 
+it('navigates to RoutePreview when "View Route Map" is pressed pre-trip', async () => {
+  const { getByTestId, findByText, nav } = await renderScreen();
+  await findByText(/Route 7/);
+  fireEvent.press(getByTestId('trip-view-route-map'));
+  expect(nav.navigate).toHaveBeenCalledWith('RoutePreview');
+});
+
 it('shows a static pre-trip student pickup count with no roster data yet', async () => {
   const { getByTestId, findByText } = await renderScreen();
   await findByText(/Route 7/);

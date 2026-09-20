@@ -10,6 +10,7 @@ import { TripScreen } from '@/screens/TripScreen';
 import { IssuesScreen } from '@/screens/IssuesScreen';
 import { VehicleCheckScreen } from '@/screens/VehicleCheckScreen';
 import { LiveMapScreen } from '@/screens/LiveMapScreen';
+import { RoutePreviewScreen } from '@/screens/RoutePreviewScreen';
 import { TabBar } from '@/components/ui';
 import type { MainStackParamList, MainTabParamList } from './types';
 
@@ -59,6 +60,11 @@ export const MainTabNavigator = () => (
     <Stack.Screen
       name="LiveMap"
       component={LiveMapScreen}
+      options={{ presentation: 'card', animation: 'slide_from_right' }}
+    />
+    <Stack.Screen
+      name="RoutePreview"
+      component={RoutePreviewScreen}
       options={{ presentation: 'card', animation: 'slide_from_right' }}
     />
   </Stack.Navigator>

@@ -255,6 +255,14 @@ export const TripScreen = ({ navigation }: { navigation: any }) => {
                     <Text style={[TextScale.body, { color: colors.ink, flex: 1 }]}>{stop.name}</Text>
                   </View>
                 ))}
+                <Btn
+                  testID="trip-view-route-map"
+                  label={t('trip.viewRouteMap')}
+                  icon="route"
+                  onPress={() => navigation.navigate('RoutePreview')}
+                  accent={accent}
+                  style={styles.cta}
+                />
               </Card>
             )}
             {(role.key === 'driver' || role.key === 'conductor') && assignment.data && (

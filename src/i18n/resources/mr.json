@@ -137,6 +137,7 @@
   "trip.lastFuelEntry": "शेवटची इंधन नोंद: {{date}}",
   "trip.noneYet": "अद्याप नाही",
   "trip.vehicleDetails": "वाहन तपशील",
+  "trip.viewRouteMap": "मार्ग नकाशा पहा",
   "trip.safetyHint": "मार्ग सुरू करण्यापूर्वी दैनंदिन तपासणी आवश्यक आहे.",
   "trip.dir.pickup": "पिकअप",
   "trip.dir.drop": "ड्रॉप",

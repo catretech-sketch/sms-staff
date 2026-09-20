@@ -137,6 +137,7 @@
   "trip.lastFuelEntry": "கடைசி எரிபொருள் பதிவு: {{date}}",
   "trip.noneYet": "இதுவரை இல்லை",
   "trip.vehicleDetails": "வாகன விவரங்கள்",
+  "trip.viewRouteMap": "வழி வரைபடத்தைக் காண்க",
   "trip.safetyHint": "பாதையைத் தொடங்குவதற்கு முன் தினசரி ஆய்வு தேவை.",
   "trip.dir.pickup": "ஏற்றம்",
   "trip.dir.drop": "இறக்கம்",

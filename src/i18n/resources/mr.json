@@ -167,6 +167,8 @@
   "trip.markPickedUp": "विद्यार्थ्यांना पिकअप केले म्हणून चिन्हांकित करा",
   "trip.arrivedManualFallback": "मी पोहोचलो आहे",
   "trip.navigate": "नेव्हिगेट करा",
+  "trip.routeCompleteTitle": "मार्ग पूर्ण झाला",
+  "trip.routeCompleteHint": "या ट्रिपचे सर्व थांबे पूर्ण झाले आहेत.",
   "trip.pickedUpCount": "{{n}} पिकअप झाले",
   "trip.remainingCount": "{{n}} शिल्लक",
   "trip.stopCompletedConfirm": "{{name}} — सर्व पिकअप झाले",

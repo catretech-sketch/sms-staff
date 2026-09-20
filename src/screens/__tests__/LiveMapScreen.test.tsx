@@ -272,4 +272,19 @@ describe('LiveMapScreen', () => {
       expect.stringContaining('destination=12.2,77.2')
     );
   });
+
+  it('shows a Route Complete summary once every stop is resolved', async () => {
+    mockBoarding.data = [
+      { tripId: 't1', studentId: 'st1', stopId: 's2', state: 'boarded', at: '2026-09-20T00:00:00Z' },
+    ];
+    const { getByText, queryByTestId } = render(
+      <ThemeProvider>
+        <ToastProvider>
+          <LiveMapScreen navigation={{ goBack: jest.fn() }} route={{ params: { tripId: 't1' } }} />
+        </ToastProvider>
+      </ThemeProvider>
+    );
+    await waitFor(() => expect(getByText('Route complete')).toBeTruthy());
+    expect(queryByTestId('mark-picked-up-btn')).toBeNull();
+  });
 });

@@ -167,6 +167,8 @@
   "trip.markPickedUp": "Mark Students Picked Up",
   "trip.arrivedManualFallback": "I've arrived",
   "trip.navigate": "Navigate",
+  "trip.routeCompleteTitle": "Route complete",
+  "trip.routeCompleteHint": "All stops on this trip are finished.",
   "trip.pickedUpCount": "{{n}} picked up",
   "trip.remainingCount": "{{n}} remaining",
   "trip.stopCompletedConfirm": "{{name}} — all picked up",

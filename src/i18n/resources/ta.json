@@ -167,6 +167,8 @@
   "trip.markPickedUp": "மாணவர்களை ஏற்றியதாக குறிக்கவும்",
   "trip.arrivedManualFallback": "நான் வந்துவிட்டேன்",
   "trip.navigate": "வழிசெலுத்து",
+  "trip.routeCompleteTitle": "வழி முடிந்தது",
+  "trip.routeCompleteHint": "இந்த பயணத்தின் அனைத்து நிறுத்தங்களும் முடிந்துவிட்டன.",
   "trip.pickedUpCount": "{{n}} ஏற்றப்பட்டனர்",
   "trip.remainingCount": "{{n}} மீதம்",
   "trip.stopCompletedConfirm": "{{name}} — அனைவரும் ஏற்றப்பட்டனர்",

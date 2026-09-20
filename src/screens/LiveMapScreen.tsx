@@ -322,6 +322,12 @@ export const LiveMapScreen = ({ navigation, route }: { navigation: any; route: {
             )}
           </View>
         )}
+        {progress.state === 'ROUTE_COMPLETED' && (
+          <View style={styles.nextStopCard}>
+            <Text style={[TextScale.cardTitle, { color: colors.ink }]}>{t('trip.routeCompleteTitle')}</Text>
+            <Text style={[TextScale.caption, { color: colors.inkSoft, marginTop: 4 }]}>{t('trip.routeCompleteHint')}</Text>
+          </View>
+        )}
       </View>
     </View>
   );

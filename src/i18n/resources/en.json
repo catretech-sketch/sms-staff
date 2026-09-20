@@ -160,6 +160,7 @@
   "trip.distanceM": "{{m}} m",
   "trip.routeSegment": "{{min}} min · {{km}} km",
   "trip.routeSegmentDistance": "{{km}} km",
+  "trip.routeUnavailable": "Route unavailable",
   "trip.nextStop": "Next stop",
   "trip.viewStudents": "View students",
   "trip.studentsExpected": "{{count}} students",

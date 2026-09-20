@@ -43,6 +43,10 @@ jest.mock('@/features/trip/hooks', () => ({
   useBoarding: () => mockBoarding,
 }));
 
+jest.mock('@/features/trip/useRouteGeometry', () => ({
+  useRouteGeometry: () => ({ data: undefined, isLoading: false }),
+}));
+
 const mockMapHandle = { animateToRegion: jest.fn(), fitToCoordinates: jest.fn() };
 
 jest.mock('@/features/map/LiveMapView', () => {

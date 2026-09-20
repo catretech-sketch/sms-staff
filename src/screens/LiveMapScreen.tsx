@@ -8,6 +8,7 @@ import { IconBtn, Pill, Skeleton, useToast } from '@/components/ui';
 import { ErrorState } from '@/components/state';
 import { TextScale } from '@/theme/typography';
 import { useTripAssignment, useCurrentTrip, useRoster, useBoarding } from '@/features/trip/hooks';
+import { useRouteGeometry } from '@/features/trip/useRouteGeometry';
 import { LiveMapView } from '@/features/map/LiveMapView';
 import { toMapCoords } from '@/features/map/toMapCoords';
 import { stopRoles } from '@/features/map/stopRoles';
@@ -37,6 +38,7 @@ export const LiveMapScreen = ({ navigation, route }: { navigation: any; route: {
   const tripId = route.params.tripId;
   const roster = useRoster(tripId);
   const boarding = useBoarding(tripId);
+  const geometry = useRouteGeometry(assignment.data?.route.id);
   const mapRef = useRef<LiveMapHandle>(null);
   const hasFitRef = useRef(false);
   const [liveMarker, setLiveMarker] = useState<LiveMarker | null>(null);
@@ -154,7 +156,7 @@ export const LiveMapScreen = ({ navigation, route }: { navigation: any; route: {
         ) : assignment.isError ? (
           <ErrorState onRetry={assignment.refetch} />
         ) : (
-          <LiveMapView ref={mapRef} stops={stops} liveMarker={liveMarker} onMapReady={() => setMapReady(true)} />
+          <LiveMapView ref={mapRef} stops={stops} liveMarker={liveMarker} onMapReady={() => setMapReady(true)} routeGeometry={geometry.data} />
         )}
       </View>
 

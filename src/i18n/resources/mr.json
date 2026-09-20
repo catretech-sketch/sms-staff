@@ -160,6 +160,7 @@
   "trip.distanceM": "{{m}} मीटर",
   "trip.routeSegment": "{{min}} मिनिटे · {{km}} किमी",
   "trip.routeSegmentDistance": "{{km}} किमी",
+  "trip.routeUnavailable": "मार्ग अनुपलब्ध",
   "trip.nextStop": "पुढील थांबा",
   "trip.viewStudents": "विद्यार्थी पहा",
   "trip.studentsExpected": "{{count}} विद्यार्थी",

@@ -1,4 +1,4 @@
-import type { Stop } from '@/data/domain';
+import type { Stop, RouteGeometry } from '@/data/domain';
 
 export interface LiveMarker {
   latitude: number;
@@ -10,6 +10,7 @@ export interface LiveMapViewProps {
   stops: Stop[];
   liveMarker?: LiveMarker | null;
   onMapReady?: () => void;
+  routeGeometry?: RouteGeometry | null;
 }
 
 export interface MapRegion {

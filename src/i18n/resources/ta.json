@@ -160,6 +160,7 @@
   "trip.distanceM": "{{m}} மீ",
   "trip.routeSegment": "{{min}} நிமிடம் · {{km}} கிமீ",
   "trip.routeSegmentDistance": "{{km}} கிமீ",
+  "trip.routeUnavailable": "வழி கிடைக்கவில்லை",
   "trip.nextStop": "அடுத்த நிறுத்தம்",
   "trip.viewStudents": "மாணவர்களைப் பார்",
   "trip.studentsExpected": "{{count}} மாணவர்கள்",

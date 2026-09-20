@@ -42,9 +42,17 @@ describe('LiveMapView (web)', () => {
     mockMapViewProps.length = 0;
   });
 
-  it('renders the map with markers and a polyline when an API key is present', () => {
+  const availableGeometry = {
+    routeId: 'r1', status: 'available' as const, format: 'google-encoded-polyline',
+    geometry: '_p~iF~ps|U_ulLnnqC_mqNvxq`@', distanceMeters: 100, durationSeconds: 10,
+    stopSequenceHash: 'h', generatedAt: null,
+  };
+
+  it('renders the map with markers and a polyline when an API key is present and geometry is available', () => {
     process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY = 'test-key';
-    const { getAllByTestId, getByTestId } = renderWithTheme(<LiveMapView stops={stops} liveMarker={null} />);
+    const { getAllByTestId, getByTestId } = renderWithTheme(
+      <LiveMapView stops={stops} liveMarker={null} routeGeometry={availableGeometry} />
+    );
     expect(getAllByTestId(/^map-stop-/)).toHaveLength(2);
     expect(getByTestId('map-polyline')).toBeTruthy();
   });
@@ -80,5 +88,38 @@ describe('LiveMapView (web)', () => {
     const label = within(getByTestId('map-segment-0')).getByTestId('route-segment-label');
     expect(label).toHaveTextContent(/min/);
     expect(label).toHaveTextContent(/km/);
+  });
+
+  it('renders the decoded road-following polyline when geometry is available', () => {
+    process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY = 'test-key';
+    const { getByTestId } = renderWithTheme(
+      <LiveMapView
+        stops={stops}
+        liveMarker={null}
+        routeGeometry={{
+          routeId: 'r1', status: 'available', format: 'google-encoded-polyline',
+          geometry: '_p~iF~ps|U_ulLnnqC_mqNvxq`@', distanceMeters: 100, durationSeconds: 10,
+          stopSequenceHash: 'h', generatedAt: null,
+        }}
+      />
+    );
+    expect(getByTestId('map-polyline')).toBeTruthy();
+  });
+
+  it('renders no polyline and a Route unavailable badge when geometry is unavailable', () => {
+    process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY = 'test-key';
+    const { queryByTestId, getByText } = renderWithTheme(
+      <LiveMapView
+        stops={stops}
+        liveMarker={null}
+        routeGeometry={{
+          routeId: 'r1', status: 'unavailable', format: null,
+          geometry: null, distanceMeters: null, durationSeconds: null,
+          stopSequenceHash: 'h', generatedAt: null,
+        }}
+      />
+    );
+    expect(queryByTestId('map-polyline')).toBeNull();
+    expect(getByText(/route unavailable/i)).toBeTruthy();
   });
 });

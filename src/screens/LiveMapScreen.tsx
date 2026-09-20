@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Linking } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import * as Location from 'expo-location';
@@ -167,6 +167,13 @@ export const LiveMapScreen = ({ navigation, route }: { navigation: any; route: {
     setTimeout(() => setJustCompletedStopName(null), 1200);
   };
 
+  const onNavigate = () => {
+    if (!activeStop) return;
+    Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${activeStop.lat},${activeStop.lng}`).catch(() =>
+      toast.show(t('common.somethingWrong'), 'error')
+    );
+  };
+
   return (
     <View style={styles.fill}>
       <View style={styles.map}>
@@ -255,6 +262,7 @@ export const LiveMapScreen = ({ navigation, route }: { navigation: any; route: {
                   {etaMin != null ? ` · ${t('trip.etaMin', { min: etaMin })}` : ''}
                 </Text>
               </View>
+              <IconBtn testID="navigate-btn" icon="location" label={t('trip.navigate')} onPress={onNavigate} color={colors.primary} />
             </View>
             {gpsUnavailable && progress.state === 'EN_ROUTE' && (
               <Btn

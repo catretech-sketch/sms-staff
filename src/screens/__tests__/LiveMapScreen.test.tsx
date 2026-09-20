@@ -255,4 +255,21 @@ describe('LiveMapScreen', () => {
     await waitFor(() => expect(getByTestId('has-live-marker')).toBeTruthy());
     expect(queryByTestId('manual-arrived-btn')).toBeNull();
   });
+
+  it('opens the device maps app with the active stop\'s coordinates when Navigate is pressed', async () => {
+    const { Linking } = require('react-native');
+    jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
+    const { getByTestId } = render(
+      <ThemeProvider>
+        <ToastProvider>
+          <LiveMapScreen navigation={{ goBack: jest.fn() }} route={{ params: { tripId: 't1' } }} />
+        </ToastProvider>
+      </ThemeProvider>
+    );
+    await waitFor(() => expect(getByTestId('has-live-marker')).toBeTruthy());
+    fireEvent.press(getByTestId('navigate-btn'));
+    expect(Linking.openURL).toHaveBeenCalledWith(
+      expect.stringContaining('destination=12.2,77.2')
+    );
+  });
 });

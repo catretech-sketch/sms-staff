@@ -86,6 +86,22 @@ it('shows a pickup progress bar that tracks boarded students', async () => {
   );
 });
 
+it('shows a static pre-trip student pickup count with no roster data yet', async () => {
+  const { getByTestId, findByText } = await renderScreen();
+  await findByText(/Route 7/);
+  const bar = getByTestId('pretrip-pickup-progress');
+  expect(bar.props.accessibilityValue).toEqual({ min: 0, max: 24, now: 0 });
+});
+
+it('shows the vehicle card with fallback text when no inspection or fuel records exist, and navigates to Vehicle Check', async () => {
+  const { getByTestId, findByText, nav } = await renderScreen();
+  await findByText(/Route 7/);
+  expect(getByTestId('vehicle-last-inspection')).toHaveTextContent('Last inspection: None yet');
+  expect(getByTestId('vehicle-last-fuel-entry')).toHaveTextContent('Last fuel entry: None yet');
+  fireEvent.press(getByTestId('trip-vehicle-details'));
+  expect(nav.navigate).toHaveBeenCalledWith('VehicleCheck');
+});
+
 it('navigates to LiveMap with the current tripId when "View Live Map" is pressed', async () => {
   const { getByTestId, findByText, nav, repos } = await renderScreen();
   await findByText(/Route 7/);

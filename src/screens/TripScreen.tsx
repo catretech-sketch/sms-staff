@@ -8,13 +8,30 @@ import { IconBtn, Btn, Card, Pill, RouteStrip, Skeleton, useToast } from '@/comp
 import { Icon } from '@/components/icons';
 import { ErrorState } from '@/components/state';
 import { TextScale } from '@/theme/typography';
-import { useTripAssignment, useCurrentTrip, useStartTrip, useEndTrip, useRoster, useBoarding } from '@/features/trip/hooks';
+import {
+  useTripAssignment, useCurrentTrip, useStartTrip, useEndTrip, useRoster, useBoarding,
+} from '@/features/trip/hooks';
+import { useVehicleInspections, useFuelLogs } from '@/features/vehicleChecks/hooks';
 import { startBroadcast, stopBroadcast } from '@/features/trip/broadcaster';
 import { simulateBusPosition } from '@/features/trip/simulateBus';
 import { isAppError } from '@/lib/errors';
 import type { TripDirection, TripSummary, BoardingState } from '@/data/domain';
 
 const NEXT: Record<BoardingState, BoardingState> = { boarded: 'dropped', dropped: 'absent', absent: 'boarded' };
+
+const ProgressBar: React.FC<{ testID: string; now: number; max: number; accent: string }> = ({ testID, now, max, accent }) => {
+  const { colors } = useTheme();
+  return (
+    <View
+      testID={testID}
+      accessibilityRole="progressbar"
+      accessibilityValue={{ min: 0, max, now }}
+      style={[styles.progressTrack, { backgroundColor: colors.sunken }]}
+    >
+      <View style={[styles.progressFill, { backgroundColor: accent, width: max > 0 ? `${(now / max) * 100}%` : '0%' }]} />
+    </View>
+  );
+};
 
 const RosterPanel: React.FC<{ tripId: string; accent: string }> = ({ tripId, accent }) => {
   const { t } = useTranslation();
@@ -32,14 +49,7 @@ const RosterPanel: React.FC<{ tripId: string; accent: string }> = ({ tripId, acc
         <Text style={[TextScale.cardTitle, { color: accent }]}>{t('trip.roster')}</Text>
         <Text testID="headcount" style={[TextScale.bodyStrong, { color: colors.ink }]}>{`${onBoard} / ${total}`}</Text>
       </View>
-      <View
-        testID="roster-progress"
-        accessibilityRole="progressbar"
-        accessibilityValue={{ min: 0, max: total, now: onBoard }}
-        style={[styles.progressTrack, { backgroundColor: colors.sunken }]}
-      >
-        <View style={[styles.progressFill, { backgroundColor: accent, width: total > 0 ? `${(onBoard / total) * 100}%` : '0%' }]} />
-      </View>
+      <ProgressBar testID="roster-progress" now={onBoard} max={total} accent={accent} />
       {roster.data?.map((s) => {
         const st = stateFor(s.id);
         const color = st === 'boarded' ? colors.success : st === 'dropped' ? colors.inkSoft : colors.danger;
@@ -55,6 +65,36 @@ const RosterPanel: React.FC<{ tripId: string; accent: string }> = ({ tripId, acc
           </Pressable>
         );
       })}
+    </Card>
+  );
+};
+
+const formatDate = (iso: string) => new Date(iso).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
+
+const VehicleCard: React.FC<{ busId: string; navigation: any }> = ({ busId, navigation }) => {
+  const { t } = useTranslation();
+  const { colors } = useTheme();
+  const inspections = useVehicleInspections(busId);
+  const fuelLogs = useFuelLogs(busId);
+  const lastInspection = inspections.data?.[0];
+  const lastFuelLog = fuelLogs.data?.[0];
+
+  return (
+    <Card>
+      <Text style={[TextScale.cardTitle, { color: colors.ink }]}>{t('trip.vehicle')}</Text>
+      <Text testID="vehicle-last-inspection" style={[TextScale.body, { color: colors.inkSoft, marginTop: 8 }]}>
+        {t('trip.lastInspection', { date: lastInspection ? formatDate(lastInspection.inspectionDate) : t('trip.noneYet') })}
+      </Text>
+      <Text testID="vehicle-last-fuel-entry" style={[TextScale.body, { color: colors.inkSoft, marginTop: 4 }]}>
+        {t('trip.lastFuelEntry', { date: lastFuelLog ? formatDate(lastFuelLog.recordedAt) : t('trip.noneYet') })}
+      </Text>
+      <Btn
+        testID="trip-vehicle-details"
+        label={t('trip.vehicleDetails')}
+        variant="ghost"
+        onPress={() => navigation.navigate('VehicleCheck')}
+        style={styles.cta}
+      />
     </Card>
   );
 };
@@ -216,6 +256,20 @@ export const TripScreen = ({ navigation }: { navigation: any }) => {
                   </View>
                 ))}
               </Card>
+            )}
+            {(role.key === 'driver' || role.key === 'conductor') && assignment.data && (
+              <Card>
+                <View style={styles.rosterHead}>
+                  <Text style={[TextScale.cardTitle, { color: accent }]}>{t('trip.studentPickup')}</Text>
+                  <Text testID="pretrip-pickup-count" style={[TextScale.bodyStrong, { color: colors.ink }]}>
+                    {`0 / ${assignment.data.studentsAssigned}`}
+                  </Text>
+                </View>
+                <ProgressBar testID="pretrip-pickup-progress" now={0} max={assignment.data.studentsAssigned} accent={accent} />
+              </Card>
+            )}
+            {(role.key === 'driver' || role.key === 'conductor') && assignment.data && (
+              <VehicleCard busId={assignment.data.busId} navigation={navigation} />
             )}
             {(role.key === 'driver' || role.key === 'conductor') && (
               <Card>

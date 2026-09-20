@@ -49,7 +49,7 @@ describe('useStopProgress', () => {
       { tripId: 't1', studentId: 'st1', stopId: 's1', state: 'boarded', at: '2026-09-20T00:00:00Z' },
     ];
     const { result, rerender } = renderHook(
-      ({ boarding }) => useStopProgress(stops, roster, boarding, far),
+      ({ boarding }: { boarding: Boarding[] }) => useStopProgress(stops, roster, boarding, far),
       { initialProps: { boarding: [] as Boarding[] } },
     );
     act(() => result.current.markArrivedManually());

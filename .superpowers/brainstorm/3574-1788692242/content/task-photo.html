@@ -1,0 +1,59 @@
+<style>
+  .phone { background:#F2EEE4; border-radius:20px; padding:16px; width:320px; font-family:-apple-system,Manrope,sans-serif; }
+  .sec-label { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+  .sec-label h4 { font-size:13px; font-weight:800; color:#15231E; margin:0; text-transform:uppercase; letter-spacing:0.3px; }
+  .sec-label span { font-size:12px; font-weight:700; color:#E08A3C; }
+  .task-row { display:flex; align-items:center; gap:10px; padding:12px 0; border-bottom:1px solid rgba(21,35,30,0.08); }
+  .task-row:last-child { border-bottom:none; }
+  .dot { width:8px; height:8px; border-radius:4px; background:#9CB0A7; flex-shrink:0; }
+  .dot.urgent { background:#DA5347; }
+  .task-title { flex:1; font-size:14px; font-weight:600; color:#15231E; }
+  .cam-btn { width:32px; height:32px; border-radius:16px; background:#FFFFFF; border:1px solid rgba(21,35,30,0.12); display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; }
+  .thumb { width:32px; height:32px; border-radius:8px; background:linear-gradient(135deg,#E08A3C,#c76f24); display:flex; align-items:center; justify-content:center; color:white; font-size:13px; flex-shrink:0; position:relative; }
+  .thumb::after { content:'✓'; position:absolute; bottom:-4px; right:-4px; width:14px; height:14px; border-radius:7px; background:#2E9E6B; color:white; font-size:9px; display:flex; align-items:center; justify-content:center; border:1.5px solid #F2EEE4; }
+</style>
+
+<h2>Task photo upload on the Home preview card</h2>
+<p class="subtitle">Camera icon per task row. Tapping it opens the photo picker. A task with a photo attached shows a small thumbnail with a checkmark instead.</p>
+
+<div class="mockup">
+  <div class="mockup-header">Preview: Home → Pending Tasks card</div>
+  <div class="mockup-body">
+    <div class="phone">
+      <div class="sec-label"><h4>Pending Tasks</h4><span>View all</span></div>
+      <div class="task-row">
+        <div class="dot urgent"></div>
+        <div class="task-title">Clean bus interior before 8 AM run</div>
+        <div class="cam-btn">📷</div>
+      </div>
+      <div class="task-row">
+        <div class="dot"></div>
+        <div class="task-title">Water the front lawn beds</div>
+        <div class="thumb">🌿</div>
+      </div>
+      <div class="task-row">
+        <div class="dot"></div>
+        <div class="task-title">Check fire extinguisher tags</div>
+        <div class="cam-btn">📷</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Does this match?</h3>
+  <div class="options">
+    <div class="option" data-choice="matches" onclick="toggleSelect(this)">
+      <div class="letter">✓</div>
+      <div class="content"><h3>Yes, this is it</h3><p>Camera icon per row, thumbnail+check once uploaded.</p></div>
+    </div>
+    <div class="option" data-choice="tasks-screen-instead" onclick="toggleSelect(this)">
+      <div class="letter">✕</div>
+      <div class="content"><h3>Put it on the Tasks screen instead</h3><p>Not the Home preview card.</p></div>
+    </div>
+    <div class="option" data-choice="both" onclick="toggleSelect(this)">
+      <div class="letter">＋</div>
+      <div class="content"><h3>Both places</h3><p>Home preview AND the full Tasks screen.</p></div>
+    </div>
+  </div>
+</div>

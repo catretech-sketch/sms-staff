@@ -101,10 +101,9 @@ export const CheckInButton: React.FC<CheckInButtonProps> = ({
         <Animated.View
           style={[
             styles.pulseRing,
-            { borderColor: accent },
+            { borderColor: accent, pointerEvents: 'none' },
             pulseStyle,
           ]}
-          pointerEvents="none"
         />
       )}
 

@@ -159,12 +159,10 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onDone }) => {
       >
         {/* Drifting blurred orbs */}
         <Animated.View
-          style={[styles.orb, styles.orb1, orb1Style, { backgroundColor: colors.onBrandSoft }]}
-          pointerEvents="none"
+          style={[styles.orb, styles.orb1, orb1Style, { backgroundColor: colors.onBrandSoft, pointerEvents: 'none' }]}
         />
         <Animated.View
-          style={[styles.orb, styles.orb2, orb2Style, { backgroundColor: colors.onBrandSoft }]}
-          pointerEvents="none"
+          style={[styles.orb, styles.orb2, orb2Style, { backgroundColor: colors.onBrandSoft, pointerEvents: 'none' }]}
         />
 
         <View style={styles.center}>
@@ -175,18 +173,16 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onDone }) => {
               style={[
                 styles.ring,
                 ring1Style,
-                { borderColor: colors.onPrimary },
+                { borderColor: colors.onPrimary, pointerEvents: 'none' },
               ]}
-              pointerEvents="none"
             />
             {/* Pulse ring 2 */}
             <Animated.View
               style={[
                 styles.ring,
                 ring2Style,
-                { borderColor: colors.onPrimary },
+                { borderColor: colors.onPrimary, pointerEvents: 'none' },
               ]}
-              pointerEvents="none"
             />
 
             {/* Logo mark */}

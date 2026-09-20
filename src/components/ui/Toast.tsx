@@ -89,7 +89,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   return (
     <ToastContext.Provider value={api}>
       {children}
-      <View style={styles.container} pointerEvents="none">
+      <View style={[styles.container, { pointerEvents: 'none' }]}>
         {toasts.map(toast => {
           const anim = animsRef.current[toast.id];
           if (!anim) return null;

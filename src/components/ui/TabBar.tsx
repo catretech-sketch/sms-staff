@@ -73,9 +73,8 @@ export const TabBar: React.FC<TabBarProps> = ({ state, navigation, descriptors }
     <View
       style={[
         styles.outerContainer,
-        { paddingBottom: insets.bottom + BAR_MARGIN_BOTTOM },
+        { paddingBottom: insets.bottom + BAR_MARGIN_BOTTOM, pointerEvents: 'box-none' },
       ]}
-      pointerEvents="box-none"
     >
       <View
         style={[

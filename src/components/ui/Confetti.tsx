@@ -121,7 +121,7 @@ export const Confetti = forwardRef<ConfettiHandle, ConfettiProps>(
     }));
 
     return (
-      <View style={styles.container} pointerEvents="none">
+      <View style={[styles.container, { pointerEvents: 'none' }]}>
         {particles.map(({ index, color }) => (
           <ParticleItem
             key={index}
